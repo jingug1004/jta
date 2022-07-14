@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 디버그 모드 허용 IP -->
+<debug-mode>
+    <ip name="*">true</ip>
+</debug-mode>
+
+<!-- 관리자 로그인 허용 IP -->
+<admin-login>
+    <ip name="*">true</ip>
+</admin-login>
+
+<!-- 기본 언어코드 -->
+<default-lang-code>ko-kr</default-lang-code>
+
+<!-- 기본 사용자 ID -->
+<default-user-id>0000000000</default-user-id>
+
+<!-- Context 초기화 여부 -->
+<context-initialize>false</context-initialize>
+
+<!-- 시스템 명칭 -->
+<system-title>JIPOS</system-title>
+
+<!-- 시스템 오류 출력 여부 -->
+<show-system-error>true</show-system-error>
+
+<!-- 세션 타임아웃(초) -->
+<session-timeout></session-timeout>
+
+<!-- DB 연결정보 -->
+<connection name="default">
+    <jndi-name>java:/comp/env/jdbc/default</jndi-name>
+    <lob-writer>anyfive.framework.dao.LobWriter</lob-writer>
+</connection>
+<!-- DB 연결정보 - 인사시스템 -->
+<connection name="hr">
+    <connection-manager>anyfive.framework.connection.HRConnectionManager</connection-manager>
+    <connection-info>
+        <driver>oracle.jdbc.driver.OracleDriver</driver>
+        <url>jdbc:oracle:thin:@//192.168.1.3:1521/EHR</url>
+        <username>interface</username>
+        <password>ehrinterface</password>
+    </connection-info>
+</connection>
+
+<!-- 환경설정폴더 -->
+<env-path>
+    <root>{#home}/../env</root>
+    <env name="message">/message.archive</env>
+    <env name="queryxml">/queryxml.archive</env>
+    <env name="filetemplate">/filetemplate</env>
+    <env name="mailtemplate">/mailtemplate.archive</env>
+    <env name="codedata">/codedata.archive</env>
+</env-path>
+
+<!-- 동적 쿼리(Velocity Template Engine) -->
+<dynamic-query>
+    <enable>true</enable>
+</dynamic-query>
+
+<!-- Validation 체크 -->
+<valid-check>
+    <skip-access-check>
+    </skip-access-check>
+    <skip-session-check>
+        <skip path="/anyfive.framework.message.act.RetrieveMessage.do">false</skip>
+        <skip path="/anyfive.ipims.share.login.act.*">true</skip>
+    </skip-session-check>
+</valid-check>
+
+<!-- 에러 페이지 -->
+<error-page>
+    <access>/anyfive/framework/error/InvalidAccess.jsp</access>
+    <session>/anyfive/framework/error/InvalidSession.jsp</session>
+</error-page>
+
+<!-- 로그 설정 -->
+<log>
+    <path>{#home}/logs</path>
+    <month-folder>true</month-folder>
+    <trace-level>
+        <debug    file="false" console="false" />
+        <error    file="true" console="false" />
+        <dbwrap   file="false" console="false" />
+        <schedule file="false" console="false" />
+        <system   file="false" console="false" />
+    </trace-level>
+</log>
+
+<!-- 메세지 설정 -->
+<message>
+    <use>true</use>
+    <db-spec>
+        <connection-name>default</connection-name>
+        <table-name>TB_SYS_MESSAGE</table-name>
+        <id-column>MSG_ID</id-column>
+        <lang-column>LANG_CODE</lang-column>
+        <text-column>MSG_TEXT</text-column>
+    </db-spec>
+</message>
+
+<!-- 코드데이터 그룹 설정 -->
+<codedata-group>
+    <use>true</use>
+    <db-spec>
+        <connection-name>default</connection-name>
+        <group-column-name>CODE_GRP_ID</group-column-name>
+        <lang-column-name>LANG_CODE</lang-column-name>
+        <query-string><![CDATA[
+        SELECT A.CODE_GRP_ID
+             , C.LANG_CODE
+             , B.CODE_VALUE_ID CODE
+             , C.CODE_NAME NAME
+        FROM   TB_COM_CODE_GRP A
+             , TB_COM_CODE_VALUE B
+             , TB_COM_CODE_NAME C
+        WHERE  A.CODE_GRP = B.CODE_GRP
+        AND    B.CODE_GRP = C.CODE_GRP
+        AND    B.CODE_VALUE = C.CODE_VALUE
+        AND    B.USE_YN = '1'
+        ORDER BY B.CODE_GRP, B.DISP_ORD
+        ]]></query-string>
+    </db-spec>
+</codedata-group>
+
+<!-- 메일 설정 -->
+<mail>
+    <smtp-host>127.0.0.1</smtp-host>
+    <smtp-port>25</smtp-port>
+
+    <smtp-auth>
+        <enable>false</enable>
+        <username></username>
+        <password></password>
+        <tls-enable>false</tls-enable>
+        <from-addr></from-addr>
+    </smtp-auth>
+
+    <addr-check>
+        <enable>false</enable>
+        <from-addr></from-addr>
+        <socket-timeout>30000</socket-timeout>
+    </addr-check>
+
+    <content-transfer-encoding>quoted-printable</content-transfer-encoding>
+    <charset>UTF-8</charset>
+    <debug>false</debug>
+</mail>
+
+<!-- 첨부파일 설정 -->
+<file>
+    <content-transfer-encoding>binary;</content-transfer-encoding>
+    <download-filename-encoding>true</download-filename-encoding>
+    <config-path>/file</config-path>
+</file>
+
+</root>

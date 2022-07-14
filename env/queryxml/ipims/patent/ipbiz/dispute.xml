@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+<!-- 분쟁(소송) 목록 조회 -->
+<query name="/retrieveDisputeList"><![CDATA[
+SELECT DISPUTE_ID
+     , MGT_NO
+     , DISPUTE_NO
+     , FN_COUNTRY_NAME(COUNTRY_CODE) COUNTRY_NAME
+     , DISPUTE_SUBJECT
+     , OTHER_NAME
+     , FN_COM_CODE_NAME('DISPUTE_KIND', DISPUTE_KIND, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) DISPUTE_KIND_NAME
+     , REQ_DATE
+     , FN_OFFICE_NAME(OFFICE_CODE) OFFICE_NAME
+     , LAST_DISPOSAL_DATE
+     , FN_COM_CODE_NAME('LAST_DISPOSAL_RESULT', LAST_DISPOSAL_RESULT, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) LAST_RESULT_NAME
+     , JUDGE_MAN
+FROM   TB_IPB_DISPUTE
+WHERE 1=1
+]]></query>
+<query name="/retrieveDisputeList/searchNo"><![CDATA[
+AND    {#SEARCH_TYPE} LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrieveDisputeList/disputeKind"><![CDATA[
+AND    DISPUTE_KIND = {@DISPUTE_KIND}
+]]></query>
+<query name="/retrieveDisputeList/disputeSubject"><![CDATA[
+AND    DISPUTE_SUBJECT LIKE '%'||{@DISPUTE_SUBJECT}||'%'
+]]></query>
+<query name="/retrieveDisputeList/otherOfficeText"><![CDATA[
+AND    MGT_NO IN ( SELECT A.MGT_NO
+                     FROM TB_IPB_DISPUTE A
+                        , TB_ORG_OFFICE B
+                    WHERE A.OFFICE_CODE = B.OFFICE_CODE
+                      AND B.FIRM_HNAME LIKE '%' || {@OTHER_TEXT} ||'%'
+                 )
+]]></query>
+
+<query name="/retrieveDisputeList/otherCountryText"><![CDATA[
+AND    MGT_NO IN ( SELECT A.MGT_NO
+                     FROM TB_IPB_DISPUTE A
+                        , TB_COM_COUNTRY B
+                    WHERE A.COUNTRY_CODE = B.COUNTRY_CODE
+                      AND B.COUNTRY_NAME LIKE '%' || {@OTHER_TEXT} ||'%'
+                 )
+]]></query>
+
+<query name="/retrieveDisputeList/otherText"><![CDATA[
+AND    {#OTHER_KIND} LIKE '%'||{@OTHER_TEXT}||'%'
+]]></query>
+
+<query name="/retrieveDisputeList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveDisputeList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+
+<!-- 분쟁(소송) 생성 -->
+<query name="/createDispute"><![CDATA[
+INSERT INTO TB_IPB_DISPUTE (
+       DISPUTE_ID
+     , MGT_NO
+     , DISPUTE_DIV
+     , DISPUTE_KIND
+     , COUNTRY_CODE
+     , EXAM_USER
+     , REQ_MAN
+     , REQ_DATE
+     , DISPUTE_SUBJECT
+     , DISPUTE_NO
+     , INS_DER_GERICHTE
+     , JUDGE_MAN
+     , LAST_DISPOSAL_DATE
+     , LAST_DISPOSAL_RESULT
+     , DISPUTE_REASON
+     , REMARK
+     , OFFICE_CODE
+     , LAWYER
+     , OTHER_NAME
+     , OFFICE_AGENT
+     , OTHER_ADDR
+     , OTHER_LAWYER
+     , OTHER_AGENT
+     , DEFAULTS
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@DISPUTE_ID}
+     , {@MGT_NO}
+     , {@DISPUTE_DIV}
+     , {@DISPUTE_KIND}
+     , {@COUNTRY_CODE}
+     , {@EXAM_USER}
+     , {@REQ_MAN}
+     , {@REQ_DATE}
+     , {@DISPUTE_SUBJECT}
+     , {@DISPUTE_NO}
+     , {@INS_DER_GERICHTE}
+     , {@JUDGE_MAN}
+     , {@LAST_DISPOSAL_DATE}
+     , {@LAST_DISPOSAL_RESULT}
+     , {@DISPUTE_REASON}
+     , {@REMARK}
+     , {@OFFICE_CODE}
+     , {@LAWYER}
+     , {@OTHER_NAME}
+     , {@OFFICE_AGENT}
+     , {@OTHER_ADDR}
+     , {@OTHER_LAWYER}
+     , {@OTHER_AGENT}
+     , {@DEFAULTS}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 분쟁(소송) 상세조회 -->
+<query name="/retrieveDispute"><![CDATA[
+SELECT MGT_NO
+     , DISPUTE_DIV
+     , DISPUTE_KIND
+     , FN_COM_CODE_NAME('DISPUTE_KIND', DISPUTE_KIND, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) DISPUTE_KIND_NAME
+     , COUNTRY_CODE
+     , FN_COUNTRY_NAME(COUNTRY_CODE) COUNTRY_NAME
+     , EXAM_USER
+     , REQ_MAN
+     , REQ_DATE
+     , DISPUTE_SUBJECT
+     , DISPUTE_NO
+     , JUDGE_MAN
+     , LAST_DISPOSAL_DATE
+     , LAST_DISPOSAL_RESULT
+     , FN_COM_CODE_NAME('LAST_DISPOSAL_RESULT', LAST_DISPOSAL_RESULT, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) LAST_RESULT_NAME
+     , DISPUTE_REASON
+     , REMARK
+     , OFFICE_CODE
+     , FN_OFFICE_NAME(OFFICE_CODE) OFFICE_NAME
+     , LAWYER
+     , OFFICE_SEND_DATE
+     , OFFICE_RCPT_DATE
+     , OFFICE_REF_NO
+     , OTHER_NAME
+     , OTHER_ADDR
+     , OTHER_LAWYER
+     , OTHER_AGENT
+     , INS_DER_GERICHTE
+     , DECODE(INS_DER_GERICHTE, '1', '1심', '2심') INS_DER_GERICHTE_NAME
+     , OFFICE_AGENT
+     , DEFAULTS
+     , DISPUTE_DIV
+     , FN_COM_CODE_NAME('LAWSUIT', DISPUTE_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) DISPUTE_DIV_NAME
+FROM   TB_IPB_DISPUTE
+WHERE  DISPUTE_ID = {@DISPUTE_ID}
+]]></query>
+
+<!-- 분쟁(소송) 수정 -->
+<query name="/updateDispute"><![CDATA[
+UPDATE TB_IPB_DISPUTE SET
+       DISPUTE_DIV          = {@DISPUTE_DIV}
+     , DISPUTE_KIND         = {@DISPUTE_KIND}
+     , COUNTRY_CODE         = {@COUNTRY_CODE}
+     , EXAM_USER            = {@EXAM_USER}
+     , REQ_MAN              = {@REQ_MAN}
+     , REQ_DATE             = {@REQ_DATE}
+     , DISPUTE_SUBJECT      = {@DISPUTE_SUBJECT}
+     , DISPUTE_NO           = {@DISPUTE_NO}
+     , JUDGE_MAN            = {@JUDGE_MAN}
+     , LAST_DISPOSAL_DATE   = {@LAST_DISPOSAL_DATE}
+     , LAST_DISPOSAL_RESULT = {@LAST_DISPOSAL_RESULT}
+     , DISPUTE_REASON       = {@DISPUTE_REASON}
+     , REMARK               = {@REMARK}
+     , OFFICE_CODE          = {@OFFICE_CODE}
+     , OFFICE_REF_NO        = {@OFFICE_REF_NO}
+     , OTHER_NAME           = {@OTHER_NAME}
+     , OTHER_ADDR           = {@OTHER_ADDR}
+     , OTHER_LAWYER         = {@OTHER_LAWYER}
+     , OTHER_AGENT          = {@OTHER_AGENT}
+     , INS_DER_GERICHTE     = {@INS_DER_GERICHTE}
+     , OFFICE_AGENT         = {@OFFICE_AGENT}
+     , DEFAULTS             = {@DEFAULTS}
+     , UPD_USER             = {@$USER_ID}
+     , UPD_DATE             = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  DISPUTE_ID = {@DISPUTE_ID}
+]]></query>
+
+<!-- 분쟁(소송) 삭제 -->
+<query name="/deleteDispute"><![CDATA[
+DELETE FROM TB_IPB_DISPUTE
+WHERE  DISPUTE_ID = {@DISPUTE_ID}
+]]></query>
+
+<!-- 분쟁(소송) 사무소송부일 업데이트 -->
+<query name="/updateDisputeOfficeSend"><![CDATA[
+UPDATE TB_IPB_DISPUTE SET
+       OFFICE_SEND_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  DISPUTE_ID = {@DISPUTE_ID}
+]]></query>
+
+<!-- 분쟁/소송 진행서류현황 목록 조회 -->
+<query name="/retrieveDisputePaperList"><![CDATA[
+SELECT A.REF_ID
+     , A.LIST_SEQ
+     , C.MGT_NO
+     , C.DISPUTE_NO
+     , B.PAPER_NAME
+     , C.DISPUTE_SUBJECT
+     , C.OTHER_NAME
+     , FN_COUNTRY_NAME(C.COUNTRY_CODE) COUNTRY_NAME
+     , A.PAPER_DATE
+     , FN_PAPER_NAME(C.STATUS) STATUS_NAME
+FROM   TB_PAPER_LIST A
+     , TB_PAPER_MGT_MST B
+     , TB_IPB_DISPUTE C
+WHERE  A.PAPER_CODE = B.PAPER_CODE
+AND    A.REF_ID = C.DISPUTE_ID
+]]></query>
+<query name="/retrieveDisputePaperList/numText"><![CDATA[
+AND    UPPER({#NUM_KIND}) LIKE '%'||UPPER({@NUM_TEXT})||'%'
+]]></query>
+<query name="/retrieveDisputePaperList/countryCode"><![CDATA[
+AND    C.COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveDisputePaperList/otherName"><![CDATA[
+AND    C.OTHER_NAME = {@OTHER_NAME}
+]]></query>
+<query name="/retrieveDisputePaperList/officeCode"><![CDATA[
+AND    C.OFFICE_CODE = {@OFFICE_CODE}
+]]></query>
+<query name="/retrieveDisputePaperList/paperCode"><![CDATA[
+AND    A.PAPER_CODE = {@PAPER_CODE}
+]]></query>
+<query name="/retrieveDisputePaperList/dateStart"><![CDATA[
+AND    {#DATE_KIND} >= {@DATE_START}
+]]></query>
+<query name="/retrieveDisputePaperList/dateEnd"><![CDATA[
+AND    {#DATE_KIND} <= {@DATE_END}
+]]></query>
+<query name="/retrieveDisputePaperList/disputeDiv"><![CDATA[
+AND    C.DISPUTE_DIV = {@DISPUTE_DIV}
+]]></query>
+
+</root>

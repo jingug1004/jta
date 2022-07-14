@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 업무 목록 조회 -->
+<query name="/retrieveWorkMstMgtList"><![CDATA[
+SELECT BIZ_MGT_ID
+     , BIZ_MGT_NAME
+FROM   TB_BIZ_MGT_MST
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveWorkMstMgtList/bizMgtName"><![CDATA[
+AND    UPPER(BIZ_MGT_NAME) LIKE '%'||UPPER({@BIZ_MGT_NAME})||'%'
+]]></query>
+
+<!-- 업무 조회 -->
+<query name="/retrieveWorkMstMgt"><![CDATA[
+SELECT BIZ_MGT_ID
+     , BIZ_MGT_NAME
+FROM   TB_BIZ_MGT_MST
+WHERE  BIZ_MGT_ID = {@BIZ_MGT_ID}
+]]></query>
+
+<!-- 업무 생성 -->
+<query name="/createWorkMstMgt"><![CDATA[
+INSERT INTO TB_BIZ_MGT_MST (
+       BIZ_MGT_ID
+     , BIZ_MGT_NAME
+) VALUES (
+       {@BIZ_MGT_ID}
+     , {@BIZ_MGT_NAME}
+)
+]]></query>
+
+<!-- 업무 수정 -->
+<query name="/updateWorkMstMgt"><![CDATA[
+UPDATE TB_BIZ_MGT_MST SET
+       BIZ_MGT_NAME = {@BIZ_MGT_NAME}
+WHERE  BIZ_MGT_ID = {@BIZ_MGT_ID}
+]]></query>
+
+<!-- 업무 삭제 -->
+<query name="/deleteWorkMstMgt"><![CDATA[
+DELETE FROM TB_BIZ_MGT_MST A
+WHERE  BIZ_MGT_ID = {@BIZ_MGT_ID}
+AND    NOT EXISTS (SELECT 1
+                   FROM   TB_BIZ_MGT_STEP T
+                   WHERE  T.BIZ_MGT_ID = A.BIZ_MGT_ID
+                  )
+]]></query>
+
+</root>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 비용마스터 전표상태 업데이트(1:처리대상) -->
+<query name="/updateCostSlipStatus"><![CDATA[
+UPDATE TB_COST_MST SET
+       SLIP_STATUS = '1'
+WHERE  CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+</root>

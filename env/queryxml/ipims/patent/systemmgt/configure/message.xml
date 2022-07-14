@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 메세지 목록 조회 -->
+<query name="/retrieveMessageList"><![CDATA[
+SELECT A.MSG_ID
+     , B.MSG_TEXT
+FROM   (SELECT DISTINCT MSG_ID FROM TB_SYS_MESSAGE) A
+     , (SELECT MSG_ID, MSG_TEXT FROM TB_SYS_MESSAGE WHERE LANG_CODE = {@LANG_CODE}) B
+WHERE  A.MSG_ID = B.MSG_ID(+)
+]]></query>
+<query name="/retrieveMessageList/searchText"><![CDATA[
+AND    (UPPER(A.MSG_ID) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR UPPER(B.MSG_TEXT) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+]]></query>
+
+<!-- 메세지 조회 -->
+<query name="/retrieveMessage"><![CDATA[
+SELECT LANG_CODE
+     , MSG_TEXT
+FROM   TB_SYS_MESSAGE
+WHERE  MSG_ID = {@MSG_ID}
+]]></query>
+
+<!-- 메세지 중복여부 조회 -->
+<query name="/retrieveMessageExists"><![CDATA[
+SELECT COUNT(*) CNT
+FROM   TB_SYS_MESSAGE
+WHERE  MSG_ID = {@MSG_ID}
+]]></query>
+
+<!-- 메세지 생성 -->
+<query name="/createMessage"><![CDATA[
+INSERT INTO TB_SYS_MESSAGE (
+       MSG_ID
+     , LANG_CODE
+     , MSG_TEXT
+)
+SELECT {@MSG_ID}
+     , {@LANG_CODE}
+     , {@MSG_TEXT}
+FROM   DUAL
+WHERE  {@MSG_TEXT} IS NOT NULL
+]]></query>
+
+<!-- 메세지 삭제 -->
+<query name="/deleteMessage"><![CDATA[
+DELETE TB_SYS_MESSAGE
+WHERE  MSG_ID = {@DEL_MSG_ID}
+]]></query>
+
+</root>

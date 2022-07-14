@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 진행서류 워크플로우 종류 -->
+<codeData name="/wfKind">
+    <row CODE="APP" NAME="출원현황" />
+    <row CODE="OA" NAME="OA현황" />
+</codeData>
+
+<!-- 비용대분류코드 -->
+<query name="/grandCode"><![CDATA[
+SELECT GRAND_NAME NAME
+FROM   TB_COST_MGT_GRANDCODE
+ORDER BY GRAND_NAME
+]]></query>
+
+<!-- 비용상세분류코드 -->
+<query name="/detailCode"><![CDATA[
+SELECT DETAIL_NAME NAME
+FROM   TB_COST_MGT_DETAILCODE
+ORDER BY DETAIL_NAME
+]]></query>
+
+<!-- 업무관리 -->
+<query name="/workMst"><![CDATA[
+SELECT BIZ_MGT_ID CODE
+     , '[' || BIZ_MGT_ID || '] ' || BIZ_MGT_NAME NAME
+FROM   TB_BIZ_MGT_MST
+ORDER BY NAME
+]]></query>
+
+<!-- 업무코드 구분 -->
+<codeData name="/workCodeKind">
+    <row CODE="S" NAME="상태 코드" />
+    <row CODE="A" NAME="액션 코드" />
+</codeData>
+
+<!-- 결재상태 -->
+<query name="/apprStatus"><![CDATA[
+SELECT CODE_VALUE CODE
+     , CODE_NAME NAME
+FROM   TB_APPR_MGT_STATUS
+WHERE  LANG_CODE = {@$DEFAULT_LANG_CODE}
+ORDER BY CODE_VALUE
+]]></query>
+
+<!-- 결재이벤트 -->
+<codeData name="/apprEvent">
+    <row CODE="START"    NAME="시작" />
+    <row CODE="REQUEST"  NAME="결재요청" />
+    <row CODE="NONE"     NAME="결재없음" />
+    <row CODE="CANCEL"   NAME="결재취소" />
+    <row CODE="UPPER"    NAME="상위요청" />
+    <row CODE="AGREE"    NAME="승인" />
+    <row CODE="AGREEALL" NAME="최종승인" />
+    <row CODE="REJECT"   NAME="반려" />
+    <row CODE="REWRITE"  NAME="재작성" />
+    <row CODE="END"      NAME="종료" />
+</codeData>
+
+<!-- 메일 로그 검색구분 -->
+<codeData name="/mailListSearchKind">
+    <row CODE="SUBJECT"   NAME="메일 제목" />
+    <row CODE="FROM_ADDR" NAME="발송자 주소" />
+    <row CODE="FROM_NAME" NAME="발송자 이름" />
+</codeData>
+
+<!-- 메일 발송상태 -->
+<codeData name="/mailStatus">
+    <row CODE="0" NAME="대기중" />
+    <row CODE="1" NAME="발송중" />
+    <row CODE="8" NAME="발송성공" />
+    <row CODE="9" NAME="발송실패" />
+</codeData>
+
+<!-- 사용자 로그 형태 -->
+<codeData name="/userLogType">
+    <row CODE="0" NAME="접속로그" />
+    <row CODE="1" NAME="사용로그" />
+</codeData>
+
+<!-- 사용자 로그 에러여부 -->
+<codeData name="/userLogErrorYn">
+    <row CODE="0" NAME="OK" />
+    <row CODE="1" NAME="ERROR" />
+</codeData>
+
+<!-- 업무 액션 주체 -->
+<codeData name="/bizActOwner">
+    <row CODE="PAT" NAME="특허팀" />
+    <row CODE="INV" NAME="발명자" />
+    <row CODE="OFF" NAME="사무소" />
+    <row CODE="SYS" NAME="시스템" />
+</codeData>
+
+<!-- 업무단계 -->
+<query name="/bizStep"><![CDATA[
+SELECT BIZ_STEP_ID CODE
+     , '[' || BIZ_STEP_ID || '] ' || BIZ_STEP_NAME NAME
+FROM   TB_BIZ_MGT_STEP
+WHERE  BIZ_MGT_ID = (SELECT BIZ_MGT_ID FROM TB_BIZ_MGT_STEP WHERE BIZ_STEP_ID = {@1})
+ORDER BY CODE
+]]></query>
+
+<!-- 결재코드 -->
+<query name="/apprCode"><![CDATA[
+SELECT APPR_CODE CODE
+     , '[' || APPR_CODE || '] ' || APPR_NAME NAME
+FROM   TB_APPR_MGT
+ORDER BY CODE
+]]></query>
+
+<!-- 평가코드 -->
+<query name="/evalCode"><![CDATA[
+SELECT EVAL_CODE CODE
+     , '[' || EVAL_CODE || '] ' || EVAL_TITLE NAME
+FROM   TB_EVAL_CODE
+ORDER BY CODE
+]]></query>
+
+<!-- 평가서 ID -->
+<query name="/evalSheetId"><![CDATA[
+SELECT EVAL_SHEET_ID CODE
+     , '[' || EVAL_SHEET_ID || '] ' || EVAL_SHEET_NAME NAME
+FROM   TB_EVAL_SHEET_MAIN
+ORDER BY CODE
+]]></query>
+
+<!-- 건담당자 일괄변경 검색번호 구분 -->
+<codeData name="/jobManChangeSearchNumberGubun">
+    <row CODE="A.REF_NO" NAME="REF-NO" />
+    <row CODE="A.APP_NO" NAME="출원번호" />
+    <row CODE="A.REG_NO" NAME="등록번호" />
+</codeData>
+
+<!-- 건담당자 일괄변경 검색일자 구분 -->
+<codeData name="/jobManChangeSearchDateGubun">
+    <row CODE="B.PATTEAM_RCPT_DATE" NAME="접수일자" />
+    <row CODE="A.APP_DATE" NAME="출원일자" />
+    <row CODE="A.REG_DATE" NAME="등록일자" />
+</codeData>
+
+</root>

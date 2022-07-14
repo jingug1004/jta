@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 그리드 환경설정 정보 조회 -->
+<query name="/retrieveGridConfig"><![CDATA[
+SELECT COLUMN_YN
+     , SORTING_YN
+FROM   TB_USR_GRID_CONFIG
+WHERE  USER_ID = {@$USER_ID}
+AND    GRID_ID = {@GRID_ID}
+]]></query>
+
+<!-- 그리드 환경설정 생성 -->
+<query name="/createGridConfig"><![CDATA[
+INSERT INTO TB_USR_GRID_CONFIG (
+       USER_ID
+     , GRID_ID
+     , GRID_PATH
+     , COLUMN_YN
+     , SORTING_YN
+) VALUES (
+       {@$USER_ID}
+     , {@GRID_ID}
+     , {@GRID_PATH}
+     , NVL({@COLUMN_YN}, '0')
+     , NVL({@SORTING_YN}, '0')
+)
+]]></query>
+
+<!-- 그리드 환경설정 수정 -->
+<query name="/updateGridConfig"><![CDATA[
+UPDATE TB_USR_GRID_CONFIG SET
+       COLUMN_YN = NVL({@COLUMN_YN}, COLUMN_YN)
+     , SORTING_YN = NVL({@SORTING_YN}, SORTING_YN)
+WHERE  USER_ID = {@$USER_ID}
+AND    GRID_ID = {@GRID_ID}
+]]></query>
+
+<!-- 그리드 컬럼 목록 조회 -->
+<query name="/retrieveGridColumnList"><![CDATA[
+SELECT COL_ID
+     , COL_INDEX
+     , COL_SHOW
+     , COL_FROZEN
+     , COL_WIDTH
+FROM   TB_USR_GRID_COLUMN
+WHERE  USER_ID = {@$USER_ID}
+AND    GRID_ID = {@GRID_ID}
+ORDER  BY COL_INDEX
+]]></query>
+
+<!-- 그리드 컬럼 목록 삭제 -->
+<query name="/deleteGridColumnList"><![CDATA[
+DELETE FROM TB_USR_GRID_COLUMN
+WHERE  USER_ID = {@$USER_ID}
+AND    GRID_ID = {@GRID_ID}
+]]></query>
+
+<!-- 그리드 컬럼 목록 생성 -->
+<query name="/createGridColumnList"><![CDATA[
+INSERT INTO TB_USR_GRID_COLUMN (
+       USER_ID
+     , GRID_ID
+     , COL_ID
+     , COL_INDEX
+     , COL_SHOW
+     , COL_FROZEN
+     , COL_WIDTH
+) VALUES (
+       {@$USER_ID}
+     , {@GRID_ID}
+     , {@COL_ID}
+     , {@COL_INDEX}
+     , {@COL_SHOW}
+     , {@COL_FROZEN}
+     , {@COL_WIDTH}
+)
+]]></query>
+
+<!-- 그리드 정렬 목록 조회 -->
+<query name="/retrieveGridSortingList"><![CDATA[
+SELECT COL_ID
+     , SORT_INDEX
+     , SORT_TYPE
+FROM   TB_USR_GRID_SORTING
+WHERE  USER_ID = {@$USER_ID}
+AND    GRID_ID = {@GRID_ID}
+ORDER  BY SORT_INDEX
+]]></query>
+
+<!-- 그리드 정렬 목록 삭제 -->
+<query name="/deleteGridSortingList"><![CDATA[
+DELETE FROM TB_USR_GRID_SORTING
+WHERE  USER_ID = {@$USER_ID}
+AND    GRID_ID = {@GRID_ID}
+]]></query>
+
+<!-- 그리드 정렬 정보 생성 -->
+<query name="/createGridSortingList"><![CDATA[
+INSERT INTO TB_USR_GRID_SORTING (
+       USER_ID
+     , GRID_ID
+     , COL_ID
+     , SORT_INDEX
+     , SORT_TYPE
+) VALUES (
+       {@$USER_ID}
+     , {@GRID_ID}
+     , {@COL_ID}
+     , {@SORT_INDEX}
+     , {@SORT_TYPE}
+)
+]]></query>
+
+</root>

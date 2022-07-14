@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 전표처리 목록 조회 -->
+<query name="/retrieveSlipProcList"><![CDATA[
+SELECT A.SLIP_ID
+     , A.SLIP_KIND
+     , FN_COM_CODE_NAME('SLIP_KIND', A.SLIP_KIND, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) SLIP_KIND_NAME
+     , A.SLIP_SUBJECT
+     , A.ACCOUNT_PROC_YN
+     , FN_COM_CODE_NAME('ACCOUNT_PROC_YN', A.ACCOUNT_PROC_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) ACCOUNT_PROC_YN_NAME
+     , NVL(B.SLIP_CNT, 0) SLIP_CNT
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , A.CRE_DATE
+FROM   TB_COST_SLIP A
+     , ( SELECT SLIP_ID
+              , COUNT(SLIP_ID) SLIP_CNT
+         FROM   TB_COST_MST
+         GROUP BY SLIP_ID
+        ) B
+WHERE  A.SLIP_ID = B.SLIP_ID(+)
+]]></query>
+<query name="/retrieveSlipProcList/slipSubject"><![CDATA[
+AND    A.SLIP_SUBJECT LIKE '%'||{@SLIP_SUBJECT}||'%'
+]]></query>
+<query name="/retrieveSlipProcList/slipKind"><![CDATA[
+AND    A.SLIP_KIND = {@SLIP_KIND}
+]]></query>
+<query name="/retrieveSlipProcList/accountProcYn"><![CDATA[
+AND    A.ACCOUNT_PROC_YN = {@ACCOUNT_PROC_YN}
+]]></query>
+
+<!-- 비용 전표작성 -->
+<query name="/createSlipProc"><![CDATA[
+INSERT INTO TB_COST_SLIP (
+       SLIP_ID
+     , SLIP_KIND
+     , SLIP_SUBJECT
+     , ACCOUNT_PROC_YN
+     , OFFICE_CODE
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@SLIP_ID}
+     , {@SLIP_KIND}
+     , {@SLIP_SUBJECT}
+     , '0'
+     , {@OFFICE_CODE}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE,'YYYYMMDD')
+)
+]]></query>
+
+<!-- 인터페이스 전표 작성 - ERP연동 -->
+<query name="/createSlipIF"><![CDATA[
+INSERT INTO IF_COST_SLIP (
+      IF_SLIP_ID
+    , EMP_NO
+    , RIGHT_DIV
+    , REG_NO
+    , REG_DATE
+    , APP_NO
+    , CC_CD
+    , DEPT_CODE
+    , TXT
+    , TAX_CODE
+    , SLIP_ID
+    , SLIP_KIND
+    , INVOICE_DATE
+    , PAYMENT_DATE
+    , ASSET_NO
+    , COST_DATE
+    , SLIP_SUBJECT
+    , SUPER_TAX
+    , ACCOUNT_PROC_YN
+    , ACCOUNT_PROC_DATE
+    , ACCOUNT_PROC_USER
+    , ACCOUNT_SLIP_NO
+    , OFFICE_CODE
+    , COST_SEQ
+    , COST_KIND
+    , WON_PRICE
+    , PRICE
+    , CURRENCY_UNIT
+    , EXCHANGE_RATIO
+    , EXCHANGE_DATE
+    , EXT_GOVERNMENT_PAY
+    , INT_OFFICE_CHARGE
+    , EXT_OFFICE_CHARGE
+    , COMMON_PAY
+    , ABSTRACT
+    , SLIP_STATUS
+    , COST_PROC_DIV
+    , CRE_USER
+    , CRE_DATE
+    , SAP_CODE
+    , FLAG
+    , END_YN
+    , REF_ID
+)
+SELECT {@IF_SLIP_ID}
+    , UP.EMP_NO
+    , AM.RIGHT_DIV
+    , AM.REG_NO
+    , AM.REG_DATE
+    , AM.APP_NO
+    , CD.CC_CD
+    , CD.DEPT_CODE
+    , CS.E_MSG
+    , CASE WHEN CS.SLIP_KIND IN ('A','T','C') AND CMD.TAX_YN = '1' THEN 'IA'
+           WHEN CS.SLIP_KIND = 'B'  THEN 'K7'
+      ELSE NULL END TAX_CODE
+    , CS.SLIP_ID
+    , CS.SLIP_KIND
+    , CS.INVOICE_DATE
+    , CS.PAYMENT_DATE
+    , AM.ASSET_NO
+    , CS.COST_DATE
+    , CS.SLIP_SUBJECT
+    , ROUND(DECODE(CMD.TAX_YN,'1',CM.WON_PRICE*0.1,'0'),1)
+    , '0'
+    , ''
+    , {@$USER_ID}
+    , CS.ACCOUNT_SLIP_NO
+    , CS.OFFICE_CODE
+    , CM.COST_SEQ
+    , CM.COST_KIND
+    , CM.WON_PRICE
+    , CM.PRICE
+    , CM.CURRENCY_UNIT
+    , CM.EXCHANGE_RATIO
+    , CM.EXCHANGE_DATE
+    , CM.EXT_GOVERNMENT_PAY
+    , CM.INT_OFFICE_CHARGE
+    , CM.EXT_OFFICE_CHARGE
+    , CM.COMMON_PAY
+    , CM.ABSTRACT
+    , CM.SLIP_STATUS
+    , CM.COST_PROC_DIV
+    , UP.EMP_NO
+    , TO_CHAR(SYSDATE,'YYYYMMDD')
+    , OFF.SAP_CODE
+    , 'I'
+    , '0'
+    , AM.REF_ID
+FROM TB_COST_MST CM
+LEFT JOIN TB_COST_SLIP CS ON CM.SLIP_ID = CS.SLIP_ID
+LEFT JOIN TB_APP_MST AM ON AM.REF_ID = CM.REF_ID
+LEFT JOIN TB_ORG_DEPT CD ON CD.DEPT_CODE = AM.DEPT_CODE
+LEFT JOIN TB_ORG_OFFICE OFF ON OFF.OFFICE_CODE = CM.OFFICE_CODE
+LEFT JOIN TB_USR_PATENT UP ON CS.CRE_USER = UP.USER_ID
+INNER JOIN TB_COST_MGT_DETAILCODE CMD ON CMD.GRAND_CODE = CM.GRAND_CODE AND CMD.DETAIL_CODE = CM.DETAIL_CODE
+WHERE CS.SLIP_ID = {@SLIP_ID}
+AND   CM.COST_SEQ = {@COST_SEQ}
+]]></query>
+
+<!-- 비용목록 전표ID(SLIP_ID) 수정 - COST_SEQ별 -->
+<query name="/updateSlipIdByCostSeq"><![CDATA[
+UPDATE TB_COST_MST SET
+       SLIP_ID  = {@SLIP_ID}
+WHERE  COST_SEQ = {@COST_SEQ}
+]]></query>
+
+<!-- 비용목록 전표ID(SLIP_ID) 수정 - CONSULT_ID별 -->
+<query name="/updateSlipIdByConsultId"><![CDATA[
+UPDATE TB_COST_MST SET
+       SLIP_ID  = {@SLIP_ID}
+WHERE  CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 전표처리 상세조회 -->
+<query name="/retrieveCostSeq"><![CDATA[
+SELECT CM.COST_SEQ
+      ,ROUND(DECODE(CMD.TAX_YN,'1',CM.WON_PRICE*0.1,'0'),1)
+FROM   TB_COST_SLIP CS
+INNER JOIN TB_COST_MST CM ON CS.SLIP_ID = CM.SLIP_ID
+INNER JOIN TB_COST_MGT_DETAILCODE CMD ON CMD.GRAND_CODE = CM.GRAND_CODE AND CMD.DETAIL_CODE = CM.DETAIL_CODE
+WHERE CS.SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- 전표처리 상세조회 -->
+<query name="/retrieveSlipProc"><![CDATA[
+SELECT A.SLIP_ID
+     , A.SLIP_KIND
+     , FN_COM_CODE_NAME('SLIP_KIND', A.SLIP_KIND, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) SLIP_KIND_NAME
+     , A.SLIP_SUBJECT
+     , A.COST_DATE
+     , A.INVOICE_DATE
+     , A.PAYMENT_DATE
+     , (SELECT SUM(ROUND(DECODE(DETAILCODE.TAX_YN,'1',MST.WON_PRICE*0.1,'0'),1))TAX
+        FROM TB_COST_MST MST,TB_COST_MGT_DETAILCODE DETAILCODE
+        WHERE MST.GRAND_CODE = DETAILCODE.GRAND_CODE
+        AND   MST.DETAIL_CODE= DETAILCODE.DETAIL_CODE
+        AND   MST.SLIP_ID = A.SLIP_ID )SUPER_TAX
+     , (SELECT SUM(WON_PRICE) FROM TB_COST_MST WHERE SLIP_ID = A.SLIP_ID) TOT_WON_PRICE
+     , A.ACCOUNT_PROC_YN
+     , FN_COM_CODE_NAME('ACCOUNT_PROC_YN', A.ACCOUNT_PROC_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) ACCOUNT_PROC_YN_NAME
+     , A.ACCOUNT_PROC_DATE
+     , FN_USER_NAME(A.ACCOUNT_PROC_USER) ACCOUNT_PROC_USER_NAME
+     , A.ACCOUNT_SLIP_NO
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , A.CRE_USER
+     , A.CRE_DATE
+     , A.E_BELNR
+     , A.E_GJAHR
+     , A.E_MSG
+     , B.FLAG
+FROM   TB_COST_SLIP A
+       LEFT JOIN IF_COST_SLIP B ON A.SLIP_ID = B.SLIP_ID
+WHERE  A.SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- 전표처리 상세조회 -->
+<query name="/retrieveSlipProcAssetNo"><![CDATA[
+SELECT A.SLIP_ID
+     , A.SLIP_KIND
+     , FN_COM_CODE_NAME('SLIP_KIND', A.SLIP_KIND, 'KO-KR', 'KO-KR') SLIP_KIND_NAME
+     , A.SLIP_SUBJECT
+     , A.COST_DATE
+     , A.INVOICE_DATE
+     , A.PAYMENT_DATE
+     , (SELECT SUM(DECODE(DETAILCODE.TAX_YN,'1',MST.WON_PRICE*0.1,'0'))TAX
+        FROM TB_COST_MST MST,TB_COST_MGT_DETAILCODE DETAILCODE
+        WHERE MST.GRAND_CODE = DETAILCODE.GRAND_CODE
+        AND   MST.DETAIL_CODE= DETAILCODE.DETAIL_CODE
+        AND   MST.SLIP_ID = A.SLIP_ID )SUPER_TAX
+     , (SELECT SUM(WON_PRICE) FROM TB_COST_MST WHERE SLIP_ID = A.SLIP_ID) TOT_WON_PRICE
+     , A.ACCOUNT_PROC_YN
+     , FN_COM_CODE_NAME('ACCOUNT_PROC_YN', A.ACCOUNT_PROC_YN, 'KO-KR', 'KO-KR') ACCOUNT_PROC_YN_NAME
+     , A.ACCOUNT_PROC_DATE
+     , FN_USER_NAME(A.ACCOUNT_PROC_USER) ACCOUNT_PROC_USER_NAME
+     , A.ACCOUNT_SLIP_NO
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , A.CRE_USER
+     , A.CRE_DATE
+     , A.E_BELNR
+     , A.E_GJAHR
+     , A.E_MSG
+     , C.FLAG
+     , D.FLAG FLAG2
+     ,(SELECT APP.ASSET_NO
+      FROM TB_COST_MST MST,TB_APP_MST APP
+      WHERE MST.REF_ID = APP.REF_ID
+      AND MST.SLIP_ID = A.SLIP_ID)ASSET_NO
+FROM   TB_COST_SLIP A LEFT JOIN TB_COST_MST B ON A.SLIP_ID = B.SLIP_ID
+       LEFT JOIN IF_ASSET_NO C ON B.REF_ID = C.REF_ID
+       LEFT JOIN IF_COST_SLIP D ON A.SLIP_ID = D.SLIP_ID
+WHERE  A.SLIP_ID = {@SLIP_ID}
+]]></query>
+
+
+<!-- 전표전송 조회 - 자산/자본적지출 -->
+<query name="/retriveSlipInfoAsset"><![CDATA[
+SELECT APP.APP_NO, MST.WON_PRICE,APP.ASSET_NO
+FROM TB_COST_SLIP SLIP, TB_COST_MST MST, TB_APP_MST APP
+WHERE SLIP.SLIP_ID = MST.SLIP_ID
+AND MST.REF_ID = APP.REF_ID
+AND SLIP.SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- 전표전송 조회 - 출원포기 -->
+<query name="/retriveSlipInfoReject"><![CDATA[
+SELECT APP.APP_NO, MST.WON_PRICE,DEPT.CC_CD
+FROM TB_COST_SLIP SLIP, TB_COST_MST MST, TB_APP_MST APP
+,TB_USR_PATENT USR,TB_ORG_DEPT DEPT
+WHERE SLIP.SLIP_ID = MST.SLIP_ID
+AND MST.REF_ID = APP.REF_ID
+AND SLIP.CRE_USER = USR.USER_ID
+AND USR.DEPT_CODE = DEPT.DEPT_CODE
+AND SLIP.SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- 전표처리 수정 -->
+<query name="/updateSlipProc"><![CDATA[
+UPDATE TB_COST_SLIP SET
+       SLIP_SUBJECT    = {@SLIP_SUBJECT}
+     , COST_DATE       = {@COST_DATE}
+     , INVOICE_DATE    = {@INVOICE_DATE}
+     , PAYMENT_DATE    = {@PAYMENT_DATE}
+     , SUPER_TAX       = {@SUPER_TAX}
+     , ACCOUNT_SLIP_NO = {@ACCOUNT_SLIP_NO}
+WHERE  SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- 전표처리 수정 - ERP -->
+<query name="/updateSlipIF"><![CDATA[
+UPDATE IF_COST_SLIP SET
+       SLIP_SUBJECT    = {@SLIP_SUBJECT}
+     , COST_DATE       = {@COST_DATE}
+     , INVOICE_DATE    = {@INVOICE_DATE}
+     , PAYMENT_DATE    = {@PAYMENT_DATE}
+     , SUPER_TAX       = {@SUPER_TAX}
+     , ACCOUNT_SLIP_NO = {@ACCOUNT_SLIP_NO}
+     , UPD_USER        = {@$USER_ID}
+     , UPD_DATE        = TO_CHAR(SYSDATE,'YYYYMMDD')
+WHERE  SLIP_ID = {@SLIP_ID}
+AND    COST_SEQ = {@COST_SEQ}
+]]></query>
+
+<!-- 전표처리 삭제 -->
+<query name="/deleteSlipProc"><![CDATA[
+DELETE FROM TB_COST_SLIP
+WHERE  SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- 비용마스터 전표ID 제거 -->
+<query name="/updateCostMasterSlipIdToNull"><![CDATA[
+UPDATE TB_COST_MST SET
+       SLIP_ID = NULL
+WHERE  SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- 출원마스터 자산번호 제거 -->
+<query name="/updateMasterAssetNoToNull"><![CDATA[
+UPDATE TB_APP_MST SET
+       ASSET_NO = NULL
+WHERE  REF_ID = (SELECT REF_ID FROM TB_COST_MST WHERE SLIP_ID ={@SLIP_ID})
+]]></query>
+
+<!-- ERP 전표 상태값 수정 -->
+<query name="/updateErpFlagToD"><![CDATA[
+UPDATE IF_COST_SLIP SET
+       FLAG = 'D'
+WHERE  SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- ERP 자산 제거 -->
+<query name="/deleteAssetNo"><![CDATA[
+DELETE FROM IF_ASSET_NO
+WHERE  REF_ID = (SELECT REF_ID FROM TB_COST_MST WHERE SLIP_ID ={@SLIP_ID})
+]]></query>
+
+<!-- 전표 회계처리 수정 -->
+<query name="/updateSlipProcConfirm"><![CDATA[
+UPDATE TB_COST_SLIP SET
+       ACCOUNT_PROC_YN = '1'
+     , ACCOUNT_PROC_USER = {@$USER_ID}
+     , ACCOUNT_PROC_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- 비용마스터 전표처리상태 수정(처리완료) -->
+<query name="/updateCostMasterSlipStatus"><![CDATA[
+UPDATE TB_COST_MST SET
+       SLIP_STATUS = '9'
+WHERE  SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- 전표번호,회계연도 취소-->
+<query name="/updateCostSapDelete"><![CDATA[
+DELETE TB_COST_SLIP
+WHERE  SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- 전표취소시 자산번호 취소 -->
+<query name="/updateCostAssetNo"><![CDATA[
+UPDATE TB_APP_MST SET
+       ASSET_NO = NULL
+WHERE  REF_ID = (SELECT REF_ID FROM TB_COST_MST WHERE SLIP_ID ={@SLIP_ID})
+]]></query>
+
+<!-- 전표처리상태'1', 전표ID 삭제-->
+<query name="/updateCostStateId"><![CDATA[
+UPDATE TB_COST_MST SET
+       SLIP_STATUS = '1'
+      ,SLIP_ID =''
+WHERE SLIP_ID ={@SLIP_ID}
+]]></query>
+
+<!-- 비용마스터 전표처리상태 수정(처리대상) -->
+<query name="/updateCostMasterSlipStatusTaget"><![CDATA[
+UPDATE TB_COST_MST SET
+       SLIP_STATUS = '1'
+WHERE  SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- ERP - 전표처리상태 수정  -->
+<query name="/updateIFCostSlip"><![CDATA[
+UPDATE IF_COST_SLIP SET
+       SLIP_STATUS = '1'
+      ,SLIP_ID =''
+      ,ASSET_NO = ''
+      ,FLAG = 'D'
+WHERE  SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- ERP - 전표처리상태 수정 - 전표완료 -->
+<query name="/updateCostErp"><![CDATA[
+UPDATE IF_COST_SLIP SET
+       FLAG = 'I'
+WHERE  SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- 자산번호 생성정보 -->
+<query name="/retriveAssetInfo"><![CDATA[
+SELECT APP.REF_ID
+       ,APP.REG_NO
+       ,APP.REG_DATE
+       ,(SELECT CC_CD FROM TB_ORG_DEPT WHERE DEPT_CODE='O000000015')CC_CD
+       ,APP.APP_NO
+       ,APP.APP_DATE
+       ,APP.ASSET_NO
+       ,APP.RIGHT_DIV
+       ,SLIP.COST_DATE
+FROM TB_COST_MST MST
+    ,TB_APP_MST APP
+    ,TB_COST_SLIP SLIP
+WHERE MST.REF_ID = APP.REF_ID
+AND MST.SLIP_ID = SLIP.SLIP_ID
+AND MST.SLIP_ID =  {@SLIP_ID}
+]]></query>
+
+<!-- 자산번호업데이트 -->
+<query name="/updateAppMstAssetNo"><![CDATA[
+UPDATE TB_APP_MST SET
+       ASSET_NO = {@ASSET_NO}
+       ,ASSET_PROC_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 자산번호 작성 -->
+<query name="/createAssetNo"><![CDATA[
+INSERT INTO IF_ASSET_NO(
+      ASSET_ID
+    , REF_ID
+    , REF_NO
+    , RIGHT_DIV
+    , APP_NO
+    , APP_DATE
+    , REG_NO
+    , REG_DATE
+    , SLIP_KIND
+    , COST_DATE
+    , CC_CD
+    , FLAG
+    , END_YN
+    , CRE_DATE
+    , CRE_USER
+)
+SELECT
+      AM.REF_ID
+    , AM.REF_ID
+    , AM.REF_NO
+    , AM.RIGHT_DIV
+    , AM.APP_NO
+    , AM.APP_DATE
+    , AM.REG_NO
+    , AM.REG_DATE
+    , CS.SLIP_KIND
+    , CS.COST_DATE
+    , CD.CC_CD
+    , 'I'
+    , '0'
+    , TO_CHAR(SYSDATE,'YYYYMMDD')
+    , UP.EMP_NO
+FROM TB_APP_MST AM
+LEFT JOIN TB_COST_MST CM ON AM.REF_ID = CM.REF_ID
+LEFT JOIN TB_COST_SLIP CS ON CM.SLIP_ID = CS.SLIP_ID
+LEFT JOIN TB_ORG_DEPT CD ON CD.DEPT_CODE = AM.DEPT_CODE
+LEFT JOIN TB_USR_PATENT UP ON CS.CRE_USER = UP.USER_ID
+WHERE AM.REF_ID = {@REF_ID}
+AND   CS.SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- 자산번호 TEMP 작성 -->
+<query name="/createAssetTemp"><![CDATA[
+INSERT INTO IF_ASSET_TEMP(
+      ASSET_ID
+    , REF_ID
+    , REF_NO
+    , RIGHT_DIV
+    , APP_NO
+    , APP_DATE
+    , REG_NO
+    , REG_DATE
+    , SLIP_KIND
+    , COST_DATE
+    , CC_CD
+    , FLAG
+    , END_YN
+    , CRE_DATE
+    , CRE_USER
+)SELECT
+      {@TEMP_ID}
+    , REF_ID
+    , REF_NO
+    , RIGHT_DIV
+    , APP_NO
+    , APP_DATE
+    , REG_NO
+    , REG_DATE
+    , SLIP_KIND
+    , COST_DATE
+    , CC_CD
+    , FLAG
+    , END_YN
+    , CRE_DATE
+    , CRE_USER
+FROM IF_ASSET_NO
+WHERE  REF_ID = (SELECT REF_ID FROM TB_COST_MST WHERE SLIP_ID ={@SLIP_ID})
+
+]]></query>
+
+</root>

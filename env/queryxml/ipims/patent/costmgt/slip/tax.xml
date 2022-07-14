@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 출원비용 전표작성대상 목록 조회 -->
+<query name="/retrieveTaxSlipList"><![CDATA[
+SELECT A.COST_SEQ
+     , B.REF_ID
+     , B.REF_NO
+     , FN_COM_CODE_NAME('INOUT_DIV', B.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , C.GRAND_NAME
+     , D.DETAIL_NAME
+     , FN_COM_CODE_NAME('APP_COST_KIND', A.COST_KIND, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) COST_KIND_NAME
+     , A.WON_PRICE
+     , A.PRICE
+     , DECODE(D.TAX_YN,'1',A.WON_PRICE*0.1,'0')TAX
+     , CRM.INOUT_DIV
+FROM   TB_COST_MST A
+     , V_MASTER_ALL  B
+     , TB_COST_MGT_GRANDCODE C
+     , TB_COST_MGT_DETAILCODE D
+     , TB_COST_CONSULT E
+     , TB_COST_REQ_MST CRM
+WHERE  A.REF_ID = B.REF_ID
+AND    A.CONSULT_ID = E.CONSULT_ID
+AND    A.GRAND_CODE = C.GRAND_CODE
+AND    A.DETAIL_CODE = D.DETAIL_CODE
+AND    C.GRAND_CODE = D.GRAND_CODE
+AND    A.REQ_ID = CRM.REQ_ID
+AND    A.SLIP_STATUS = '1'
+AND    A.COST_KIND IN ('3')
+AND    A.SLIP_ID IS NULL
+AND    E.APPR_NO IS NOT NULL
+]]></query>
+<query name="/retrieveTaxSlipList/officeCode"><![CDATA[
+AND    A.OFFICE_CODE = {@OFFICE_CODE}
+]]></query>
+<query name="/retrieveTaxSlipList/inoutDiv"><![CDATA[
+AND    B.INOUT_DIV = {@INOUT_DIV}
+]]></query>
+
+<!-- 전표처리 비용 목록 조회 -->
+<query name="/retrieveTaxSlipDetailList"><![CDATA[
+SELECT A.COST_SEQ
+     , B.REF_ID
+     , B.REF_NO
+     , FN_COM_CODE_NAME('INOUT_DIV', B.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , B.INOUT_DIV
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , C.GRAND_NAME
+     , D.DETAIL_NAME
+     , FN_COM_CODE_NAME('APP_COST_KIND', A.COST_KIND, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) COST_KIND_NAME
+     , A.WON_PRICE
+     , A.PRICE
+FROM   TB_COST_MST A
+     , V_MASTER_ALL  B
+     , TB_COST_MGT_GRANDCODE C
+     , TB_COST_MGT_DETAILCODE D
+WHERE  A.REF_ID      = B.REF_ID
+AND    A.GRAND_CODE  = C.GRAND_CODE
+AND    A.DETAIL_CODE = D.DETAIL_CODE
+AND    C.GRAND_CODE  = D.GRAND_CODE
+AND    SLIP_ID       = {@SLIP_ID}
+]]></query>
+
+</root>

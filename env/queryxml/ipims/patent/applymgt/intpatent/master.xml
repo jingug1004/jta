@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 국내출원 마스터 목록 조회 -->
+<query name="/retrieveIntPatentMasterList"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , A.APP_NO
+     , A.KO_APP_TITLE
+     , B.PATTEAM_RCPT_DATE
+     , A.OFFICE_RCPT_DATE
+     , A.APP_DATE
+     , A.REG_NO
+     , A.REG_DATE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , FN_PAPER_NAME(A.STATUS) AS STATUS_NAME
+     , FN_COM_CODE_NAME('EXT_APP_NEED_YN', B.EXT_APP_NEED_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) EXT_APP_NEED_YN_NAME
+     , B.KEY_PAT_YN
+     , FN_COM_CODE_NAME('YES_NO', B.KEY_PAT_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) KEY_PAT_YN_NAME
+     , B.DISPUTE_PAT_YN
+     , FN_COM_CODE_NAME('YES_NO', B.DISPUTE_PAT_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) DISPUTE_PAT_YN_NAME
+     , A.STATUS_DATE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , FN_APP_MAN_LIST(A.REF_ID) APP_EXT_MAN_CODE
+     , C.PJT_NAME
+     , FN_DEPT_NAME(A.DEPT_CODE) DEPT_NAME
+     , F.DUE_DATE
+     , TAA.ABSTRACT
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+     , TB_COM_PJT C
+     , TB_MAPP_PJT D
+     , TB_APP_ABSTRACT TAA
+     , (SELECT REF_ID, MAX(DUE_DATE) DUE_DATE FROM TB_PAPER_LIST GROUP BY REF_ID) F
+WHERE  A.REF_ID = B.REF_ID
+AND    A.REF_ID = D.REF_ID(+)
+AND    A.REF_ID = F.REF_ID(+)
+AND    D.PJT_CODE = C.PJT_CODE(+)
+AND    A.RIGHT_DIV IN ('10', '20')
+AND    A.INOUT_DIV = 'INT'
+AND    A.REF_ID = TAA.REF_ID(+)
+]]></query>
+<query name="/retrieveIntPatentMasterList/inventor"><![CDATA[
+AND   (A.CRE_USER = {@$USER_ID}
+       OR A.REF_ID IN (SELECT E.REF_ID FROM TB_MAPP_INVENTOR E WHERE E.INV_USER = {@$USER_ID}))
+]]></query>
+<query name="/retrieveIntPatentMasterList/refNo"><![CDATA[
+AND    UPPER(A.REF_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+<query name="/retrieveIntPatentMasterList/patNo"><![CDATA[
+AND    UPPER(A.APP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+<query name="/retrieveIntPatentMasterList/regNO"><![CDATA[
+AND    UPPER(A.REG_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+<query name="/retrieveIntPatentMasterList/searchInventor"><![CDATA[
+AND    UPPER(FN_INVENTOR_NAMES(A.REF_ID)) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+<query name="/retrieveIntPatentMasterList/officeCode"><![CDATA[
+AND    A.OFFICE_CODE = {@OFFICE_CODE}
+]]></query>
+<query name="/retrieveIntPatentMasterList/koAppTitle"><![CDATA[
+AND    A.KO_APP_TITLE LIKE '%'||{@KO_APP_TITLE}||'%'
+]]></query>
+<query name="/retrieveIntPatentMasterList/resStatus"><![CDATA[
+AND    A.STATUS = {@RES_STATUS}
+]]></query>
+<query name="/retrieveIntPatentMasterList/paGubun"><![CDATA[
+AND    A.RIGHT_DIV = {@PA_GUBUN}
+]]></query>
+<query name="/retrieveIntPatentMasterList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveIntPatentMasterList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+<query name="/retrieveIntPatentMasterList/jobMan"><![CDATA[
+AND    A.JOB_MAN = {@JOB_MAN}
+]]></query>
+<query name="/retrieveIntPatentMasterList/clevel"><![CDATA[
+AND    B.INV_GRADE = {@CLEVEL}
+]]></query>
+
+<!-- 국내출원 마스터 조회 -->
+<query name="/retrieveIntPatentMaster"><![CDATA[
+SELECT A.REF_NO
+     , A.JOB_MAN
+     , FN_USER_NAME(A.JOB_MAN) AS JOB_MAN_NAME
+     , B.PATTEAM_RCPT_DATE
+     , A.RIGHT_DIV
+     , FN_COM_CODE_NAME('RIGHT_DIV', A.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , A.LAB_CODE
+     , FN_LAB_NAME(A.LAB_CODE) AS LAB_NAME
+     , A.DEPT_CODE
+     , FN_DEPT_NAME(A.DEPT_CODE) AS DEPT_NAME
+     , A.STATUS
+     , FN_PAPER_NAME(A.STATUS) AS STATUS_NAME
+     , A.STATUS_DATE
+     , A.EXAMREQ_YN
+     , A.EXAMREQ_DATE
+     , A.KO_APP_TITLE
+     , A.EN_APP_TITLE
+     , A.OFFICE_CODE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) AS OFFICE_NAME
+     , A.OFFICE_SEND_DATE
+     , A.OFFICE_CONTACT_YN
+     , A.OFFICE_REF_NO
+     , A.OFFICE_JOB_MAN
+     , FN_USER_NAME(A.OFFICE_JOB_MAN) AS OFFICE_JOB_MAN_NAME
+     , A.APP_NO
+     , A.APP_DATE
+     , A.PUB_NO
+     , A.PUB_DATE
+     , A.NOTICE_NO
+     , A.NOTICE_DATE
+     , A.REG_NO
+     , A.REG_DATE
+     , A.IPC_CLS_CODE
+     , FN_APP_NO(B.PRIORITY_REF_ID) AS FIRST_APP_NO
+     , FN_APP_DATE(B.PRIORITY_REF_ID) AS FIRST_APP_DATE
+     , FN_REF_NO(B.PRIORITY_REF_ID) PRIORITY_REF_NO
+     , FN_REF_NO(B.UNION_REF_ID) UNION_REF_NO
+     , A.CORGT_YN
+     , A.CORGT_MAN
+     , A.COSTSHARE_YN
+     , A.COSTSHARE_RATIO
+     , B.INDEP_CLAIM
+     , B.SUBORD_CLAIM
+     , B.PAPER_CNT
+     , B.DRAWING_CNT
+     , B.INV_GRADE
+     , B.ACTR_SUM_TARGET_YN
+     , B.APP_IMMED_YN
+     , B.APP_IMMED_REASON
+     , B.EXT_APP_NEED_YN
+     , B.EXT_APP_NEED_REASON
+     , B.EXT_APP_STATUS
+     , B.BUY_YN
+     , B.BUY_PLACE
+     , B.BUY_DATE
+     , A.ABD_YN
+     , A.ABD_DATE
+     , A.ABD_MEMO
+     , B.KEY_PAT_YN
+     , B.DISPUTE_PAT_YN
+     , A.APPDOC_FILE
+     , A.ETC_MEMO
+     , D.ABSTRACT AB_ABSTRACT
+     , D.CLAIM AB_CLAIM
+     , R1.REWARD_GIVETARGET_YN APP_REWARD_GIVETARGET_YN
+     , R1.REWARD_GIVE_AMOUNT APP_REWARD_GIVE_AMOUNT
+     , R1.REWARD_GIVE_DATE APP_REWARD_GIVE_DATE
+     , R2.REWARD_GIVETARGET_YN REG_REWARD_GIVETARGET_YN
+     , R2.REWARD_GIVE_AMOUNT REG_REWARD_GIVE_AMOUNT
+     , R2.REWARD_GIVE_DATE REG_REWARD_GIVE_DATE
+     , NVL(TO_NUMBER(A.DIVISION_LEVEL), 0) DIVISION_LEVEL
+     , A.COSTSHARE_OWNER
+     , FN_APP_MAN_NAME(A.COSTSHARE_OWNER) COSTSHARE_OWNER_NAME
+     , A.REVIEW_RESULT
+     , A.SALE_YN
+     , A.SALE_PLACE
+     , A.SALE_DATE
+     , A.REVIEW_GRADE
+     , A.LAST_GRADE
+     , A.PAT_APP_NO
+     , A.DEPT_CODE
+     , FN_DEPT_NAME(A.DEPT_CODE) DEPT_NAME
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+     , (SELECT T1.REF_ID
+             , T2.PRIORITY_REF_ID
+             , T1.APP_NO
+             , T1.APP_DATE
+        FROM   TB_APP_MST T1
+             , TB_APP_MST_INT T2
+        WHERE  T2.PRIORITY_REF_ID = {@REF_ID}
+        AND    T1.REF_ID = T2.REF_ID
+        ORDER BY APP_DATE, APP_NO
+       ) C
+     , TB_APP_ABSTRACT D
+     , TB_APP_REWARD R1
+     , TB_APP_REWARD R2
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.REF_ID = B.REF_ID(+)
+AND    A.REF_ID = C.PRIORITY_REF_ID(+)
+AND    A.REF_ID = D.REF_ID(+)
+AND    R1.REF_ID(+) = A.REF_ID
+AND    R1.REWARD_DIV(+) = 'APP'
+AND    R2.REF_ID(+) = A.REF_ID
+AND    R2.REWARD_DIV(+) = 'REG'
+AND    ROWNUM = 1
+]]></query>
+
+<!-- 해외출원품의번호 목록 조회 -->
+<query name="/retrieveExtGroupList"><![CDATA[
+SELECT A.GRP_ID
+     , B.GRP_NO
+FROM   TB_MAPP_REF_ID A
+     , TB_APP_EXT_GRP B
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.MAPP_KIND = 'G'
+AND    A.GRP_ID = B.GRP_ID
+]]></query>
+
+<!-- 국내출원마스터 생성 -->
+<query name="/createIntPatentMaster"><![CDATA[
+INSERT INTO TB_APP_MST (
+       REF_ID
+     , REF_NO
+     , LAB_CODE
+     , RIGHT_DIV
+     , INOUT_DIV
+     , COUNTRY_CODE
+     , DEPT_CODE
+     , JOB_MAN
+     , STATUS
+     , STATUS_DATE
+     , EXAMREQ_YN
+     , EXAMREQ_DATE
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , OFFICE_CODE
+     , OFFICE_CONTACT_YN
+     , OFFICE_REF_NO
+     , OFFICE_JOB_MAN
+     , APP_NO
+     , APP_DATE
+     , PUB_NO
+     , PUB_DATE
+     , NOTICE_NO
+     , NOTICE_DATE
+     , REG_NO
+     , REG_DATE
+     , IPC_CLS_CODE
+     , CORGT_YN
+     , CORGT_MAN
+     , COSTSHARE_YN
+     , COSTSHARE_RATIO
+     , APPDOC_FILE
+     , ETC_MEMO
+     , CRE_USER
+     , CRE_DATE
+     , COSTSHARE_OWNER
+     , REVIEW_RESULT
+     , REVIEW_GRADE
+     , LAST_GRADE
+     , SALE_YN
+     , SALE_PLACE
+     , SALE_DATE
+) VALUES (
+       {@REF_ID}
+     , {@REF_NO}
+     , {@LAB_CODE}
+     , {@RIGHT_DIV}
+     , 'INT'
+     , 'KR'
+     , {@DEPT_CODE}
+     , {@JOB_MAN}
+     , {@STATUS}
+     , {@STATUS_DATE}
+     , {@EXAMREQ_YN}
+     , {@EXAMREQ_DATE}
+     , {@KO_APP_TITLE}
+     , {@EN_APP_TITLE}
+     , {@OFFICE_CODE}
+     , {@OFFICE_CONTACT_YN}
+     , {@OFFICE_REF_NO}
+     , {@OFFICE_JOB_MAN}
+     , {@APP_NO}
+     , {@APP_DATE}
+     , {@PUB_NO}
+     , {@PUB_DATE}
+     , {@NOTICE_NO}
+     , {@NOTICE_DATE}
+     , {@REG_NO}
+     , {@REG_DATE}
+     , {@IPC_CLS_CODE}
+     , {@CORGT_YN}
+     , {@CORGT_MAN}
+     , {@COSTSHARE_YN}
+     , {@COSTSHARE_RATIO}
+     , {@APPDOC_FILE}
+     , {@ETC_MEMO}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , {@COSTSHARE_OWNER}
+     , {@REVIEW_RESULT}
+     , {@REVIEW_GRADE}
+     , {@LAST_GRADE}
+     , {@SALE_YN}
+     , {@SALE_PLACE}
+     , {@SALE_DATE}
+)
+]]></query>
+
+<!-- 국내출원마스터 생성 - 국내 -->
+<query name="/createIntPatentMasterInt"><![CDATA[
+INSERT INTO TB_APP_MST_INT (
+       REF_ID
+     , PATTEAM_RCPT_DATE
+     , INDEP_CLAIM
+     , SUBORD_CLAIM
+     , PAPER_CNT
+     , DRAWING_CNT
+     , INV_GRADE
+     , ACTR_SUM_TARGET_YN
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+     , EXT_APP_NEED_YN
+     , EXT_APP_NEED_REASON
+     , BUY_YN
+     , BUY_PLACE
+     , BUY_DATE
+     , KEY_PAT_YN
+     , DISPUTE_PAT_YN
+) VALUES (
+       {@REF_ID}
+     , {@PATTEAM_RCPT_DATE}
+     , {@INDEP_CLAIM}
+     , {@SUBORD_CLAIM}
+     , {@PAPER_CNT}
+     , {@DRAWING_CNT}
+     , {@INV_GRADE}
+     , {@ACTR_SUM_TARGET_YN}
+     , {@APP_IMMED_YN}
+     , {@APP_IMMED_REASON}
+     , {@EXT_APP_NEED_YN}
+     , {@EXT_APP_NEED_REASON}
+     , {@BUY_YN}
+     , {@BUY_PLACE}
+     , {@BUY_DATE}
+     , {@KEY_PAT_YN}
+     , {@DISPUTE_PAT_YN}
+)
+]]></query>
+
+<!-- 국내출원마스터 수정 -->
+<query name="/updateIntPatentMaster"><![CDATA[
+UPDATE TB_APP_MST SET
+       JOB_MAN           = {@JOB_MAN}
+     , RIGHT_DIV         = {@RIGHT_DIV}
+     , LAB_CODE          = {@LAB_CODE}
+     , DEPT_CODE         = {@DEPT_CODE}
+     , STATUS            = {@STATUS}
+     , STATUS_DATE       = {@STATUS_DATE}
+     , EXAMREQ_YN        = {@EXAMREQ_YN}
+     , EXAMREQ_DATE      = {@EXAMREQ_DATE}
+     , KO_APP_TITLE      = {@KO_APP_TITLE}
+     , EN_APP_TITLE      = {@EN_APP_TITLE}
+     , OFFICE_CODE       = {@OFFICE_CODE}
+     , OFFICE_SEND_DATE  = {@OFFICE_SEND_DATE}
+     , OFFICE_CONTACT_YN = {@OFFICE_CONTACT_YN}
+     , OFFICE_REF_NO     = {@OFFICE_REF_NO}
+     , OFFICE_JOB_MAN    = {@OFFICE_JOB_MAN}
+     , APP_NO            = {@APP_NO}
+     , APP_DATE          = {@APP_DATE}
+     , PUB_NO            = {@PUB_NO}
+     , PUB_DATE          = {@PUB_DATE}
+     , NOTICE_NO         = {@NOTICE_NO}
+     , NOTICE_DATE       = {@NOTICE_DATE}
+     , REG_NO            = {@REG_NO}
+     , REG_DATE          = {@REG_DATE}
+     , IPC_CLS_CODE      = {@IPC_CLS_CODE}
+     , CORGT_YN          = {@CORGT_YN}
+     , CORGT_MAN         = {@CORGT_MAN}
+     , COSTSHARE_YN      = {@COSTSHARE_YN}
+     , COSTSHARE_RATIO   = {@COSTSHARE_RATIO}
+     , ABD_YN            = {@ABD_YN}
+     , ABD_DATE          = {@ABD_DATE}
+     , ABD_MEMO          = {@ABD_MEMO}
+     , APPDOC_FILE       = {@APPDOC_FILE}
+     , ETC_MEMO          = {@ETC_MEMO}
+     , COSTSHARE_OWNER   = {@COSTSHARE_OWNER}
+     , REVIEW_RESULT     = {@REVIEW_RESULT}
+     , REVIEW_GRADE      = {@REVIEW_GRADE}
+     , LAST_GRADE        = {@LAST_GRADE}
+     , SALE_YN           = {@SALE_YN}
+     , SALE_PLACE        = {@SALE_PLACE}
+     , SALE_DATE         = {@SALE_DATE}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 국내출원마스터 수정 - 국내 -->
+<query name="/updateIntPatentMasterInt"><![CDATA[
+UPDATE TB_APP_MST_INT SET
+       INDEP_CLAIM              = {@INDEP_CLAIM}
+     , SUBORD_CLAIM             = {@SUBORD_CLAIM}
+     , PAPER_CNT                = {@PAPER_CNT}
+     , DRAWING_CNT              = {@DRAWING_CNT}
+     , INV_GRADE                = {@INV_GRADE}
+     , ACTR_SUM_TARGET_YN       = {@ACTR_SUM_TARGET_YN}
+     , APP_IMMED_YN             = {@APP_IMMED_YN}
+     , APP_IMMED_REASON         = {@APP_IMMED_REASON}
+     , EXT_APP_NEED_YN          = {@EXT_APP_NEED_YN}
+     , EXT_APP_NEED_REASON      = {@EXT_APP_NEED_REASON}
+     , EXT_APP_STATUS           = {@EXT_APP_STATUS}
+     , BUY_YN                   = {@BUY_YN}
+     , BUY_PLACE                = {@BUY_PLACE}
+     , BUY_DATE                 = {@BUY_DATE}
+     , KEY_PAT_YN               = {@KEY_PAT_YN}
+     , DISPUTE_PAT_YN           = {@DISPUTE_PAT_YN}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

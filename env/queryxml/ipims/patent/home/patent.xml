@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 특허보유현황 건수 조회 -->
+<query name="/retrievePatentCountList"><![CDATA[
+SELECT '{#ID}' ID, COUNT(1) CNT FROM (
+{#LIST_QUERY}
+) A
+]]></query>
+<query name="/retrievePatentCountList/union"><![CDATA[
+UNION ALL
+SELECT '{#ID}' ID, COUNT(1) CNT FROM (
+{#LIST_QUERY}
+) A
+]]></query>
+
+<!-- 특허보유현황 - 전체특허건수 -->
+<query name="/retrievePatentCountList_ALL"><![CDATA[
+SELECT A.* FROM TB_APP_MST A
+               ,TB_MAPP_APP_MAN B
+WHERE A.REF_ID = B.REF_ID
+  AND APP_NO IS NOT NULL
+  AND A.RIGHT_DIV IN ('10','20')
+  AND B.APP_MAN_CODE IN ('P0006','P0016')
+  AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088')
+  AND A.INOUT_DIV = 'INT'
+UNION ALL
+SELECT A.* FROM TB_APP_MST A
+              , TB_APP_MST_EXT B
+              , TB_APP_EXT_GRP C
+              , TB_MAPP_APP_MAN D
+WHERE A.REF_ID = B.REF_ID
+  AND B.GRP_ID(+) = C.GRP_ID
+  AND C.GRP_ID = D.REF_ID
+  AND APP_NO IS NOT NULL
+  AND A.RIGHT_DIV IN ('10','20')
+  AND D.APP_MAN_CODE IN ('P0006','P0016')
+  AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088')
+  AND A.INOUT_DIV = 'EXT'
+]]></query>
+
+<!-- 특허보유현황 - 전체등록건수 -->
+<query name="/retrievePatentCountList_REG"><![CDATA[
+SELECT A.* FROM TB_APP_MST A
+               ,TB_MAPP_APP_MAN B
+WHERE A.REF_ID = B.REF_ID
+  AND A.APP_NO IS NOT NULL
+  AND A.REG_NO IS NOT NULL
+  AND A.RIGHT_DIV IN ('10','20')
+  AND B.APP_MAN_CODE IN ('P0006','P0016')
+  AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088')
+  AND A.INOUT_DIV = 'INT'
+UNION ALL
+SELECT A.* FROM TB_APP_MST A
+              , TB_APP_MST_EXT B
+              , TB_APP_EXT_GRP C
+              , TB_MAPP_APP_MAN D
+WHERE A.REF_ID = B.REF_ID
+  AND B.GRP_ID(+) = C.GRP_ID
+  AND C.GRP_ID = D.REF_ID
+  AND A.APP_NO IS NOT NULL
+  AND A.REG_NO IS NOT NULL
+  AND A.RIGHT_DIV IN ('10','20')
+  AND D.APP_MAN_CODE IN ('P0006','P0016')
+  AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088')
+  AND A.INOUT_DIV = 'EXT'
+]]></query>
+
+<!-- 특허보유현황 - 전체출원건수 -->
+<query name="/retrievePatentCountList_APP"><![CDATA[
+SELECT A.* FROM TB_APP_MST A
+               ,TB_MAPP_APP_MAN B
+WHERE A.REF_ID = B.REF_ID
+  AND A.APP_NO IS NOT NULL
+  AND A.REG_NO IS NULL
+  AND A.RIGHT_DIV IN ('10','20')
+  AND B.APP_MAN_CODE IN ('P0006','P0016')
+  AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088')
+  AND A.INOUT_DIV = 'INT'
+UNION ALL
+SELECT A.* FROM TB_APP_MST A
+              , TB_APP_MST_EXT B
+              , TB_APP_EXT_GRP C
+              , TB_MAPP_APP_MAN D
+WHERE A.REF_ID = B.REF_ID
+  AND B.GRP_ID(+) = C.GRP_ID
+  AND C.GRP_ID = D.REF_ID
+  AND APP_NO IS NOT NULL
+  AND A.REG_NO IS NULL
+  AND A.RIGHT_DIV IN ('10','20')
+  AND D.APP_MAN_CODE IN ('P0006','P0016')
+  AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088')
+  AND A.INOUT_DIV = 'EXT'
+]]></query>
+
+</root>

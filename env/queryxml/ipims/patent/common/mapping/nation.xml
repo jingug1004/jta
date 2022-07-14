@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 오더레터국가  맵핑목록 조회 -->
+<query name="/retrieveNationList"><![CDATA[
+SELECT AB022.COUNTRY_CODE
+     , AB022.JUD_CHO
+     , AB022.OUT_OFFICE_CODE
+     , AB022.URG_CHO
+     , AB022.REF_NO
+     , F_GET_CODENAME('COUNTRY', AB022.COUNTRY_CODE) NATION_NAME
+     , F_GET_CODENAME('FIRM', AB022.OUT_OFFICE_CODE) EX_FIRM_NAME
+     , AB010.INT_FIRM_REF
+     , AB010.FIRM_JOBMAN
+     , AB022.DEG_NO
+FROM   TB_AB022 AB022 , TB_AB010 AB010
+WHERE  AB022.GRP_NO = {@GRP_NO}
+AND    AB022.DEG_NO = {@DEG_NO}
+AND    AB022.REF_NO = AB010.REF_NO (+)
+ORDER  BY SEQ_NO
+]]></query>
+
+<!-- 오더레터국가  맵핑 저장 -->
+<query name="/createNation"><![CDATA[
+INSERT INTO TB_AB022(
+       GRP_NO
+     , DEG_NO
+     , SEQ_NO
+     , COUNTRY_CODE
+     , JUD_CHO
+     , URG_CHO
+     , OUT_OFFICE_CODE
+) VALUES (
+       {@GRP_NO}
+     , {@DEG_NO}
+     , LPAD((SELECT NVL(MAX(SEQ_NO), 0) + 1 FROM TB_AB022 WHERE GRP_NO = {@GRP_NO} AND DEG_NO = {@DEG_NO}),2,'0')
+     , {@COUNTRY_CODE}
+     , {@JUD_CHO}
+     , {@URG_CHO}
+     , {@OUT_OFFICE_CODE} )
+]]></query>
+
+<!-- 오더레터국가  맵핑 수정 -->
+<query name="/updateNation"><![CDATA[
+UPDATE TB_AB022 SET(
+     , COUNTRY_CODE = {@COUNTRY_CODE}
+     , JUD_CHO        = {@JUD_CHO}
+     , URG_CHO      = {@URG_CHO}
+     , OUT_OFFICE_CODE = {@OUT_OFFICE_CODE}
+WEHRE  GRP_NO       = {@GRP_NO}
+AND    DEG_NO       = {@DEG_NO}
+AND    SEQ_NO       = {@SEQ_NO}
+]]></query>
+
+<query name="/deleteNation"><![CDATA[
+DELETE FORM TB_AB022
+WEHRE  GRP_NO = {@GRP_NO}
+AND    DEG_NO = {@DEG_NO}
+AND    SEQ_NO = {@SEQ_NO}
+]]></query>
+
+<query name="/deleteNationAll"><![CDATA[
+DELETE FORM TB_AB022
+WEHRE  GRP_NO = {@GRP_NO}
+AND    DEG_NO = {@DEG_NO}
+]]></query>
+
+<!-- 기출원국가  맵핑목록조회 -->
+<query name="/retrieveExistNationList"><![CDATA[
+SELECT DISTINCT COUNTRY_CODE
+FROM   TB_AB022
+WHERE  GRP_NO = {@GRP_NO}
+AND    COUNTRY_CODE IS NOT NULL
+]]></query>
+
+
+</root>

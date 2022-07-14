@@ -1,0 +1,17 @@
+<component name="libraryTable">
+  <library name="lib">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/war/WEB-INF/lib" />
+      <root url="file://$PROJECT_DIR$/war/WEB-INF/lib-exc" />
+      <root url="file://$PROJECT_DIR$/war/WEB-INF/lib-exc" />
+    </CLASSES>
+    <JAVADOC />
+    <NATIVE>
+      <root url="file://$PROJECT_DIR$/war/WEB-INF/lib" />
+    </NATIVE>
+    <SOURCES />
+    <jarDirectory url="file://$PROJECT_DIR$/war/WEB-INF/lib" recursive="false" />
+    <jarDirectory url="file://$PROJECT_DIR$/war/WEB-INF/lib-exc" recursive="false" />
+    <jarDirectory url="file://$PROJECT_DIR$/war/WEB-INF/lib-exc" recursive="false" />
+  </library>
+</component>

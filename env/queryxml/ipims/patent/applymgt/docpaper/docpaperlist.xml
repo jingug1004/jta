@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 진행서류현황 목록 조회 -->
+<query name="/retrieveDocPaperList"><![CDATA[
+SELECT A.REF_ID
+     , A.LIST_SEQ
+     , C.INOUT_DIV
+     , C.REF_NO
+     , C.APP_NO
+     , B.PAPER_NAME
+     , A.COMMENTS
+     , C.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.PAPER_DATE
+     , A.DUE_DATE
+     , C.OFFICE_CODE
+     , FN_OFFICE_NAME(C.OFFICE_CODE) AS OFFICE_CODE_NAME
+     , C.JOB_MAN
+     , FN_USER_NAME(C.JOB_MAN) AS JOB_MAN_NAME
+     , FN_PAPER_NAME(C.STATUS) STATUS_NAME
+FROM   TB_PAPER_LIST A
+     , TB_PAPER_MGT_MST B
+     , TB_APP_MST C
+     , TB_APP_MST_EXT D
+WHERE  A.PAPER_CODE = B.PAPER_CODE
+AND    A.REF_ID = C.REF_ID
+AND    A.REF_ID = D.REF_ID(+)
+]]></query>
+<query name="/retrieveDocPaperList/inventor"><![CDATA[
+AND    A.INVENTOR_DISP_YN = '1'
+AND    A.REF_ID IN (SELECT REF_ID
+                    FROM   TB_MAPP_INVENTOR
+                    WHERE  INV_USER = {@$USER_ID}
+                    UNION ALL
+                    SELECT REF_ID
+                    FROM   TB_APP_MST_EXT
+                    WHERE  GRP_ID IN (SELECT REF_ID
+                                      FROM   TB_MAPP_INVENTOR
+                                      WHERE  INV_USER = {@$USER_ID}
+                                     )
+                    UNION ALL
+                    SELECT REF_ID
+                    FROM   TB_PAPER_LIST
+                    WHERE  CRE_USER = {@$USER_ID}
+                   )
+]]></query>
+<query name="/retrieveDocPaperList/refNo"><![CDATA[
+AND    C.REF_NO LIKE '%'||{@SR_NO_TEXT}||'%'
+]]></query>
+<query name="/retrieveDocPaperList/appNo"><![CDATA[
+AND    C.APP_NO LIKE '%'||{@SR_NO_TEXT}||'%'
+]]></query>
+<query name="/retrieveDocPaperList/regNo"><![CDATA[
+AND    C.REG_NO LIKE '%'||{@SR_NO_TEXT}||'%'
+]]></query>
+<query name="/retrieveDocPaperList/noticeNo"><![CDATA[
+AND    C.NOTICE_NO LIKE '%'||{@SR_NO_TEXT}||'%'
+]]></query>
+<query name="/retrieveDocPaperList/officeRefNo"><![CDATA[
+AND    C.OFFICE_REF_NO LIKE '%'||{@SR_NO_TEXT}||'%'
+]]></query>
+<query name="/retrieveDocPaperList/extOfficeRefNo"><![CDATA[
+AND    A.REF_ID IN (SELECT T.REF_ID
+                    FROM   TB_APP_MST_EXT T
+                    WHERE  UPPER(T.EXT_OFFICE_REF_NO) LIKE '%'||UPPER({@SR_NO_TEXT})||'%'
+                   )
+]]></query>
+<query name="/retrieveDocPaperList/inoutDiv"><![CDATA[
+AND    B.INOUT_DIV = {@INOUT_DIV}
+]]></query>
+<query name="/retrieveDocPaperList/rightDiv"><![CDATA[
+AND    C.RIGHT_DIV = {@RIGHT_DIV}
+]]></query>
+<query name="/retrieveDocPaperList/officeCode"><![CDATA[
+AND    ( C.OFFICE_CODE = {@OFFICE_CODE} OR D.EXT_OFFICE_CODE = {@OFFICE_CODE} )
+]]></query>
+<query name="/retrieveDocPaperList/paperCode"><![CDATA[
+AND    A.PAPER_CODE = {@PAPER_CODE}
+]]></query>
+<query name="/retrieveDocPaperList/jobMan"><![CDATA[
+AND    C.JOB_MAN = {@JOB_MAN}
+]]></query>
+<query name="/retrieveDocPaperList/inputOwner"><![CDATA[
+AND    A.INPUT_OWNER = {@INPUT_OWNER}
+]]></query>
+<query name="/retrieveDocPaperList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveDocPaperList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+<query name="/retrieveDocPaperList/chkLast"><![CDATA[
+AND    (A.REF_ID, A.LIST_SEQ) IN (SELECT X.REF_ID, MAX(X.LIST_SEQ)
+                                  FROM   TB_PAPER_LIST X
+                                  GROUP BY REF_ID
+                                 )
+]]></query>
+<query name="/retrieveDocPaperList/chkNoRead"><![CDATA[
+AND    A.CONFIRM_DATE IS NULL
+AND    FN_PAPER_CONFIRM_OWNER(A.REF_ID, A.LIST_SEQ) IS NOT NULL
+]]></query>
+
+</root>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 비용 생성 -->
+<query name="/createCost"><![CDATA[
+INSERT INTO TB_COST_MST (
+       COST_SEQ
+     , MST_DIV
+     , COST_KIND
+     , REF_ID
+     , GRAND_CODE
+     , DETAIL_CODE
+     , CURRENCY_UNIT
+     , EXCHANGE_RATIO
+     , EXCHANGE_DATE
+     , EXT_GOVERNMENT_PAY
+     , EXT_OFFICE_CHARGE
+     , COMMON_PAY
+     , OFFICE_CODE
+     , WON_PRICE
+     , PRICE
+     , CONFIRM_YN
+     , ABSTRACT
+     , LETTER_SEQ
+     , REQ_ID
+     , CRE_USER
+     , CRE_DATE
+     , COST_PROC_DIV
+)
+SELECT {@COST_SEQ}
+     , MST_DIV
+     , {@COST_KIND}
+     , {@REF_ID}
+     , {@GRAND_CODE}
+     , {@DETAIL_CODE}
+     , {@CURRENCY_UNIT}
+     , {@EXCHANGE_RATIO}
+     , {@EXCHANGE_DATE}
+     , {@EXT_GOVERNMENT_PAY}
+     , {@EXT_OFFICE_CHARGE}
+     , {@COMMON_PAY}
+     , {@OFFICE_CODE}
+     , {@WON_PRICE}
+     , NVL({@PRICE}, 0)
+     , {@CONFIRM_YN}
+     , {@ABSTRACT}
+     , {@LETTER_SEQ}
+     , {@REQ_ID}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , {@COST_PROC_DIV}
+FROM   V_MASTER_ALL
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 비용 조회 -->
+<query name="/retrieveCost"><![CDATA[
+SELECT A.REF_ID
+     , A.COST_SEQ
+     , A.GRAND_CODE
+     , B.GRAND_NAME
+     , A.DETAIL_CODE
+     , C.DETAIL_NAME
+     , A.CURRENCY_UNIT
+     , A.EXCHANGE_RATIO
+     , A.EXCHANGE_DATE
+     , A.EXT_GOVERNMENT_PAY
+     , A.EXT_OFFICE_CHARGE
+     , A.COMMON_PAY
+     , A.WON_PRICE
+     , A.PRICE
+     , A.OFFICE_CODE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , A.CONFIRM_YN
+     , A.COST_KIND
+     , FN_COM_CODE_NAME('APP_COST_KIND', A.COST_KIND, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) COST_KIND_NAME
+     , A.ABSTRACT
+     , A.REQ_ID
+     , NVL(A.CONSULT_ID, '')
+     , A.COST_PROC_DIV
+     , FN_COM_CODE_NAME('COST_PROC_DIV', A.COST_PROC_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) COST_PROC_DIV_NAME
+FROM   TB_COST_MST A
+     , TB_COST_MGT_GRANDCODE B
+     , TB_COST_MGT_DETAILCODE C
+WHERE  A.GRAND_CODE  = B.GRAND_CODE
+AND    B.GRAND_CODE  = C.GRAND_CODE
+AND    A.DETAIL_CODE = C.DETAIL_CODE
+AND    A.COST_SEQ    = {@COST_SEQ}
+]]></query>
+
+<!-- 비용 수정 -->
+<query name="/updateCost"><![CDATA[
+UPDATE TB_COST_MST A SET
+       COST_KIND          = {@COST_KIND}
+     , GRAND_CODE         = {@GRAND_CODE}
+     , DETAIL_CODE        = {@DETAIL_CODE}
+     , CURRENCY_UNIT      = {@CURRENCY_UNIT}
+     , EXCHANGE_RATIO     = {@EXCHANGE_RATIO}
+     , EXCHANGE_DATE      = {@EXCHANGE_DATE}
+     , EXT_GOVERNMENT_PAY = {@EXT_GOVERNMENT_PAY}
+     , EXT_OFFICE_CHARGE  = {@EXT_OFFICE_CHARGE}
+     , COMMON_PAY         = {@COMMON_PAY}
+     , WON_PRICE          = {@WON_PRICE}
+     , PRICE              = NVL({@PRICE}, 0)
+     , OFFICE_CODE        = {@OFFICE_CODE}
+     , CONFIRM_YN         = {@CONFIRM_YN}
+     , ABSTRACT           = {@ABSTRACT}
+     , UPD_USER           = {@$USER_ID}
+     , UPD_DATE           = TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , COST_PROC_DIV      = {@COST_PROC_DIV}
+WHERE  COST_SEQ = {@COST_SEQ}
+AND    CONSULT_ID IS NULL
+]]></query>
+
+<!-- 비용 삭제 -->
+<query name="/deleteCost"><![CDATA[
+DELETE FROM TB_COST_MST A
+WHERE  COST_SEQ = {@COST_SEQ}
+AND    CONSULT_ID IS NULL
+]]></query>
+
+</root>

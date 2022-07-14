@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 발명자 맵핑목록 조회 -->
+<query name="/retrieveInventorList"><![CDATA[
+SELECT NVL(B.EMP_HNAME, A.INV_USER) EMP_HNAME
+     , B.EMP_ENAME
+     , B.EMP_CNAME
+     , NVL(FN_COM_CODE_NAME('HT_CODE', B.HT_CODE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}), '퇴직') HT_CODE_NAME
+     , B.MAIL_ADDR
+     , C.OFFICE_TEL
+     , B.JUMIN_NO1 || '-' || '*******' JUMIN_NO
+     , C.HOME_ADDR
+FROM   TB_MAPP_INVENTOR A
+     , TB_USR_MST B
+     , (SELECT T1.USER_ID
+             , T1.OFFICE_TEL
+             , T1.HOME_ADDR
+        FROM   TB_USR_PATENT T1
+        UNION ALL
+        SELECT T2.USER_ID
+             , T2.OFFICE_TEL
+             , T2.HOME_ADDR
+        FROM   TB_USR_OUT_INVENTOR T2
+       ) C
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.INV_USER = B.USER_ID(+)
+AND    A.INV_USER = C.USER_ID(+)
+ORDER BY MAIN_INVENTOR_YN DESC, QUOTA_RATIO DESC, EMP_HNAME
+]]></query>
+
+</root>

@@ -1,0 +1,20 @@
+﻿<PUBLIC:COMPONENT lightWeight="true">
+    <PUBLIC:PROPERTY name="checkedValue" get="getCheckedValue" put="setCheckedValue">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+function getCheckedValue()
+{
+    if (element.type != "radio" && element.type != "checkbox") return null;
+
+    return (element.checked == true ? "1" : "0");
+}
+
+function setCheckedValue(val)
+{
+    if (element.type != "radio" && element.type != "checkbox") return;
+
+    element.checked = (val == "1");
+}
+</SCRIPT>

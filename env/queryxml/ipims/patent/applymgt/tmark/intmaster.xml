@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 상표국내출원마스터 목록 조회 -->
+<query name="/retrieveTMarkIntMasterList"><![CDATA[
+SELECT MST.REF_ID
+     , MST.REF_NO
+     , MST.APP_NO
+     , MST.KO_APP_TITLE
+     , MSTINT.PATTEAM_RCPT_DATE
+     , MSTINT.PATTEAM_REQ_DATE
+     , MST.OFFICE_RCPT_DATE
+     , MST.APP_DATE
+     , MST.REG_NO
+     , MST.REG_DATE
+     , MST.OFFICE_CODE
+     , MST.OFFICE_JOB_MAN
+     , FN_USER_NAME(MST.JOB_MAN) JOB_MAN_NAME
+     , FN_PAPER_NAME(MST.STATUS) STATUS_NAME
+     , MST.STATUS_DATE
+     , FN_INVENTOR_NAMES(MST.REF_ID) INVENTOR_NAMES
+     , OFFICE.FIRM_HNAME
+     , FN_APP_MAN_LIST(MST.REF_ID) APP_EXT_MAN_CODE
+     , FN_DEPT_NAME(MST.DEPT_CODE) DEPT_NAME
+FROM   TB_APP_MST MST
+     , TB_APP_MST_INT MSTINT
+     , TB_BIZ_COM_MST COMMST
+     , TB_ORG_OFFICE OFFICE
+WHERE  MST.REF_ID = MSTINT.REF_ID(+)
+  AND  MST.REF_ID = COMMST.REF_ID(+)
+  AND  MST.OFFICE_CODE = OFFICE.OFFICE_CODE(+)
+  AND  MST.RIGHT_DIV = '40'
+  AND  MST.INOUT_DIV = 'INT'
+]]></query>
+<query name="/retrieveTMarkIntMasterList/refNo"><![CDATA[
+AND    UPPER(MST.REF_NO) LIKE '%'||UPPER({@SR_NO})||'%'
+]]></query>
+<query name="/retrieveTMarkIntMasterList/patNo"><![CDATA[
+AND    UPPER(MST.APP_NO) LIKE '%'||UPPER({@SR_NO})||'%'
+]]></query>
+<query name="/retrieveTMarkIntMasterList/regNo"><![CDATA[
+AND    UPPER(MST.REG_NO) LIKE '%'||UPPER({@SR_NO})||'%'
+]]></query>
+<query name="/retrieveTMarkIntMasterList/empNo"><![CDATA[
+AND    UPPER(FN_INVENTOR_NAMES(MST.REF_ID)) LIKE '%'||UPPER({@SR_NO})||'%'
+]]></query>
+<query name="/retrieveTMarkIntMasterList/srTmarkName"><![CDATA[
+AND    MST.KO_APP_TITLE LIKE '%'||{@SR_TMARK_NAME}||'%'
+]]></query>
+<query name="/retrieveTMarkIntMasterList/firmCode"><![CDATA[
+AND    MST.OFFICE_CODE LIKE '%'||{@SR_FIRM_CODE}||'%'
+]]></query>
+<query name="/retrieveTMarkIntMasterList/dateStart"><![CDATA[
+AND    {#SR_DATE_CODE} >= {@SR_SDATE}
+]]></query>
+<query name="/retrieveTMarkIntMasterList/dateEnd"><![CDATA[
+AND    {#SR_DATE_CODE} <= {@SR_EDATE}
+]]></query>
+<query name="/retrieveTMarkIntMasterList/jobMan"><![CDATA[
+AND    MST.JOB_MAN = {@SR_JOB_MAN}
+]]></query>
+<query name="/retrieveTMarkIntMasterList/srStatus"><![CDATA[
+AND    COMMST.STATUS = {@SR_STATUS}
+]]></query>
+
+<!-- 상표국내출원마스터 상세 조회 -->
+<query name="/retrieveTMarkIntMaster"><![CDATA[
+SELECT MST.REF_ID
+     , MST.REF_NO
+     , MST.JOB_MAN
+     , FN_USER_NAME(MST.JOB_MAN) JOB_MAN_NAME
+     , MST.STATUS
+     , FN_PAPER_NAME(MST.STATUS) AS STATUS_NAME
+     , MST.STATUS_DATE
+     , MST.KO_APP_TITLE
+     , MST.EN_APP_TITLE
+     , MST.LAB_CODE
+     , FN_LAB_NAME(MST.LAB_CODE) LAB_NAME
+     , MST.DEPT_CODE
+     , FN_DEPT_NAME(MST.DEPT_CODE) DEPT_NAME
+     , CTMARK.TMARK_DIV
+     , FN_COM_CODE_NAME('TMARK_DIV', CTMARK.TMARK_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) TMARK_DIV_NAME
+     , CTMARK.SPEC_PROD
+     , MSTINT.APPLY_MODEL_NAME
+     , MST.OFFICE_CODE
+     , FN_OFFICE_NAME(MST.OFFICE_CODE) OFFICE_NAME
+     , MST.OFFICE_JOB_MAN
+     , FN_USER_NAME(MST.OFFICE_JOB_MAN) OFFICE_JOB_MAN_NAME
+     , MST.OFFICE_CONTACT_YN
+     , MST.OFFICE_REF_NO
+     , MST.NOTICE_NO
+     , MST.NOTICE_DATE
+     , MST.OFFICE_SEND_DATE
+     , MST.OFFICE_RCPT_DATE
+     , MSTINT.PATTEAM_RCPT_DATE
+     , MST.APP_NO
+     , MST.APP_DATE
+     , (SELECT T.APP_NO FROM TB_APP_MST T WHERE T.REF_ID = MST.DIVISION_PRIOR_REF_ID) PRIOR_APP_NO
+     , (SELECT T.APP_DATE FROM TB_APP_MST T WHERE T.REF_ID = MST.DIVISION_PRIOR_REF_ID) PRIOR_APP_DATE
+     , MST.REG_NO
+     , MST.REG_DATE
+     , (SELECT COUNT(1) FROM TB_APP_MST T WHERE T.DIVISION_PRIOR_REF_ID = MST.REF_ID AND DIVISION_TYPE = 'R') RENEW_CNT
+     , MSTINT.APP_IMMED_YN
+     , MSTINT.APP_IMMED_REASON
+     , TMARK.TMARK_IMG_FILE
+     , TMARK.ETC_FILE
+     , TMARK.REQ_CONTENTS
+     , MST.APPDOC_FILE
+     , MST.DIVISION_TYPE
+     , MST.COSTSHARE_OWNER
+     , FN_APP_MAN_NAME(MST.COSTSHARE_OWNER) COSTSHARE_OWNER_NAME
+     , MST.ABD_YN
+     , MST.ABD_DATE
+     , MST.ABD_MEMO
+FROM   TB_APP_MST MST
+     , TB_APP_INT_REQ_TMARK TMARK
+     , TB_APP_INT_CONSULT_TMARK CTMARK
+     , TB_APP_MST_INT MSTINT
+WHERE  MST.REF_ID = TMARK.REF_ID(+)
+  AND  MST.REF_ID = CTMARK.REF_ID(+)
+  AND  MST.REF_ID = MSTINT.REF_ID(+)
+  AND  MST.REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 상표국내출원마스터 수정1 -->
+<query name="/updateTMarkIntMaster"><![CDATA[
+UPDATE TB_APP_MST SET
+       JOB_MAN           = {@JOB_MAN}
+     , STATUS            = {@STATUS}
+     , STATUS_DATE       = {@STATUS_DATE}
+     , KO_APP_TITLE      = {@KO_APP_TITLE}
+     , EN_APP_TITLE      = {@EN_APP_TITLE}
+     , LAB_CODE          = {@LAB_CODE}
+     , DEPT_CODE         = {@DEPT_CODE}
+     , OFFICE_CODE       = {@OFFICE_CODE}
+     , OFFICE_JOB_MAN    = {@OFFICE_JOB_MAN}
+     , OFFICE_CONTACT_YN = {@OFFICE_CONTACT_YN}
+     , OFFICE_REF_NO     = {@OFFICE_REF_NO}
+     , OFFICE_SEND_DATE  = {@OFFICE_SEND_DATE}
+     , OFFICE_RCPT_DATE  = {@OFFICE_RCPT_DATE}
+     , NOTICE_NO         = {@NOTICE_NO}
+     , NOTICE_DATE       = {@NOTICE_DATE}
+     , APP_NO            = {@APP_NO}
+     , APP_DATE          = {@APP_DATE}
+     , REG_NO            = {@REG_NO}
+     , REG_DATE          = {@REG_DATE}
+     , APPDOC_FILE       = {@APPDOC_FILE}
+     , COSTSHARE_OWNER  = {@COSTSHARE_OWNER}
+     , ABD_YN                   = {@ABD_YN}
+     , ABD_DATE                 = {@ABD_DATE}
+     , ABD_MEMO                 = {@ABD_MEMO}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 상표국내출원마스터 수정2(국내)  -->
+<query name="/updateTMarkIntMasterTmark"><![CDATA[
+UPDATE TB_APP_MST_INT SET
+       APPLY_MODEL_NAME  = {@APPLY_MODEL_NAME}
+     , PATTEAM_RCPT_DATE = {@PATTEAM_RCPT_DATE}
+     , APP_IMMED_YN      = {@APP_IMMED_YN}
+     , APP_IMMED_REASON  = {@APP_IMMED_REASON}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 상표국내출원마스터 수정3(품의)  -->
+<query name="/updateTMarkIntConsultTmark"><![CDATA[
+UPDATE TB_APP_INT_CONSULT_TMARK SET
+       SPEC_PROD         = {@SPEC_PROD}
+     , TMARK_DIV         = {@TMARK_DIV}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 상표국내출원마스터 수정4(의뢰)  -->
+<query name="/updateTMarkIntRequestTmark"><![CDATA[
+UPDATE TB_APP_INT_REQ_TMARK SET
+       ETC_FILE          = {@ETC_FILE}
+     , TMARK_IMG_FILE    = {@TMARK_IMG_FILE}
+     , REQ_CONTENTS      = {@REQ_CONTENTS}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 국내출원마스터 생성 -->
+<query name="/createTMarkIntMaster"><![CDATA[
+INSERT INTO TB_APP_MST (
+       REF_ID
+     , REF_NO
+     , STATUS
+     , STATUS_DATE
+     , RIGHT_DIV
+     , INOUT_DIV
+     , COUNTRY_CODE
+     , JOB_MAN
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , LAB_CODE
+     , DEPT_CODE
+     , OFFICE_CODE
+     , OFFICE_CONTACT_YN
+     , OFFICE_REF_NO
+     , OFFICE_SEND_DATE
+     , OFFICE_RCPT_DATE
+     , OFFICE_JOB_MAN
+     , NOTICE_NO
+     , NOTICE_DATE
+     , REG_NO
+     , REG_DATE
+     , COSTSHARE_OWNER
+     , CRE_USER
+     , CRE_DATE
+     , ABD_YN
+     , ABD_DATE
+     , ABD_MEMO
+) VALUES (
+       {@REF_ID}
+     , {@REF_NO}
+     , {@STATUS}
+     , {@STATUS_DATE}
+     , '40'
+     , 'INT'
+     , 'KR'
+     , {@JOB_MAN}
+     , {@KO_APP_TITLE}
+     , {@EN_APP_TITLE}
+     , {@LAB_CODE}
+     , {@DEPT_CODE}
+     , {@OFFICE_CODE}
+     , {@OFFICE_CONTACT_YN}
+     , {@OFFICE_REF_NO}
+     , {@OFFICE_SEND_DATE}
+     , {@OFFICE_RCPT_DATE}
+     , {@OFFICE_JOB_MAN}
+     , {@NOTICE_NO}
+     , {@NOTICE_DATE}
+     , {@REG_NO}
+     , {@REG_DATE}
+     , {@COSTSHARE_OWNER}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , {@ABD_YN}
+     , {@ABD_DATE}
+     , {@ABD_MEMO}
+)
+]]></query>
+
+<!-- 국내출원마스터 생성 - 국내 -->
+<query name="/createTMarkIntMasterInt"><![CDATA[
+INSERT INTO TB_APP_MST_INT (
+       REF_ID
+     , PATTEAM_RCPT_DATE
+     , APPLY_MODEL_NAME
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+) VALUES (
+       {@REF_ID}
+     , {@PATTEAM_RCPT_DATE}
+     , {@APPLY_MODEL_NAME}
+     , {@APP_IMMED_YN}
+     , {@APP_IMMED_REASON}
+)
+]]></query>
+
+<!-- 국내출원품의서 생성 -->
+<query name="/createTMarkIntConsult"><![CDATA[
+INSERT INTO TB_APP_INT_CONSULT (
+       REF_ID
+     , REF_NO
+     , RIGHT_DIV
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , DEPT_CODE
+     , LAB_CODE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+     , PATTEAM_RCPT_DATE
+     , OFFICE_CODE
+     , OFFICE_CONTACT_YN
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@REF_ID}
+     , {@REF_NO}
+     , '40'
+     , {@KO_APP_TITLE}
+     , {@EN_APP_TITLE}
+     , {@DEPT_CODE}
+     , {@LAB_CODE}
+     , {@APP_IMMED_YN}
+     , {@APP_IMMED_REASON}
+     , {@PATTEAM_RCPT_DATE}
+     , {@OFFICE_CODE}
+     , {@OFFICE_CONTACT_YN}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 국내출원품의서 생성 - 상표 -->
+<query name="/createTMarkIntConsultTmark"><![CDATA[
+INSERT INTO TB_APP_INT_CONSULT_TMARK (
+       REF_ID
+     , TMARK_DIV
+     , SPEC_PROD
+     , COSTSHARE_OWNER
+) VALUES (
+       {@REF_ID}
+     , {@TMARK_DIV}
+     , {@SPEC_PROD}
+     , {@COSTSHARE_OWNER}
+)
+]]></query>
+
+<!-- 국내출원의뢰서 생성 -->
+<query name="/createTMarkIntRequest"><![CDATA[
+INSERT INTO TB_APP_INT_REQ (
+       REF_ID
+     , REF_NO
+     , RIGHT_DIV
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , DEPT_CODE
+     , LAB_CODE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@REF_ID}
+     , {@REF_NO}
+     , '40'
+     , {@KO_APP_TITLE}
+     , {@EN_APP_TITLE}
+     , {@DEPT_CODE}
+     , {@LAB_CODE}
+     , {@APP_IMMED_YN}
+     , {@APP_IMMED_REASON}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 국내출원의뢰서 생성 - 상표 -->
+<query name="/createTMarkIntRequestTmark"><![CDATA[
+INSERT INTO TB_APP_INT_REQ_TMARK (
+       REF_ID
+     , TMARK_IMG_FILE
+     , APPLY_MODEL_NAME
+     , ETC_FILE
+     , REQ_CONTENTS
+) VALUES (
+       {@REF_ID}
+     , {@TMARK_IMG_FILE}
+     , {@APPLY_MODEL_NAME}
+     , {@ETC_FILE}
+     , {@REQ_CONTENTS}
+)
+]]></query>
+
+</root>

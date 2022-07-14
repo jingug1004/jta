@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 보상금지급 검색어 구분 -->
+<codeData name="/rewardSupplyNoGubun">
+    <row CODE="M.REF_NO" NAME="REF-NO" />
+    <row CODE="M.APP_NO" NAME="출원번호" />
+    <row CODE="M.REG_NO" NAME="등록번호" />
+</codeData>
+
+<!-- 보상금지급 검색일 구분 -->
+<codeData name="/rewardSupplySearchDateType">
+    <row CODE="APP_DATE" NAME="출원일" />
+    <row CODE="REG_DATE" NAME="등록일" />
+</codeData>
+
+<!-- 보상금지급 진행상태 구분 -->
+<codeData name="/rewardStatus">
+    <row CODE="GIVE_TARGET"    NAME="지급대상" />
+    <row CODE="CONSULT_TARGET" NAME="품의대상" />
+</codeData>
+
+<!-- 보상금통계 진행상태 구분 -->
+<codeData name="/rewardStatisticStatus">
+    <row CODE="1"    NAME="지급대상" />
+    <row CODE="0"    NAME="품의중" />
+    <row CODE="9"    NAME="처리완료"/>
+</codeData>
+
+<!-- 비용입력 검색 번호구분 -->
+<codeData name="/costInputSearchNoDiv">
+    <row CODE="A.REF_NO" NAME="REF-NO" />
+    <row CODE="A.APP_NO" NAME="출원번호" />
+    <row CODE="A.REG_NO" NAME="등록번호" />
+</codeData>
+
+<!-- 비용입력 검색 번호구분 -->
+<codeData name="/costInputSearchNoDivExt">
+    <row CODE="B.REF_NO" NAME="REF-NO" />
+    <row CODE="B.APP_NO" NAME="출원번호" />
+    <row CODE="B.REG_NO" NAME="등록번호" />
+</codeData>
+
+<!-- 비용입력 검색 일자구분 -->
+<codeData name="/costInputSearchDateDiv">
+    <row CODE="A.APP_DATE" NAME="출원일" />
+    <row CODE="A.REG_DATE" NAME="등록일" />
+</codeData>
+
+<!-- 청구서 검색 일자구분 -->
+<codeData name="/costRequestSearchDateDiv">
+    <row CODE="A.REQ_DATE" NAME="청구일" />
+    <row CODE="A.CRE_DATE" NAME="작성일" />
+</codeData>
+
+<!-- 연차기준적용 검색일자 -->
+<codeData name="/annualStandardApplyDateKind">
+    <row CODE="APP_DATE" NAME="출원일" />
+    <row CODE="REG_DATE" NAME="등록일" />
+    <row CODE="NOTICE_DATE" NAME="공고일" />
+</codeData>
+
+<!-- 연차료 검색어 구분 -->
+<codeData name="/annualSearchType">
+    <row CODE="REF_NO" NAME="REF-NO" />
+    <row CODE="APP_NO" NAME="출원번호" />
+    <row CODE="REG_NO" NAME="등록번호" />
+</codeData>
+
+<!-- 연차료 진행상태 -->
+<codeData name="/annualStatus">
+    <row CODE="0" NAME="진행중" />
+    <row CODE="1" NAME="완납" />
+    <row CODE="2" NAME="포기" />
+</codeData>
+
+<!-- 연차료 검색일자 -->
+<codeData name="/annualApplyDateKind">
+    <row CODE="APP_DATE" NAME="출원일" />
+    <row CODE="REG_DATE" NAME="등록일" />
+    <row CODE="NOTICE_DATE" NAME="공고일" />
+    <row CODE="PAY_LIMIT" NAME="납부기한" />
+</codeData>
+
+<!-- 연차료 등록유지평가 상태 -->
+<codeData name="/annualValuationStatus">
+    <row CODE="S" NAME="평가대상" />
+    <row CODE="I" NAME="발명자 평가중" />
+    <row CODE="P" NAME="특허팀 평가중" />
+    <row CODE="E" NAME="평가완료" />
+</codeData>
+
+<!-- 자산/거절 검색어 구분 -->
+<codeData name="/assetSearchTextType">
+    <row CODE="A.REF_NO" NAME="REF-NO" />
+    <row CODE="A.APP_NO" NAME="출원번호" />
+    <row CODE="A.REG_NO" NAME="등록번호" />
+</codeData>
+
+<!-- 자산/거절 검색일 구분 -->
+<codeData name="/assetSearchDateType">
+    <row CODE="APP_DATE" NAME="출원일" />
+    <row CODE="REG_DATE" NAME="등록일" />
+</codeData>
+
+<!-- 자산/거절 처리구분 -->
+<codeData name="/assetDiv">
+    <row CODE="1" NAME="자산" />
+    <row CODE="2" NAME="포기" />
+</codeData>
+
+<!-- 자산/거절 진행상태 구분 -->
+<codeData name="/assetStatus">
+    <row CODE="0" NAME="처리대상" />
+    <row CODE="1" NAME="품의대상" />
+    <row CODE="2" NAME="진행" />
+    <row CODE="3" NAME="취소" />
+</codeData>
+
+<!-- REF-NO별 비용입력 대분류코드 검색 -->
+<query name="/costGrandCodeByRef"><![CDATA[
+SELECT A.GRAND_CODE CODE
+     , A.GRAND_NAME NAME
+FROM   TB_COST_MGT_GRANDCODE A
+     , V_MASTER_ALL B
+WHERE  A.MST_DIV = B.MST_DIV
+AND    A.INOUT_DIV = B.INOUT_DIV
+AND    A.USE_YN = '1'
+AND    B.REF_ID = {@1}
+ORDER BY GRAND_NAME
+]]></query>
+
+<!-- 비용입력 상세분류코드 검색 -->
+<query name="/costDetailCode"><![CDATA[
+SELECT DETAIL_CODE CODE
+     , DETAIL_NAME||'('||DECODE(TAX_YN,'1','과세','0','비과세')||')' NAME
+     , TAX_YN
+FROM   TB_COST_MGT_DETAILCODE
+WHERE  GRAND_CODE = {@1}
+AND    USE_YN = '1'
+ORDER  BY DISP_ORD, DETAIL_CODE
+]]></query>
+
+</root>

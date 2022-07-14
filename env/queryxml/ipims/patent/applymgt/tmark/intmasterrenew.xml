@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 상표국내출원마스터 갱신정보 조회 -->
+<query name="/retrieveTMarkIntMasterRenewInfo"><![CDATA[
+SELECT A.REF_NO
+     , RPAD('R', B.RENEW_CNT + 1, 'R') DIVISION_CODE
+     , B.RENEW_CNT + 1 DIVISION_LEVEL
+FROM   TB_APP_MST A
+     , (SELECT COUNT(1) RENEW_CNT
+        FROM   TB_APP_MST
+        WHERE  DIVISION_PRIOR_REF_ID = {@REF_ID}
+        AND    DIVISION_TYPE = 'R'
+       ) B
+WHERE  A.REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 상표국내출원마스터 갱신 생성 -->
+<query name="/createTMarkIntMasterRenew"><![CDATA[
+INSERT INTO TB_APP_MST (
+       REF_ID
+     , REF_NO
+     , RIGHT_DIV
+     , INOUT_DIV
+     , COUNTRY_CODE
+     , JOB_MAN
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , LAB_CODE
+     , DEPT_CODE
+     , OFFICE_CODE
+     , OFFICE_CONTACT_YN
+     , OFFICE_REF_NO
+     , OFFICE_JOB_MAN
+     , OFFICE_SEND_DATE
+     , OFFICE_RCPT_DATE
+     , APP_NO
+     , APP_DATE
+     , REG_NO
+     , REG_DATE
+     , PUB_NO
+     , PUB_DATE
+     , NOTICE_NO
+     , NOTICE_DATE
+     , DIVISION_PRIOR_REF_ID
+     , DIVISION_TYPE
+     , DIVISION_CODE
+     , DIVISION_LEVEL
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@NEW_REF_ID}
+     , {@NEW_REF_NO}
+     , RIGHT_DIV
+     , INOUT_DIV
+     , COUNTRY_CODE
+     , JOB_MAN
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , LAB_CODE
+     , DEPT_CODE
+     , OFFICE_CODE
+     , OFFICE_CONTACT_YN
+     , OFFICE_REF_NO
+     , OFFICE_JOB_MAN
+     , OFFICE_SEND_DATE
+     , OFFICE_RCPT_DATE
+     , APP_NO
+     , APP_DATE
+     , REG_NO
+     , REG_DATE
+     , PUB_NO
+     , PUB_DATE
+     , NOTICE_NO
+     , NOTICE_DATE
+     , REF_ID DIVISION_PRIOR_REF_ID
+     , 'R' DIVISION_TYPE
+     , {@DIVISION_CODE}
+     , {@DIVISION_LEVEL}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_MST
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 상표국내출원마스터 갱신 생성 - 국내 -->
+<query name="/createTMarkIntMasterIntRenew"><![CDATA[
+INSERT INTO TB_APP_MST_INT (
+       REF_ID
+     , PATTEAM_RCPT_DATE
+     , APPLY_MODEL_NAME
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+)
+SELECT {@NEW_REF_ID}
+     , PATTEAM_RCPT_DATE
+     , APPLY_MODEL_NAME
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+FROM   TB_APP_MST_INT
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 상표국내출원품의서 갱신 생성 -->
+<query name="/createTMarkIntConsultRenew"><![CDATA[
+INSERT INTO TB_APP_INT_CONSULT (
+       REF_ID
+     , REF_NO
+     , RIGHT_DIV
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , DEPT_CODE
+     , LAB_CODE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+     , PATTEAM_RCPT_DATE
+     , OFFICE_CODE
+     , OFFICE_CONTACT_YN
+     , OFFICE_SEND_DATE
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@NEW_REF_ID}
+     , {@NEW_REF_NO}
+     , RIGHT_DIV
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , DEPT_CODE
+     , LAB_CODE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+     , PATTEAM_RCPT_DATE
+     , OFFICE_CODE
+     , OFFICE_CONTACT_YN
+     , OFFICE_SEND_DATE
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_INT_CONSULT
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 상표국내출원품의서 갱신 생성 - 상표 -->
+<query name="/createTMarkIntConsultTmarkRenew"><![CDATA[
+INSERT INTO TB_APP_INT_CONSULT_TMARK (
+       REF_ID
+     , TMARK_DIV
+     , SPEC_PROD
+)
+SELECT {@NEW_REF_ID}
+     , TMARK_DIV
+     , SPEC_PROD
+FROM   TB_APP_INT_CONSULT_TMARK
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 상표국내출원의뢰서 갱신 생성 -->
+<query name="/createTMarkIntRequestRenew"><![CDATA[
+INSERT INTO TB_APP_INT_REQ (
+       REF_ID
+     , REF_NO
+     , RIGHT_DIV
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , DEPT_CODE
+     , LAB_CODE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@NEW_REF_ID}
+     , {@NEW_REF_NO}
+     , RIGHT_DIV
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , DEPT_CODE
+     , LAB_CODE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_INT_REQ
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 상표국내출원의뢰서 갱신 생성 - 상표 -->
+<query name="/createTMarkIntRequestTmarkRenew"><![CDATA[
+INSERT INTO TB_APP_INT_REQ_TMARK (
+       REF_ID
+     , TMARK_IMG_FILE
+     , APPLY_MODEL_NAME
+     , ETC_FILE
+     , REQ_CONTENTS
+)
+SELECT {@NEW_REF_ID}
+     , TMARK_IMG_FILE
+     , APPLY_MODEL_NAME
+     , ETC_FILE
+     , REQ_CONTENTS
+FROM   TB_APP_INT_REQ_TMARK
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

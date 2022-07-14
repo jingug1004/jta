@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 기술분류  맵핑목록 조회 -->
+<query name="/retrieveTechCodeList"><![CDATA[
+SELECT A.TECH_CODE
+     , B.TECH_HNAME
+     , FN_TECH_PATHNAME(A.TECH_CODE, ' > ') TECH_PATHNAME
+FROM   TB_MAPP_TECH_CLS A
+     , TB_COM_TECH_CLS B
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.MAPP_DIV = {@MAPP_DIV}
+AND    A.TECH_CODE = B.TECH_CODE
+ORDER BY TECH_CODE
+]]></query>
+
+<!-- 기술분류  맵핑 생성 -->
+<query name="/createTechCode"><![CDATA[
+INSERT INTO TB_MAPP_TECH_CLS (
+       REF_ID
+     , MAPP_DIV
+     , TECH_CODE
+) VALUES (
+       {@REF_ID}
+     , {@MAPP_DIV}
+     , {@TECH_CODE}
+)
+]]></query>
+
+<!-- 기술분류  맵핑 삭제 -->
+<query name="/deleteTechCode"><![CDATA[
+DELETE FROM TB_MAPP_TECH_CLS
+WHERE  REF_ID = {@REF_ID}
+AND    MAPP_DIV = {@MAPP_DIV}
+AND    TECH_CODE = {@TECH_CODE}
+]]></query>
+
+<!-- 기술분류  맵핑목록 전체 삭제 -->
+<query name="/deleteTechCodeListAll"><![CDATA[
+DELETE FROM TB_MAPP_TECH_CLS
+WHERE  REF_ID = {@REF_ID}
+AND    MAPP_DIV = {@MAPP_DIV}
+]]></query>
+
+<!-- 기술분류 맵핑목록 복제 -->
+<query name="/duplicateTechCodeList"><![CDATA[
+INSERT INTO TB_MAPP_TECH_CLS (
+       REF_ID
+     , MAPP_DIV
+     , TECH_CODE
+)
+SELECT {@NEW_REF_ID}
+     , {@NEW_MAPP_DIV}
+     , TECH_CODE
+FROM   TB_MAPP_TECH_CLS
+WHERE  REF_ID = {@OLD_REF_ID}
+AND    MAPP_DIV = {@OLD_MAPP_DIV}
+]]></query>
+
+</root>

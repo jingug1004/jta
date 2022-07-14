@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 업무 마스터 조회 -->
+<query name="/retrieveWorkProcessMaster"><![CDATA[
+SELECT BIZ_STEP_ID
+     , STATUS
+     , URGENT_DATE
+     , DUE_DATE
+FROM   TB_BIZ_COM_MST
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 업무별 진행상태 목록 조회 -->
+<query name="/retrieveWorkProcessStatusList"><![CDATA[
+SELECT BIZ_PROC_SEQ
+     , CURR_STATUS
+     , BIZ_ACT
+     , ACT_OWNER
+     , ACT_COND_NO
+     , NEXT_STATUS
+     , NEXT_STEP_ID
+FROM   TB_BIZ_MGT_PROC
+WHERE  BIZ_STEP_ID = (SELECT BIZ_STEP_ID FROM TB_BIZ_COM_MST WHERE REF_ID = {@REF_ID})
+AND    BIZ_STEP_ID IN (SELECT BIZ_STEP_ID FROM TB_BIZ_MGT_STEP WHERE BIZ_VIEW_PATH LIKE {@BIZ_VIEW_PATH}||'%')
+ORDER BY DISP_ORD
+]]></query>
+
+<!-- 처리가능한 액션인지 조회 -->
+<query name="/retrieveIsAvailAction"><![CDATA[
+SELECT DECODE(COUNT(1), 0,0, 1)
+FROM   TB_BIZ_MGT_PROC
+WHERE  BIZ_STEP_ID = {@BIZ_STEP_ID}
+AND    CURR_STATUS = {@CURR_STATUS}
+AND    BIZ_ACT     = {@BIZ_ACT}
+]]></query>
+
+<!-- 다음상태 목록 조회 -->
+<query name="/retrieveNextStatusList"><![CDATA[
+SELECT DECODE(B.BIZ_STEP_ID, NULL,A.BIZ_PROC_SEQ, B.BIZ_PROC_SEQ) BIZ_PROC_SEQ
+     , DECODE(B.BIZ_STEP_ID, NULL,A.CURR_STATUS, B.CURR_STATUS) CURR_STATUS
+     , A.BIZ_ACT
+     , A.ACT_OWNER
+     , DECODE(B.BIZ_STEP_ID, NULL,A.ACT_COND_NO, B.ACT_COND_NO) ACT_COND_NO
+     , DECODE(B.BIZ_STEP_ID, NULL,A.ACT_COND_QRY, B.ACT_COND_QRY) ACT_COND_QRY
+     , A.NEXT_STATUS ORG_NEXT_STATUS
+     , DECODE(B.BIZ_STEP_ID, NULL,A.NEXT_STATUS, B.NEXT_STATUS) NEXT_STATUS
+     , NVL(DECODE(B.BIZ_STEP_ID, NULL,A.NEXT_STEP_ID, B.NEXT_STEP_ID), A.BIZ_STEP_ID) NEXT_STEP_ID
+     , DECODE(B.TODO_DISP_YN, NULL,A.TODO_DISP_YN, B.TODO_DISP_YN) TODO_DISP_YN
+     , DECODE(B.BIZ_STEP_ID, NULL,A.URGENT_DATE_QRY, B.URGENT_DATE_QRY) URGENT_DATE_QRY
+     , DECODE(B.BIZ_STEP_ID, NULL,A.DUE_DATE_QRY, B.DUE_DATE_QRY) DUE_DATE_QRY
+     , DECODE(B.BIZ_STEP_ID, NULL,A.PAPER_CODE, B.PAPER_CODE) PAPER_CODE
+     , DECODE(B.BIZ_STEP_ID, NULL,A.PAPER_SUBCODE, B.PAPER_SUBCODE) PAPER_SUBCODE
+FROM   TB_BIZ_MGT_PROC A
+     , TB_BIZ_MGT_PROC B
+WHERE  A.BIZ_STEP_ID = {@BIZ_STEP_ID}
+AND    A.CURR_STATUS = {@CURR_STATUS}
+AND    B.BIZ_STEP_ID(+) = NVL(A.NEXT_STEP_ID, A.BIZ_STEP_ID)
+AND    B.CURR_STATUS(+) = A.NEXT_STATUS
+AND    B.BIZ_ACT(+) = 'AZ5555'
+]]></query>
+<query name="/retrieveNextStatusList/bizAct"><![CDATA[
+AND    A.BIZ_ACT = {@BIZ_ACT}
+]]></query>
+
+<!-- 조건식 목록 Index 조회 -->
+<query name="/retrieveNextStatusCondIndex"><![CDATA[
+SELECT COND_IDX FROM (
+{#condQuery}
+) A
+WHERE  COND_VAL = 1
+]]></query>
+
+<!-- 기한일 정보 조회 -->
+<query name="/retrieveLimitDateInfo"><![CDATA[
+SELECT MIN(A.URGENT_DATE) URGENT_DATE
+     , MIN(B.DUE_DATE) DUE_DATE
+FROM   (SELECT NULL URGENT_DATE FROM DUAL
+        {#urgentDateQry}
+       ) A
+     , (SELECT NULL DUE_DATE FROM DUAL
+        {#dueDateQry}
+       ) B
+]]></query>
+
+<!-- 업무 마스터 생성 -->
+<query name="/createWorkProcessMaster"><![CDATA[
+INSERT INTO TB_BIZ_COM_MST (
+       REF_ID
+     , BIZ_STEP_ID
+     , STATUS
+     , TODO_DISP_YN
+     , URGENT_DATE
+     , DUE_DATE
+     , HIST_SEQ
+     , UPD_USER
+     , UPD_DATE
+) VALUES (
+       {@REF_ID}
+     , {@BIZ_STEP_ID}
+     , {@STATUS}
+     , {@TODO_DISP_YN}
+     , {@URGENT_DATE}
+     , {@DUE_DATE}
+     , {@HIST_SEQ}
+     , {@UPD_USER}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 업무 마스터 수정 -->
+<query name="/updateWorkProcessMaster"><![CDATA[
+UPDATE TB_BIZ_COM_MST SET
+       BIZ_STEP_ID  = NVL({@BIZ_STEP_ID}, BIZ_STEP_ID)
+     , STATUS       = {@STATUS}
+     , TODO_DISP_YN = {@TODO_DISP_YN}
+     , URGENT_DATE  = {@URGENT_DATE}
+     , DUE_DATE     = {@DUE_DATE}
+     , HIST_SEQ     = {@HIST_SEQ}
+     , UPD_USER     = {@UPD_USER}
+     , UPD_DATE     = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  REF_ID       = {@REF_ID}
+]]></query>
+
+<!-- 업무 단계 생성 -->
+<query name="/createWorkProcessStep"><![CDATA[
+INSERT INTO TB_BIZ_COM_STEP (
+       REF_ID
+     , BIZ_STEP_ID
+     , STATUS
+) VALUES (
+       {@REF_ID}
+     , {@BIZ_STEP_ID}
+     , {@STATUS}
+)
+]]></query>
+
+<!-- 업무 단계 수정 -->
+<query name="/updateWorkProcessStep"><![CDATA[
+UPDATE TB_BIZ_COM_STEP SET
+       STATUS = {@STATUS}
+WHERE  REF_ID = {@REF_ID}
+AND    BIZ_STEP_ID = {@BIZ_STEP_ID}
+]]></query>
+
+<!-- 업무 히스토리 생성 -->
+<query name="/createWorkProcessHistory"><![CDATA[
+INSERT INTO TB_BIZ_COM_HIST (
+       REF_ID
+     , HIST_SEQ
+     , PREV_STATUS
+     , PREV_STEP_ID
+     , BIZ_ACT
+     , ACT_OWNER
+     , ACT_COND_NO
+     , CURR_STATUS
+     , CURR_STEP_ID
+     , TODO_DISP_YN
+     , URGENT_DATE
+     , DUE_DATE
+     , PAPER_CODE
+     , PAPER_SUBCODE
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@REF_ID}
+     , {@HIST_SEQ}
+     , {@PREV_STATUS}
+     , {@PREV_STEP_ID}
+     , {@BIZ_ACT}
+     , {@ACT_OWNER}
+     , {@ACT_COND_NO}
+     , {@CURR_STATUS}
+     , {@CURR_STEP_ID}
+     , {@TODO_DISP_YN}
+     , {@URGENT_DATE}
+     , {@DUE_DATE}
+     , {@PAPER_CODE}
+     , {@PAPER_SUBCODE}
+     , {@CRE_USER}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 업무 히스토리 목록 전체 삭제 -->
+<query name="/deleteWorkProcessHistoryListAll"><![CDATA[
+DELETE FROM TB_BIZ_COM_HIST
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 업무 단계 목록 전체 삭제 -->
+<query name="/deleteWorkProcessStepListAll"><![CDATA[
+DELETE FROM TB_BIZ_COM_STEP
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 업무 마스터 삭제 -->
+<query name="/deleteWorkProcessMaster"><![CDATA[
+DELETE FROM TB_BIZ_COM_MST
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

@@ -1,0 +1,132 @@
+<PUBLIC:COMPONENT tagName="INV" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var ds_main;
+var ds_main_id;
+
+if (element.id.substr(0, 4) == "any_") {
+    ds_main_id = "ds_" + element.id.substr(4);
+} else {
+    ds_main_id = "ds_" + element.id;
+}
+
+var control_id = element.id + "_" + element.sourceIndex;
+
+var tbd_main;
+var tbd_main_id = "tbd_main_" + control_id;
+
+var tr_main;
+var tr_main_id = "tr_main_" + control_id;
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    ds_main = element.document.createElement('<ANY:DS id="' + ds_main_id + '">');
+    element.document.appendChild(ds_main);
+
+    ds_main.OnLoad = function()
+    {
+        makeHTML();
+    }
+
+    element.isReady = true;
+}
+
+function makeHTML()
+{
+    var html = new Array();
+
+    html.push('<TABLE border="0" cellspacing="1" cellpadding="0" class="main">');
+    html.push('    <TR style="cursor:default;">');
+    html.push('        <TD class="listhead" noWrap>성명</TD>');
+    html.push('        <TD class="listhead" noWrap>영문명</TD>');
+    html.push('        <TD class="listhead" noWrap>한문명</TD>');
+    html.push('        <TD class="listhead" noWrap>재직</TD>');
+    html.push('        <TD class="listhead" noWrap>E-Mail</TD>');
+    html.push('        <TD class="listhead" noWrap>사내전화</TD>');
+    html.push('        <TD class="listhead" noWrap>주민등록번호</TD>');
+    html.push('        <TD class="listhead" noWrap>주소</TD>');
+    html.push('    </TR>');
+    html.push('    <COLGROUP>');
+    for (var i = 0; i < 8; i++) {
+        html.push('        <COL class="listdata">');
+    }
+    html.push('    </COLGROUP>');
+    html.push('    <TBODY id="' + tbd_main_id + '"></TBODY>');
+    html.push('</TABLE>');
+
+    element.innerHTML = html.join("\n");
+
+    tbd_main = element.document.getElementById(tbd_main_id);
+    tr_main = element.document.getElementsByName(tr_main_id);
+
+    for (var r = 0; r < ds_main.rowCount; r++) {
+        addHTML(ds_main.rowData(r));
+    }
+}
+
+function addHTML(obj)
+{
+    var tr, td;
+    var idx = tbd_main.rows.length;
+
+    tr = element.document.createElement('<TR id="' + tr_main_id + '">');
+    tbd_main.appendChild(tr);
+
+    //성명
+    td = addCol(obj.EMP_HNAME);
+    td.align = "center";
+    td.noWrap = true;
+
+    //영문명
+    td = addCol(obj.EMP_ENAME);
+
+    //한문명
+    td = addCol(obj.EMP_CNAME);
+    td.align = "center";
+    td.noWrap = true;
+
+    //재직
+    td = addCol(obj.HT_CODE_NAME);
+    td.align = "center";
+    td.noWrap = true;
+
+    //E-Mail
+    td = addCol(obj.MAIL_ADDR);
+    td.noWrap = true;
+
+    //사내전화
+    td = addCol(obj.OFFICE_TEL);
+    td.align = "center";
+    td.noWrap = true;
+
+    //주민등록번호
+    td = addCol(obj.JUMIN_NO);
+    td.align = "center";
+    td.noWrap = true;
+
+    //주소
+    td = addCol(obj.HOME_ADDR);
+
+    function addCol(str, html)
+    {
+        var td = element.document.createElement('<TD>');
+        tr.appendChild(td);
+
+        if (str == null) return td;
+
+        if (html == true) {
+            td.innerHTML = str;
+        } else {
+            td.innerText = str;
+        }
+
+        return td;
+    }
+}
+</SCRIPT>

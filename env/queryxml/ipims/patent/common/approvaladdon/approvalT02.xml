@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 국내상표출원 품의서 조회 -->
+<query name="/retrieveTMarkIntConsult"><![CDATA[
+SELECT EXAM_RESULT
+     , OFFICE_CODE
+FROM   TB_APP_INT_CONSULT
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 국내상표출원 품의서 수정 -->
+<query name="/updateTMarkIntConsult"><![CDATA[
+UPDATE TB_APP_INT_CONSULT SET
+       OFFICE_SEND_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 국내상표출원 마스터 조회 -->
+<query name="/retrieveTMarkIntMaster"><![CDATA[
+SELECT A.ABD_YN
+     , A.ABD_USER
+     , A.ABD_MEMO
+     , A.ABD_DATE
+     , A.JOB_MAN
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.REF_ID = B.REF_ID(+)
+]]></query>
+
+<!-- 국내상표출원 마스터 수정 -->
+<query name="/updateTMarkIntMaster"><![CDATA[
+UPDATE TB_APP_MST T SET (
+       RIGHT_DIV
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , DIVISN_CODE
+     , DEPT_CODE
+     , LAB_CODE
+     , OFFICE_CONTACT_YN
+     , OFFICE_CODE
+     , OFFICE_SEND_DATE
+     , ABD_YN
+     , ABD_USER
+     , ABD_MEMO
+     , ABD_DATE
+     , COSTSHARE_OWNER
+) = (
+SELECT A.RIGHT_DIV
+     , A.KO_APP_TITLE
+     , A.EN_APP_TITLE
+     , A.DIVISN_CODE
+     , A.DEPT_CODE
+     , A.LAB_CODE
+     , A.OFFICE_CONTACT_YN
+     , A.OFFICE_CODE
+     , A.OFFICE_SEND_DATE
+     , {@ABD_YN}
+     , {@ABD_USER}
+     , {@ABD_MEMO}
+     , {@ABD_DATE}
+     , B.COSTSHARE_OWNER
+FROM   TB_APP_INT_CONSULT A
+     , TB_APP_INT_CONSULT_TMARK B
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.REF_ID = B.REF_ID(+)
+)
+WHERE  T.REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 국내상표출원 마스터 수정 - 국내 -->
+<query name="/updateTMarkIntMasterInt"><![CDATA[
+UPDATE TB_APP_MST_INT T SET (
+       PATTEAM_RCPT_DATE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+) = (
+SELECT A.PATTEAM_RCPT_DATE
+     , A.APP_IMMED_YN
+     , A.APP_IMMED_REASON
+FROM   TB_APP_INT_CONSULT A
+     , TB_APP_INT_CONSULT_TMARK B
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.REF_ID = B.REF_ID(+)
+)
+WHERE  T.REF_ID = {@REF_ID}
+]]></query>
+
+</root>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 해외출원의뢰접수 목록 조회 -->
+<query name="/retrieveExtApplyReceiptList"><![CDATA[
+SELECT A.OL_ID
+     , C.GRP_ID
+     , C.GRP_NO
+     , C.RIGHT_DIV
+     , FN_COM_CODE_NAME('RIGHT_DIV', C.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_OL_COUNTRY_NAMES(A.OL_ID) AS COUNTRY_NAMES
+     , A.OFFICE_SEND_DATE
+     , C.KO_APP_TITLE
+     , A.OFFICE_RCPT_DATE
+FROM   TB_APP_EXT_OL A
+     , TB_APP_EXT_GRP C
+WHERE  A.GRP_ID = C.GRP_ID(+)
+AND    C.OFFICE_CODE = {@$OFFICE_CODE}
+AND    A.OFFICE_SEND_DATE IS NOT NULL
+]]></query>
+<query name="/retrieveExtApplyReceiptList/receiptYn0"><![CDATA[
+AND    A.OFFICE_RCPT_DATE IS NULL
+]]></query>
+<query name="/retrieveExtApplyReceiptList/receiptYn1"><![CDATA[
+AND    A.OFFICE_RCPT_DATE IS NOT NULL
+]]></query>
+<query name="/retrieveExtApplyReceiptList/grpNo"><![CDATA[
+AND    C.GRP_NO LIKE '%'||{@GRP_NO}||'%'
+]]></query>
+<query name="/retrieveExtApplyReceiptList/rightDiv"><![CDATA[
+AND    C.RIGHT_DIV = {@RIGHT_DIV}
+]]></query>
+<query name="/retrieveExtApplyReceiptList/dateStart"><![CDATA[
+AND    A.OFFICE_SEND_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveExtApplyReceiptList/dateEnd"><![CDATA[
+AND    A.OFFICE_SEND_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 해외출원의뢰접수 조회 -->
+<query name="/retrieveExtApplyReceipt"><![CDATA[
+SELECT A.OL_ID
+     , A.GRP_ID
+     , A.CRE_DATE
+     , B.JOB_MAN
+     , FN_USER_NAME(B.JOB_MAN) AS JOB_MAN_NAME
+     , B.FIRSTAPP_DATE
+     , A.PRIORITY_CLAIM_YN
+     , A.PRIORITY_CLAIM_COUNTRY
+     , FN_COUNTRY_NAME(A.PRIORITY_CLAIM_COUNTRY) AS PRIORITY_CLAIM_COUNTRY_NAME
+     , B.CORGT_YN
+     , B.CORGT_MAN
+     , B.KO_APP_TITLE
+     , A.EXAM_OPINION
+     , (SELECT T.APPDOC_FILE
+        FROM   TB_APP_MST T
+        WHERE  T.REF_ID IN (SELECT REF_ID FROM TB_MAPP_REF_ID WHERE GRP_ID = A.GRP_ID)
+        AND    ROWNUM = 1
+       ) APPDOC_FILE
+     , A.ATTACH_FILE
+     , CASE WHEN A.OFFICE_RCPT_DATE IS NULL THEN '1' ELSE '0' END IS_EDITABLE
+FROM   TB_APP_EXT_OL A
+     , TB_APP_EXT_GRP B
+WHERE  A.OL_ID = {@OL_ID}
+AND    A.GRP_ID = B.GRP_ID(+)
+AND    B.OFFICE_CODE = {@$OFFICE_CODE}
+AND    A.OFFICE_SEND_DATE IS NOT NULL
+]]></query>
+
+<!-- 해외출원의뢰접수 저장 -->
+<query name="/updateExtApplyReceipt"><![CDATA[
+UPDATE TB_APP_EXT_OL SET
+       OFFICE_RCPT_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  OL_ID = {@OL_ID}
+]]></query>
+
+<!-- 해외출원마스터 사무소 정보 저장 -->
+<query name="/updateExtMasterOfficeInfo"><![CDATA[
+UPDATE TB_APP_MST SET
+       OFFICE_REF_NO = {@OFFICE_REF_NO}
+     , OFFICE_JOB_MAN = {@OFFICE_JOB_MAN}
+     , OFFICE_RCPT_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 해외사무소 저장 -->
+<query name="/updateExtOffice"><![CDATA[
+UPDATE TB_APP_MST_EXT SET
+       EXT_OFFICE_CODE = {@EXT_OFFICE_CODE}
+     , EXT_OFFICE_REF_NO = {@EXT_OFFICE_REF_NO}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 평가요소 관리 목록 조회 -->
+<query name="/retrieveEvalElemMgtList"><![CDATA[
+SELECT ELEM_SEQ
+     , ELEM_NAME
+     , ELEM_VALUE
+     , DISP_ORD
+FROM   TB_EVAL_SHEET_ITEM_ELEM
+WHERE  EVAL_SHEET_ID = {@EVAL_SHEET_ID}
+AND    ITEM_SEQ = {@ITEM_SEQ}
+ORDER BY DISP_ORD
+]]></query>
+
+<!-- 평가요소 관리 조회 -->
+<query name="/retrieveEvalElemMgt"><![CDATA[
+SELECT ELEM_NAME
+     , ELEM_VALUE
+FROM   TB_EVAL_SHEET_ITEM_ELEM
+WHERE  EVAL_SHEET_ID = {@EVAL_SHEET_ID}
+AND    ITEM_SEQ = {@ITEM_SEQ}
+AND    ELEM_SEQ = {@ELEM_SEQ}
+]]></query>
+
+<!-- 평가요소 관리 생성 -->
+<query name="/createEvalElemMgt"><![CDATA[
+INSERT INTO TB_EVAL_SHEET_ITEM_ELEM (
+       EVAL_SHEET_ID
+     , ITEM_SEQ
+     , ELEM_SEQ
+     , ELEM_NAME
+     , ELEM_VALUE
+     , DISP_ORD
+) VALUES (
+       {@EVAL_SHEET_ID}
+     , {@ITEM_SEQ}
+     , (SELECT LPAD(NVL(MAX(TO_NUMBER(ELEM_SEQ)), 0) + 1, 3, '0') FROM TB_EVAL_SHEET_ITEM_ELEM WHERE EVAL_SHEET_ID = {@EVAL_SHEET_ID} AND ITEM_SEQ = {@ITEM_SEQ})
+     , {@ELEM_NAME}
+     , {@ELEM_VALUE}
+     , (SELECT NVL(MAX(DISP_ORD), 0) + 1 FROM TB_EVAL_SHEET_ITEM_ELEM WHERE EVAL_SHEET_ID = {@EVAL_SHEET_ID} AND ITEM_SEQ = {@ITEM_SEQ})
+)
+]]></query>
+
+<!-- 평가요소 관리 수정 -->
+<query name="/updateEvalElemMgt"><![CDATA[
+UPDATE TB_EVAL_SHEET_ITEM_ELEM SET
+       ELEM_NAME = {@ELEM_NAME}
+     , ELEM_VALUE = {@ELEM_VALUE}
+WHERE  EVAL_SHEET_ID = {@EVAL_SHEET_ID}
+AND    ITEM_SEQ = {@ITEM_SEQ}
+AND    ELEM_SEQ = {@ELEM_SEQ}
+]]></query>
+
+<!-- 평가요소 관리 삭제 -->
+<query name="/deleteEvalElemMgt"><![CDATA[
+DELETE FROM TB_EVAL_SHEET_ITEM_ELEM
+WHERE  EVAL_SHEET_ID = {@EVAL_SHEET_ID}
+AND    ITEM_SEQ = {@ITEM_SEQ}
+AND    ELEM_SEQ = {@ELEM_SEQ}
+]]></query>
+
+<!-- 평가요소 표시순서 변경 -->
+<query name="/updateEvalElemMgtDispOrdList"><![CDATA[
+UPDATE TB_EVAL_SHEET_ITEM_ELEM SET
+       DISP_ORD  = {@DISP_ORD}
+WHERE  EVAL_SHEET_ID = {@EVAL_SHEET_ID}
+AND    ITEM_SEQ = {@ITEM_SEQ}
+AND    ELEM_SEQ = {@ELEM_SEQ}
+]]></query>
+
+</root>

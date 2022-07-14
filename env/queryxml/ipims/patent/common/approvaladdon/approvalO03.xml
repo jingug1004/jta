@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 해외 거절검토서 내용 조회 -->
+<query name="/retrieveExtRejectExam"><![CDATA[
+SELECT EXAM_RESULT
+     , COPE_PLAN
+FROM   TB_OA_REJECT_EXAM_EXT
+WHERE  REF_ID = {@REF_ID}
+AND    OA_SEQ = {@OA_SEQ}
+]]></query>
+
+<!-- 해외 거절검토서 발송일 업데이트 -->
+<query name="/updateExtRejectExamSendDate"><![CDATA[
+UPDATE TB_OA_REJECT_EXAM_EXT SET
+       SEND_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  REF_ID = {@REF_ID}
+AND    OA_SEQ = {@OA_SEQ}
+]]></query>
+
+</root>

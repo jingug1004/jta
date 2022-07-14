@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 해외비용 INVOICE 목록조회 -->
+<query name="/retrieveExtInvoiceList"><![CDATA[
+SELECT A.LETTER_SEQ
+     , A.REF_ID
+     , B.REF_NO
+     , A.LETTER_SUBJECT
+     , C.WON_PRICE
+     , C.PRICE
+     , A.EXT_INVOICE_NO
+     , B.APP_NO
+     , B.APP_DATE
+     , B.REG_NO
+     , B.REG_DATE
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , A.CRE_DATE
+FROM   TB_COST_EXT_LETTER A
+     , TB_APP_MST B
+     , (SELECT LETTER_SEQ
+             , SUM(WON_PRICE) WON_PRICE
+             , SUM(PRICE) PRICE
+        FROM   TB_COST_MST
+        WHERE GRAND_CODE NOT IN ('32')
+        GROUP BY LETTER_SEQ ) C
+WHERE  A.REF_ID = B.REF_ID
+AND    A.LETTER_SEQ = C.LETTER_SEQ(+)
+AND    A.REQ_ID IS NULL
+AND    B.OFFICE_CODE = {@$OFFICE_CODE}
+]]></query>
+<query name="/retrieveExtInvoiceList/searchNo"><![CDATA[
+AND    {#SEARCH_TYPE} LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrieveExtInvoiceList/letterSubject"><![CDATA[
+AND    A.LETTER_SUBJECT LIKE '%'||{@LETTER_SUBJECT}||'%'
+]]></query>
+<query name="/retrieveExtInvoiceList/refNo"><![CDATA[
+AND    UPPER(B.REF_NO) LIKE '%'||UPPER({@REF_NO})||'%'
+]]></query>
+<query name="/retrieveExtInvoiceList/dateStart"><![CDATA[
+AND    A.CRE_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveExtInvoiceList/dateEnd"><![CDATA[
+AND    A.CRE_DATE <= {@DATE_END}
+]]></query>
+
+</root>

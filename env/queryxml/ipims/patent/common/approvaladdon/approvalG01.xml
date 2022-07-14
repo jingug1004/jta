@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 프로그램 검토결과 업데이트 -->
+<query name="/updateProgramExamResult"><![CDATA[
+UPDATE TB_PROG_CONSULT
+   SET EXAM_RESULT = NULL
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 프로그램 의뢰일 업데이트 -->
+<query name="/updateProgramPatTeamReqDate"><![CDATA[
+UPDATE TB_PROG_REQ
+   SET PATTEAM_REQ_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

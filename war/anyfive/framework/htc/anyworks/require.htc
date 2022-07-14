@@ -1,0 +1,136 @@
+﻿<PUBLIC:COMPONENT lightWeight="true">
+    <PUBLIC:PROPERTY name="req" get="getReq" put="setReq">
+    <PUBLIC:PROPERTY name="reqEnable" get="getReqEnable" put="setReqEnable">
+    <PUBLIC:PROPERTY name="valid" get="getValid">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var myReq;
+var myReqEnable = true;
+
+var spn_asterisk;
+var spn_asterisk_id = "spn_req_asterisk_" + element.sourceIndex;
+
+var defaultHTML = element.innerHTML;
+
+function getReq()
+{
+    return myReq;
+}
+
+function setReq(val)
+{
+    if (element.document.media == "print") return;
+
+    myReq = new Array();
+
+    if (val == null || val == "") {
+        for (var i = 0; i < myReq.length; i++) {
+            setFileRequired(myReq[i].ctrl, false);
+        }
+        element.innerHTML = defaultHTML;
+        return;
+    }
+
+    if (typeof(val) == "string") {
+        var reqs = val.split(",");
+        var reqs2;
+        for (var i = 0; i < reqs.length; i++) {
+            reqs2 = reqs[i].split(":");
+            myReq.push({ ctrl : reqs2[0].trim(), name : (reqs2.length == 2 ? reqs2[1] : defaultHTML).trim() });
+            setFileRequired(myReq[i].ctrl, true);
+        }
+    } else {
+        myReq.push({ ctrl : val, name : defaultHTML });
+    }
+
+    element.innerHTML = '<SPAN id="' + spn_asterisk_id + '" style="color:#FF0000; display:none;">*</SPAN>' + defaultHTML;
+
+    spn_asterisk = element.document.getElementById(spn_asterisk_id);
+
+    setReqEnable(myReqEnable);
+
+    function setFileRequired(ctrlId, bool)
+    {
+        if (typeof(ctrlId) == "function") return;
+
+        var ctrl = element.document.getElementById(ctrlId);
+
+        if (ctrl == null) return;
+        if ((ctrl.scopeName + ":" + ctrl.tagName).toUpperCase() != "ANY:FILE") return;
+
+        ctrl.required = bool;
+    }
+}
+
+function getReqEnable()
+{
+    return myReqEnable;
+}
+
+function setReqEnable(val)
+{
+    myReqEnable = (String(val) == "true");
+
+    if (spn_asterisk == null) return;
+
+    spn_asterisk.style.display = (myReqEnable == true ? "" : "none");
+}
+
+function getValid()
+{
+    var ctrl;
+
+    for (var i = 0; i < myReq.length; i++) {
+        if (typeof(myReq[i].ctrl) == "object") {
+            ctrl = myReq[i].ctrl;
+        } else {
+            ctrl = element.document.getElementById(myReq[i].ctrl);
+        }
+        if (ctrl == null) {
+            try {
+                eval(myReq[i].ctrl);
+            } catch(ex) {
+                alert('"' + myReq[i].name + '" 항목의 "' + myReq[i].ctrl + '" 컨트롤에 대한 입력여부를 확인할 수가 없습니다.');
+                return false;
+            }
+            if (typeof(eval(myReq[i].ctrl)) != "function") continue;
+            switch (eval(myReq[i].ctrl)()) {
+            case true:
+                continue;
+                break;
+            case null:
+                return false;
+            }
+        } else {
+            if (ctrl.scopeName.toUpperCase() == "ANY" && ctrl.rowCount != null) {
+                if (ctrl.rowCount > 0) continue;
+            } else {
+                if (ctrl.value != null && ctrl.value.trim() != "") continue;
+            }
+        }
+
+        element.focus();
+        bfHilightReqTd(element);
+        alert("다음 필수항목을 입력하세요.\n\n[" + myReq[i].name + "]");
+        bfHilightReqTd(element);
+
+        if (ctrl == null) return false;
+
+        try {
+            ctrl.focus();
+        } catch(ex) {
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+String.prototype.trim = function()
+{
+    return this.replace(/(^\s*)|(\s*$)/g, "");
+}
+</SCRIPT>

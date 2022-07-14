@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- EP/PCT OL 모출원 서지사항 조회 -->
+<query name="/retrieveExtPatentEpPctPrior"><![CDATA[
+SELECT A.REF_ID
+     , B.GRP_ID
+     , A.REF_NO
+     , A.CRE_DATE
+     , A.COUNTRY_CODE
+     , FN_COUNTRY_NAME(A.COUNTRY_CODE) AS COUNTRY_CODE_NAME
+     , A.JOB_MAN
+     , FN_USER_NAME(A.JOB_MAN) AS JOB_MAN_NAME
+     , A.OFFICE_CODE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) AS INT_OFFICE_NAME
+     , A.EXAMREQ_YN
+     , FN_COM_CODE_NAME('EXAMREQ_YN', A.EXAMREQ_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) EXAMREQ_YN_NAME
+     , A.KO_APP_TITLE
+     , C.FIRSTAPP_DATE
+     , A.APP_NO
+     , A.APP_DATE
+FROM   TB_APP_MST A
+     , TB_APP_MST_EXT B
+     , TB_APP_EXT_GRP C
+WHERE  A.REF_ID = {@DIVISION_PRIOR_REF_ID}
+AND    A.REF_ID = B.REF_ID(+)
+AND    B.GRP_ID = C.GRP_ID(+)
+]]></query>
+
+<!-- EP/PCT OL 조회 -->
+<query name="/retrieveExtPatentEpPct"><![CDATA[
+SELECT A.DIVISION_PRIOR_REF_ID
+     , A.EXAM_OPINION
+     , A.ATTACH_FILE
+     , A.CRE_USER
+FROM   TB_APP_EXT_OL A
+WHERE  A.OL_ID = {@OL_ID}
+]]></query>
+
+<!-- EP/PCT OL 생성 -->
+<query name="/createExtPatentEpPct"><![CDATA[
+INSERT INTO TB_APP_EXT_OL (
+       OL_ID
+     , OL_DIV
+     , GRP_ID
+     , DIVISION_PRIOR_REF_ID
+     , EXAM_OPINION
+     , PRIORITY_CLAIM_YN
+     , PRIORITY_CLAIM_COUNTRY
+     , ATTACH_FILE
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@OL_ID}
+     , 'E'
+     , A.GRP_ID
+     , A.REF_ID
+     , {@EXAM_OPINION}
+     , '1'
+     , 'KR'
+     , {@ATTACH_FILE}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_MST_EXT A
+WHERE  A.REF_ID = {@DIVISION_PRIOR_REF_ID}
+]]></query>
+
+<!-- EP/PCT OL 수정 -->
+<query name="/updateExtPatentEpPct"><![CDATA[
+UPDATE TB_APP_EXT_OL SET
+       EXAM_OPINION = {@EXAM_OPINION}
+     , ATTACH_FILE  = {@ATTACH_FILE}
+     , UPD_USER     = {@$USER_ID}
+     , UPD_DATE     = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  OL_ID = {@OL_ID}
+]]></query>
+
+</root>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 연차료 품의서 목록 조회 -->
+<query name="/retrieveAnnualConsultList"><![CDATA[
+SELECT A.CONSULT_ID
+     , A.CONSULT_SUBJECT
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , A.CRE_DATE
+     , {#codeData:NVL(B.APPR_STATUS,'0'):/common/apprStatus} APPR_STATUS_NAME
+FROM   TB_COST_CONSULT A
+     , TB_APPR_MST B
+WHERE  A.APPR_NO = B.APPR_NO(+)
+AND    CONSULT_KIND = 'A'
+]]></query>
+<query name="/retrieveAnnualConsultList/consultSubject"><![CDATA[
+AND    A.CONSULT_SUBJECT LIKE '%'||{@CONSULT_SUBJECT}||'%'
+]]></query>
+<query name="/retrieveAnnualConsultList/consultStatus"><![CDATA[
+AND    B.APPR_STATUS = {@CONSULT_STATUS}
+]]></query>
+<query name="/retrieveAnnualConsultList/consultStatusDefault"><![CDATA[
+AND    B.APPR_STATUS IS NULL
+]]></query>
+<query name="/retrieveAnnualConsultList/creUserName"><![CDATA[
+AND    A.CRE_USER IN (SELECT USER_ID FROM TB_USR_MST WHERE UPPER(EMP_HNAME) LIKE '%'||UPPER({@CRE_USER_NAME})||'%')
+]]></query>
+<query name="/retrieveAnnualConsultList/dateStart"><![CDATA[
+AND    A.CRE_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveAnnualConsultList/dateEnd"><![CDATA[
+AND    A.CRE_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 연차료 품의서 상세 조회 -->
+<query name="/retrieveAnnualConsult"><![CDATA[
+SELECT A.CONSULT_SUBJECT
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , A.CRE_USER
+     , A.CRE_DATE
+     , B.TOTAL_PRICE
+     , B.TOTAL_EXT_OFFICE_CHARGE
+     , B.TOTAL_INT_OFFICE_CHARGE
+FROM   TB_COST_CONSULT A
+     , (SELECT SUM(PRICE) TOTAL_PRICE
+             , SUM(EXT_OFFICE_CHARGE) TOTAL_EXT_OFFICE_CHARGE
+             , SUM(INT_OFFICE_CHARGE) TOTAL_INT_OFFICE_CHARGE
+        FROM   TB_COST_MST
+        WHERE  CONSULT_ID = {@CONSULT_ID}
+       ) B
+WHERE  A.CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 연차료 품의서 비용 목록 조회 -->
+<query name="/retrieveAnnualConsultInputList"><![CDATA[
+SELECT A.COST_SEQ
+     , C.REF_ID
+     , C.REF_NO
+     , C.KO_APP_TITLE
+     , FN_COM_CODE_NAME('RIGHT_DIV', C.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_OFFICE_NAME(B.OFFICE_CODE) OFFICE_NAME
+     , A.PAY_YEARDEG
+     , A.PAY_LIMIT
+     , B.PRICE
+     , B.INT_OFFICE_CHARGE
+     , B.EXT_OFFICE_CHARGE
+     , C.APP_NO
+     , C.APP_DATE
+     , C.REG_NO
+     , C.REG_DATE
+FROM   TB_COST_MST_ANNUAL A
+     , TB_COST_MST B
+     , TB_APP_MST C
+WHERE  A.COST_SEQ = B.COST_SEQ
+AND    A.REF_ID = C.REF_ID
+AND    B.CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 연차료 품의서 생성 -->
+<query name="/createAnnualConsult"><![CDATA[
+INSERT INTO TB_COST_CONSULT (
+       CONSULT_ID
+     , CONSULT_KIND
+     , CONSULT_SUBJECT
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@CONSULT_ID}
+     , 'A'
+     , '연차료 품의서 (' || TO_CHAR(SYSDATE, 'YYYY/MM/DD') || ')'
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 비용마스터 수정(품의서ID 설정) -->
+<query name="/updateCostMasterToConsult"><![CDATA[
+UPDATE TB_COST_MST SET
+       CONSULT_ID = {@CONSULT_ID}
+WHERE  COST_SEQ IN ({@COST_SEQ},LPAD(({@COST_SEQ} + 1),15,'0'),LPAD(({@COST_SEQ} + 2),15,'0'))
+AND    WON_PRICE != '0'
+AND    CONSULT_ID IS NULL
+]]></query>
+
+<!-- 연차료 품의서 수정 -->
+<query name="/updateAnnualConsult"><![CDATA[
+UPDATE TB_COST_CONSULT SET
+       CONSULT_SUBJECT = {@CONSULT_SUBJECT}
+WHERE  CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 연차료 품의서 삭제 -->
+<query name="/deleteAnnualConsult"><![CDATA[
+DELETE FROM TB_COST_CONSULT
+WHERE CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 비용마스터 수정(품의서ID 삭제) -->
+<query name="/updateAnnualMasterConsultId"><![CDATA[
+UPDATE TB_COST_MST SET
+       CONSULT_ID = NULL
+WHERE  CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+</root>

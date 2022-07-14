@@ -1,0 +1,140 @@
+<PUBLIC:COMPONENT tagName="COSTSEARCH" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="refId" get="getRefId">
+    <PUBLIC:PROPERTY name="searchBox" get="getSearchBox">
+    <PUBLIC:PROPERTY name="inoutDiv">
+    <PUBLIC:EVENT name="OnSearch" id="OnSearchEvent">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var control_id = element.id + "_" + element.sourceIndex;
+
+var sel_mstDiv;
+var sel_mstDiv_id = "sel_mstDiv_" + control_id;
+
+var sch_refNo;
+var sch_refNo_id = "sch_refNo_" + control_id;
+
+var gRefId;
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    for (var i = 0, elements = element.getElementsByTagName("*"); i < elements.length; i++) {
+        if (elements[i].tagName == "SCRIPT" || elements[i].tagName == "COMMENT") eval(elements[i].text);
+    }
+
+    makeHTML();
+}
+
+function makeHTML()
+{
+    var html = new Array();
+
+    html.push('<TABLE border="0" cellspacing="1" cellpadding="2" class="main">        ');
+    html.push('    <COLGROUP>                                                         ');
+    if (String(element.inoutDiv) == "INT") {
+        html.push('        <COL class="conthead" width="15%">                             ');
+        html.push('        <COL class="contdata" width="35%">                             ');
+        html.push('        <COL class="conthead" width="15%">                             ');
+        html.push('        <COL class="contdata" width="35%">                             ');
+    } else {
+        html.push('        <COL class="conthead" width="15%">                             ');
+        html.push('        <COL class="contdata" width="85%">                             ');
+    }
+    html.push('    </COLGROUP>                                                        ');
+    html.push('    <TR>                                                               ');
+    if (String(element.inoutDiv) == "INT") {
+        html.push('        <TD>구분</TD>                                                  ');
+        html.push('        <TD>                                                           ');
+        html.push('            <ANY:SELECT id="' + sel_mstDiv_id + '" codeData="{COST_MST_DIV}" />');
+        html.push('        </TD>                                                          ');
+    }
+    html.push('        <TD>REF-NO</TD>                                                ');
+    html.push('        <TD>                                                           ');
+    html.push('            <ANY:SEARCH id="' + sch_refNo_id + '" mode="U" />                                    ');
+    html.push('        </TD>                                                          ');
+    html.push('    </TR>                                                              ');
+    html.push('</TABLE>                                                               ');
+
+    element.innerHTML = html.join("\n");
+
+    sel_mstDiv = element.document.getElementById(sel_mstDiv_id);
+    sch_refNo = element.document.getElementById(sch_refNo_id);
+
+    if (String(element.inoutDiv) == "INT") {
+        sel_mstDiv.OnChange = function()
+        {
+            setRefNoSearchBox(this.value);
+        }
+    } else {
+        sch_refNo.onreadystatechange = function()
+        {
+            if (this.readyState != "complete") return;
+
+            setRefNoSearchBox("A");
+        }
+    }
+
+    any.event.attach(sch_refNo, "OnChange", function() {
+        any.event.call(element, "OnSearch");
+    });
+   /*  sch_refNo.OnChange = function()
+    {
+        any.event.call(element, "OnSearch");
+        //OnSearchEvent.fire(element.document.createEventObject());
+    } */
+}
+
+function setRefNoSearchBox(mstDiv)
+{
+    if (sch_refNo == null) return;
+
+    switch (mstDiv) {
+    case "A": //출원비용
+        sch_refNo.win.path = top.getRoot() + "/anyfive/ipims/office/common/popup/search/RefNoSearchListR.jsp";
+        sch_refNo.win.opt.width = 700;
+        sch_refNo.win.opt.height = 500;
+        sch_refNo.win.arg = {};
+        sch_refNo.win.arg.INOUT_DIV = element.inoutDiv;
+        sch_refNo.win.arg.EX_ASSETYN_CONFIRM = element.exAssetYNConfirm;
+        sch_refNo.codeColumn = "REF_ID";
+        sch_refNo.nameExpr = "{#REF_NO}";
+        break;
+    case "S": //조사비용
+        sch_refNo.win.path = top.getRoot() + "/anyfive/ipims/office/common/popup/search/PrschSearchListR.jsp";
+        sch_refNo.win.opt.width = 700;
+        sch_refNo.win.opt.height = 500;
+        sch_refNo.win.arg = {};
+        sch_refNo.codeColumn = "PRSCH_ID";
+        sch_refNo.nameExpr = "{#PRSCH_NO}";
+        break;
+    case "C": //분쟁비용
+        sch_refNo.win.path = top.getRoot() + "/anyfive/ipims/office/common/popup/search/DisputeSearchListR.jsp";
+        sch_refNo.win.arg = {};
+        sch_refNo.win.opt.width = 700;
+        sch_refNo.win.opt.height = 500;
+        sch_refNo.codeColumn = "DISPUTE_ID";
+        sch_refNo.nameExpr = "{#MGT_NO}";
+        break;
+    default:
+        sch_refNo.win.path = "";
+        sch_refNo.win.arg = {};
+        break;
+    }
+}
+
+function getRefId()
+{
+    if (sch_refNo == null) return null;
+
+    return sch_refNo.value;
+}
+
+function getSearchBox()
+{
+    return sch_refNo;
+}
+</SCRIPT>

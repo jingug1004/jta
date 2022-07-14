@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 진행서류 알림메일 수신자 목록 검색 -->
+<query name="/retrieveInformMailReceiverSearchList"><![CDATA[
+SELECT * FROM (
+SELECT A.USER_ID
+     , B.EMP_NO
+     , A.EMP_HNAME
+     , FN_DEPT_NAME(B.DEPT_CODE) DEPT_NAME
+     , A.EMP_ENAME
+     , A.EMP_CNAME
+     , A.MAIL_ADDR
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+WHERE  A.USER_ID = B.USER_ID
+AND    A.USE_YN = '1'
+AND    A.HT_CODE = 'C'
+UNION ALL
+SELECT A.USER_ID
+     , B.EMP_NO
+     , A.EMP_HNAME
+     , FN_OFFICE_NAME(B.OFFICE_CODE) DEPT_NAME
+     , A.EMP_ENAME
+     , A.EMP_CNAME
+     , A.MAIL_ADDR
+FROM   TB_USR_MST A
+     , TB_USR_OFFICE B
+WHERE  A.USER_ID = B.USER_ID
+AND    A.USE_YN = '1'
+AND    A.HT_CODE = 'C'
+) T
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveInformMailReceiverSearchList/searchText"><![CDATA[
+AND    (UPPER(T.EMP_HNAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR UPPER(T.EMP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+]]></query>
+
+<!-- 진행서류 알림메일 정보 조회 -->
+<query name="/retrieveInformMailInfo"><![CDATA[
+SELECT A.KO_APP_TITLE
+     , A.REF_NO
+     , A.APP_NO
+     , '[제    목] : [' || A.REF_NO || ']의 [' || FN_PAPER_NAME(B.PAPER_CODE) || '][' || FN_PAPER_SUBNAME(B.PAPER_CODE, B.PAPER_SUBCODE) || ']입니다. (법정기한:' || TO_CHAR(TO_DATE(B.DUE_DATE, 'YYYYMMDD'), 'YYYY/MM/DD') || ')
+
+[시스템명] : 지재권관리시스템
+[REF-NO] : ' || A.REF_NO || '
+[출원번호] : ' || A.APP_NO || '
+[발명의 명칭] : ' || A.KO_APP_TITLE || '
+[서 류 명] : ' || FN_PAPER_NAME(B.PAPER_CODE) || '-' || FN_PAPER_SUBNAME(B.PAPER_CODE, B.PAPER_SUBCODE) || '
+[발 송 일] : ' || TO_CHAR(SYSDATE, 'YYYY/MM/DD') || '
+[지적재산팀 담당자] : ' || FN_USER_NAME(A.JOB_MAN) || '
+[특허사무소] : ' || FN_OFFICE_NAME(A.OFFICE_CODE) || '
+[사무소 담당자] : ' || FN_USER_NAME(A.OFFICE_JOB_MAN) || '
+[국내 사무소REF] : ' || A.OFFICE_REF_NO || '
+[해외 사무소REF] : ' || A2.EXT_OFFICE_REF_NO || '
+[담당자 의견] : '|| B.REMARK || '
+이상입니다.' BODY
+FROM   TB_APP_MST A
+     , TB_APP_MST_EXT A2
+     , TB_PAPER_LIST B
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.REF_ID = A2.REF_ID(+)
+AND    B.REF_ID = A.REF_ID
+AND    B.LIST_SEQ = {@LIST_SEQ}
+]]></query>
+
+<!-- 알림메일 수신자 정보 조회 -->
+<query name="/retrieveInformMailRecvInfo"><![CDATA[
+SELECT MAIL_ADDR
+     , EMP_HNAME
+FROM   TB_USR_MST
+WHERE  USER_ID = {@USER_ID}
+]]></query>
+
+</root>

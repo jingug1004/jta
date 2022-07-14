@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- IPC코드관리 트리 조회 -->
+<query name="/retrieveIpcCodeTree"><![CDATA[
+SELECT IPC_CODE
+     , PRIOR_IPC_CODE
+     , IPC_HNAME
+     , IPC_LEVEL
+     , IPC_DESC
+     , USE_YN
+     , CRE_USER
+     , CRE_DATE
+     , UPD_USER
+     , UPD_DATE
+FROM   TB_COM_IPC_CLS
+ORDER BY IPC_LEVEL, IPC_HNAME
+]]></query>
+
+<!-- IPC코드관리 목록 조회 -->
+<query name="/retrieveIpcCodeList"><![CDATA[
+SELECT IPC_CODE
+     , PRIOR_IPC_CODE
+     , IPC_HNAME
+     , IPC_LEVEL
+     , IPC_DESC
+     , FN_COM_CODE_NAME('USE_YN', USE_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) USE_YN_NAME
+     , CRE_USER
+     , CRE_DATE
+     , UPD_USER
+     , UPD_DATE
+FROM   TB_COM_IPC_CLS
+WHERE  PRIOR_IPC_CODE = {@PRIOR_IPC_CODE}
+ORDER BY IPC_LEVEL, IPC_HNAME
+]]></query>
+
+<!-- IPC코드관리 생성 -->
+<query name="/createIpcCode"><![CDATA[
+INSERT INTO TB_COM_IPC_CLS (
+       IPC_CODE
+     , PRIOR_IPC_CODE
+     , IPC_HNAME
+     , IPC_LEVEL
+     , IPC_DESC
+     , USE_YN
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT
+       {@IPC_CODE}
+     , {@PRIOR_IPC_CODE}
+     , {@IPC_HNAME}
+     ,  CASE WHEN {@PRIOR_IPC_CODE} = 'ROOT' THEN 1 ELSE (SELECT IPC_LEVEL + 1 FROM TB_COM_IPC_CLS WHERE IPC_CODE = {@PRIOR_IPC_CODE}) END
+     , {@IPC_DESC}
+     , {@USE_YN}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM DUAL
+]]></query>
+
+<!-- IPC코드관리 조회 -->
+<query name="/retrieveIpcCode"><![CDATA[
+SELECT IPC_CODE
+     , PRIOR_IPC_CODE
+     , IPC_HNAME
+     , IPC_DESC
+     , USE_YN
+FROM   TB_COM_IPC_CLS
+WHERE  IPC_CODE = {@IPC_CODE}
+]]></query>
+
+<!-- IPC코드관리 수정 -->
+<query name="/updateIpcCode"><![CDATA[
+UPDATE TB_COM_IPC_CLS SET
+       IPC_HNAME = {@IPC_HNAME}
+     , IPC_DESC = {@IPC_DESC}
+     , USE_YN ={@USE_YN}
+     , UPD_USER = {@$USER_ID}
+     , UPD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  IPC_CODE = {@IPC_CODE}
+]]></query>
+
+<!-- IPC코드관리 삭제 -->
+<query name="/deleteIpcCode"><![CDATA[
+DELETE TB_COM_IPC_CLS A
+WHERE  IPC_CODE = {@IPC_CODE}
+AND    NOT EXISTS (SELECT 1
+                   FROM   TB_COM_IPC_CLS
+                   WHERE  PRIOR_IPC_CODE = A.IPC_CODE
+                  )
+]]></query>
+
+</root>

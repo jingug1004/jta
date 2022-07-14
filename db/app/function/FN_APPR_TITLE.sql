@@ -1,0 +1,53 @@
+CREATE OR REPLACE FUNCTION FN_APPR_TITLE
+(
+    I_APPR_NO                   IN  TB_APPR_MST.APPR_NO%TYPE
+)
+RETURN VARCHAR IS R_TEXT VARCHAR2(500);
+
+    V_APPR_CODE                 TB_APPR_MGT.APPR_CODE%TYPE;
+    V_APPR_NAME                 TB_APPR_MGT.APPR_NAME%TYPE;
+    V_APPR_NO_COL               TB_APPR_MGT.APPR_NO_COL%TYPE;
+    V_APPR_TABLE                TB_APPR_MGT.APPR_TABLE%TYPE;
+    V_APPR_TITLE_COL            TB_APPR_MGT.APPR_TITLE_COL%TYPE;
+
+    V_SQL                       VARCHAR2(4000);
+
+BEGIN
+
+    SELECT MST.APPR_CODE
+         , MGT.APPR_NAME
+         , MGT.APPR_NO_COL
+         , MGT.APPR_TABLE
+         , MGT.APPR_TITLE_COL
+    INTO   V_APPR_CODE
+         , V_APPR_NAME
+         , V_APPR_NO_COL
+         , V_APPR_TABLE
+         , V_APPR_TITLE_COL
+    FROM   TB_APPR_MST MST
+         , TB_APPR_MGT MGT
+    WHERE  MST.APPR_NO = I_APPR_NO
+    AND    MST.APPR_CODE = MGT.APPR_CODE
+    ;
+
+    IF V_APPR_TITLE_COL IS NULL THEN
+        RETURN V_APPR_NAME;
+    END IF;
+
+    V_SQL := 'SELECT ' || V_APPR_TITLE_COL || ' FROM ' || V_APPR_TABLE || ' A WHERE ' || V_APPR_NO_COL || ' = :APPR_NO';
+
+    EXECUTE IMMEDIATE V_SQL INTO R_TEXT USING I_APPR_NO;
+
+    RETURN R_TEXT;
+
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            R_TEXT := '(NOT AVAILABLE)';
+            IF V_APPR_NAME IS NOT NULL THEN
+                R_TEXT := '[' || V_APPR_NAME || '] ' || R_TEXT;
+            END IF;
+            RETURN R_TEXT;
+        WHEN OTHERS THEN
+            RETURN '(UNKNOWN TITLE)';
+
+END;

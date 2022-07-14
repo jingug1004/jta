@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 관리자 인증 키 -->
+<admin-key><![CDATA[ xUhCJJNXHfLP3a8iwnuR7CCEkg5ie0mi ]]></admin-key>
+
+<!-- 업데이트 인증 키 -->
+<update-key><![CDATA[ o5oslU84UqXyVG10j8g2es2yAyo3UzL7k7TYc7FrsYKcLTgyxH ]]></update-key>
+
+</root>

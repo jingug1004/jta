@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 평가등급 구분 -->
+<codeData name="/evalCode">
+    <row CODE="A" NAME="A등급" />
+    <row CODE="B" NAME="B등급" />
+    <row CODE="D" NAME="D등급" />
+    <row CODE="X" NAME="X등급" />
+    <row CODE="Y" NAME="Y등급" />
+</codeData>
+
+<!-- 평가등급 상세구분 -->
+<codeData name="/evalCodeDetail">
+    <row CODE="A" NAME="(A)향후 적용 고려대상" />
+    <row CODE="B" NAME="(B)단순 참고기술" />
+    <row CODE="D" NAME="(D)당사제품과는 무관" />
+    <row CODE="X" NAME="(X)소송대응" />
+    <row CODE="Y" NAME="(Y)침해판단 필요" />
+</codeData>
+
+<!-- 국가구분 -->
+<codeData name="/countryCode">
+    <row CODE="KR" NAME="한국" />
+    <row CODE="JP" NAME="일본" />
+    <row CODE="US" NAME="미국" />
+    <row CODE="EP" NAME="중국" />
+</codeData>
+
+<!-- 기간구분 -->
+<codeData name="/searchYear">
+    <row CODE="10" NAME="현재부터 10년이전" />
+    <row CODE="20" NAME="현재부터 20년이전" />
+</codeData>
+
+<!-- 순위구분 -->
+<codeData name="/searchRank">
+    <row CODE="5" NAME="5위" />
+    <row CODE="10" NAME="10위" />
+    <row CODE="15" NAME="15위" />
+    <row CODE="20" NAME="20위" />
+</codeData>
+
+<!-- 검색구분 -->
+<codeData name="/PaperSearchNumKind">
+    <row CODE="MGT_NO" NAME="관리번호" />
+    <row CODE="OUR_APPNO" NAME="출원번호" />
+    <row CODE="OUR_REGNO" NAME="등록번호" />
+    <row CODE="OUR_PUBNO" NAME="공개번호" />
+</codeData>
+
+<!-- 맵유형구분 -->
+<codeData name="/quantityMapType">
+    <row CODE="01" COUNTRY_CODE="1" OWN_APP_MAN="1" YEAR_AREA="0" RANK_AREA="0" TECH_AREA="0" NAME="제품별 건수" />
+    <row CODE="02" COUNTRY_CODE="1" OWN_APP_MAN="0" YEAR_AREA="0" RANK_AREA="1" TECH_AREA="0" NAME="출원인별 제품별 건수" />
+    <row CODE="03" COUNTRY_CODE="1" OWN_APP_MAN="0" YEAR_AREA="0" RANK_AREA="1" TECH_AREA="1" NAME="출원인별 건수" />
+    <row CODE="04" COUNTRY_CODE="1" OWN_APP_MAN="0" YEAR_AREA="1" RANK_AREA="1" TECH_AREA="1" NAME="출원인별 연도별 건수" />
+    <row CODE="05" COUNTRY_CODE="1" OWN_APP_MAN="1" YEAR_AREA="0" RANK_AREA="0" TECH_AREA="0" NAME="연도별 건수" />
+    <row CODE="06" COUNTRY_CODE="1" OWN_APP_MAN="1" YEAR_AREA="0" RANK_AREA="0" TECH_AREA="0" NAME="제품별 연도별 건수" />
+    <row CODE="07" COUNTRY_CODE="1" OWN_APP_MAN="1" YEAR_AREA="0" RANK_AREA="0" TECH_AREA="0" NAME="제품별 등급별 건수" />
+    <row CODE="08" COUNTRY_CODE="1" OWN_APP_MAN="0" YEAR_AREA="0" RANK_AREA="0" TECH_AREA="1" NAME="등급별 건수" />
+    <row CODE="09" COUNTRY_CODE="1" OWN_APP_MAN="1" YEAR_AREA="0" RANK_AREA="0" TECH_AREA="1" NAME="하위레벨별 건수" />
+    <row CODE="10" COUNTRY_CODE="0" OWN_APP_MAN="0" YEAR_AREA="0" RANK_AREA="0" TECH_AREA="0" NAME="국가별 제품별 건수" />
+    <row CODE="11" COUNTRY_CODE="0" OWN_APP_MAN="0" YEAR_AREA="0" RANK_AREA="0" TECH_AREA="0" NAME="제품별 국가별 건수" />
+    <row CODE="12" COUNTRY_CODE="0" OWN_APP_MAN="0" YEAR_AREA="0" RANK_AREA="1" TECH_AREA="0" NAME="출원인별 국가별 건수" />
+    <row CODE="13" COUNTRY_CODE="0" OWN_APP_MAN="0" YEAR_AREA="0" RANK_AREA="0" TECH_AREA="0" NAME="국가별 등급별 건수" />
+    <row CODE="14" COUNTRY_CODE="1" OWN_APP_MAN="0" YEAR_AREA="0" RANK_AREA="1" TECH_AREA="0" NAME="제품별 출원인별 건수" />
+    <row CODE="15" COUNTRY_CODE="1" OWN_APP_MAN="0" YEAR_AREA="0" RANK_AREA="1" TECH_AREA="1" NAME="출원인별 등급별 건수" />
+    <row CODE="16" COUNTRY_CODE="0" OWN_APP_MAN="1" YEAR_AREA="0" RANK_AREA="0" TECH_AREA="0" NAME="국가별 건수" />
+</codeData>
+
+<!-- 대표출원인 -->
+<query name="/ownAppMan"><![CDATA[
+SELECT DISTINCT OWN_APP_MAN CODE
+     , OWN_APP_MAN NAME
+FROM   TB_RIVALPAT_MST
+WHERE  OWN_APP_MAN IS NOT NULL
+]]></query>
+
+<!-- 평가등급 구분 -->
+<codeData name="/dateKind">
+    <row CODE="APPDATE" NAME="출원일자" />
+    <row CODE="REGDATE" NAME="등록일자" />
+    <row CODE="PUBDATE" NAME="공개일자" />
+    <row CODE="DATE" NAME="작성일" />
+</codeData>
+
+
+
+
+</root>

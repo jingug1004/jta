@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+
+<!-- 심의현황 조회 -->
+<query name="/retrieveCouncilEvlListR"><![CDATA[
+SELECT MGT_ID
+     , MGT_NO
+     , REQ_SUBJECT
+     , DECODE(STATUS, '1', '미평가','2', '심의위원평가중', '3', '특허팀평가중', '4', '평가완료') STATUS
+     , START_DATE
+     , END_DATE
+     , START_DATE ||' ~ '|| END_DATE AS SE_DATE
+     , FN_REVIEW_NAMES(MGT_ID) REVIEW_NAMES
+     , CRE_DATE
+     , FN_USER_NAME(CRE_USER) CRE_USER
+FROM TB_REVIEW_REQ
+WHERE STATUS > 0
+]]></query>
+<query name="/retrieveCouncilEvlListR/inventor"><![CDATA[
+AND   ( MGT_ID IN (SELECT E.MGT_ID FROM TB_MAPP_REVIEW_MEMBER E WHERE E.REVIEW_MEMBER = {@$USER_ID}))
+]]></query>
+<query name="/retrieveCouncilEvlListR/mgtId"><![CDATA[
+AND   MGT_ID = {@MGT_ID}
+]]></query>
+<query name="/retrieveCouncilEvlListR/reqSubJdect"><![CDATA[
+AND    UPPER(REQ_SUBJECT) LIKE '%'||UPPER({@REQ_SUBJECT})||'%'
+]]></query>
+<query name="/retrieveCouncilEvlListR/startDate"><![CDATA[
+AND    {#DATE_GUBUN} >= {@START_DATE}
+]]></query>
+<query name="/retrieveCouncilEvlListR/endDate"><![CDATA[
+AND    {#DATE_GUBUN} <= {@END_DATE}
+]]></query>
+<query name="/retrieveCouncilEvlListR/reviewMember"><![CDATA[
+AND   MGT_ID IN (SELECT F.MGT_ID
+                   FROM   TB_MAPP_REVIEW_MEMBER F
+                        , V_USER_ALL G
+                  WHERE  F.REVIEW_MEMBER = G.USER_ID
+                    AND  G.EMP_HNAME LIKE '%' || {@REVIEW_MEMBER} ||'%')
+]]></query>
+
+<!-- 임시저장시 REQ 테이블 상태 수정 -->
+<query name="/updateCouncilEvlRreq"><![CDATA[
+UPDATE TB_REVIEW_REQ
+SET STATUS = {@STATUSR}
+WHERE MGT_ID = {@MGT_ID}
+]]></query>
+
+<!-- 임시저장시 MEMBER 테이블 상태 수정 -->
+<query name="/updateCouncilEvlMber"><![CDATA[
+UPDATE TB_MAPP_REVIEW_MEMBER
+SET STATUS = {@STATUS}
+WHERE MGT_ID = {@MGT_ID}
+AND REVIEW_MEMBER = {@$USER_ID}
+]]></query>
+
+<!-- 평가완료 저장시 TB_APP_MST 테이블에  수정할 내용 조회 -->
+<query name="/retrieveCouncilEvlStsRreq"><![CDATA[
+SELECT A.REVIEW_GRADE, A.REF_ID
+FROM TB_MAPP_REVIEW_TARGET A
+, TB_APP_MST B
+WHERE A.REF_ID = B.REF_ID
+AND A.MGT_ID = {@MGT_ID}
+]]></query>
+
+<!-- 평가완료 저장시 TB_APP_MST 테이블에 심의등급, 최종등급 수정 -->
+<query name="/updateCouncilEvlAmst"><![CDATA[
+UPDATE TB_APP_MST
+SET REVIEW_GRADE = {@REVIEW_GRADE}
+  , LAST_GRADE   = {@REVIEW_GRADE}
+WHERE REF_ID = {@REF_ID}
+]]></query>
+
+<!--심의 평가재요청 EMAIL 상세정보조회 -->
+<query name="/retrieveCouncilRequest"><![CDATA[
+SELECT REQ_SUBJECT
+     , START_DATE
+     , END_DATE
+FROM TB_REVIEW_REQ
+WHERE MGT_ID = {@MGT_ID}
+]]></query>
+
+<!-- 심의요청 EMAIL 주소조회 -->
+<query name="/retrieveCouncilRequestReList"><![CDATA[
+SELECT M.EMP_HNAME
+     , M.MAIL_ADDR
+     , STATUS
+FROM   TB_MAPP_REVIEW_MEMBER S
+     , TB_USR_MST M
+WHERE S.MGT_ID = {@MGT_ID}
+  AND S.REVIEW_MEMBER = M.USER_ID
+  AND (S.STATUS = 0 OR S.STATUS IS NULL)
+]]></query>
+
+</root>

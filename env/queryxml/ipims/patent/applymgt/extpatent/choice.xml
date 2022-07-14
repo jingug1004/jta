@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 해외출원품의대상 목록 조회 -->
+<query name="/retrieveExtPatentChoiceList"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , A.APP_NO
+     , A.KO_APP_TITLE
+     , A.APP_DATE
+     , TO_CHAR(ADD_MONTHS(A.APP_DATE, 12), 'YYYYMMDD') EXT_APP_LIMIT_DATE
+     , B.PATTEAM_RCPT_DATE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) AS OFFICE_NAME
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , A.REG_NO
+     , B.EXT_APP_STATUS
+     , FN_COM_CODE_NAME('EXT_APP_STATUS', B.EXT_APP_STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) EXT_APP_STATUS_NAME
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+WHERE  A.REF_ID = B.REF_ID(+)
+AND    A.APP_NO IS NOT NULL
+AND    B.EXT_APP_STATUS = '0'
+AND    A.ABD_YN = '0'
+AND    A.RIGHT_DIV IN ('10', '20')
+AND    TO_CHAR(ADD_MONTHS(A.APP_DATE, 12), 'YYYYMMDD') >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+AND    NVL(A.DIVISION_TYPE, ' ') <> 'D'
+]]></query>
+<query name="/retrieveExtPatentChoiceList/refNo"><![CDATA[
+AND    A.REF_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveExtPatentChoiceList/patNo"><![CDATA[
+AND    A.APP_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveExtPatentChoiceList/regNO"><![CDATA[
+AND    A.REG_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveExtPatentChoiceList/rightDiv"><![CDATA[
+AND    A.RIGHT_DIV = {@RIGHT_DIV}
+]]></query>
+<query name="/retrieveExtPatentChoiceList/officeCode"><![CDATA[
+AND    A.OFFICE_CODE = {@OFFICE_CODE}
+]]></query>
+<query name="/retrieveExtPatentChoiceList/jobMan"><![CDATA[
+AND    A.JOB_MAN = {@JOB_MAN}
+]]></query>
+<query name="/retrieveExtPatentChoiceList/extAppStatus"><![CDATA[
+AND    B.EXT_APP_STATUS = {@EXT_APP_STATUS}
+]]></query>
+<query name="/retrieveExtPatentChoiceList/extAppLimit"><![CDATA[
+AND    TO_CHAR(ADD_MONTHS(A.APP_DATE, 12 - {@EXT_APP_LIMIT:NUMBER}), 'YYYYMMDD') <= TO_CHAR(SYSDATE, 'YYYYMMDD')
+]]></query>
+<query name="/retrieveExtPatentChoiceList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveExtPatentChoiceList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+
+</root>

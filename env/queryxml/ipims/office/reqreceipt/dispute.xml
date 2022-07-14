@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 분쟁/소송의뢰접수 목록 조회 -->
+<query name="/retrieveDisputeReceiptList"><![CDATA[
+SELECT DISPUTE_ID
+     , DISPUTE_DIV
+     , MGT_NO
+     , DISPUTE_NO
+     , DISPUTE_SUBJECT
+     , FN_COM_CODE_NAME('DISPUTE_DIV', DISPUTE_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) DISPUTE_DIV_NAME
+     , FN_COM_CODE_NAME('DISPUTE_KIND', DISPUTE_KIND, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) DISPUTE_KIND_NAME
+     , OTHER_NAME
+     , REQ_DATE
+     , LAST_DISPOSAL_DATE
+     , CRE_DATE
+FROM   TB_IPB_DISPUTE
+WHERE  OFFICE_CODE = {@$OFFICE_CODE}
+AND    OFFICE_SEND_DATE IS NOT NULL
+AND    OFFICE_RCPT_DATE IS NULL
+]]></query>
+<query name="/retrieveDisputeReceiptList/numText"><![CDATA[
+AND    {#NUM_KIND} LIKE '%'||{@NUM_TEXT}||'%'
+]]></query>
+<query name="/retrieveDisputeReceiptList/disputeSubject"><![CDATA[
+AND    DISPUTE_SUBJECT LIKE '%'||{@DISPUTE_SUBJECT}||'%'
+]]></query>
+<query name="/retrieveDisputeReceiptList/disputeDiv"><![CDATA[
+AND    DISPUTE_DIV = {@DISPUTE_DIV}
+]]></query>
+<query name="/retrieveDisputeReceiptList/dateStart"><![CDATA[
+AND    {#DATE_KIND} >= {@DATE_START}
+]]></query>
+<query name="/retrieveDisputeReceiptList/dateEnd"><![CDATA[
+AND    {#DATE_KIND} <= {@DATE_END}
+]]></query>
+<query name="/retrieveDisputeReceiptList/disputeKind"><![CDATA[
+AND    DISPUTE_KIND = {@DISPUTE_KIND}
+]]></query>
+
+<!-- 분쟁/소송의뢰접수 조회 -->
+<query name="/retreiveDisputeReceipt"><![CDATA[
+SELECT MGT_NO
+     , DISPUTE_DIV
+     , DISPUTE_KIND
+     , FN_COM_CODE_NAME('DISPUTE_KIND', DISPUTE_KIND, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) DISPUTE_KIND_NAME
+     , COUNTRY_CODE
+     , FN_COUNTRY_NAME(COUNTRY_CODE) COUNTRY_NAME
+     , EXAM_USER
+     , REQ_MAN
+     , REQ_DATE
+     , DISPUTE_SUBJECT
+     , DISPUTE_NO
+     , JUDGE_MAN
+     , LAST_DISPOSAL_DATE
+     , LAST_DISPOSAL_RESULT
+     , FN_COM_CODE_NAME('LAST_DISPOSAL_RESULT', LAST_DISPOSAL_RESULT, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) LAST_RESULT_NAME
+     , DISPUTE_REASON
+     , REMARK
+     , OFFICE_CODE
+     , FN_OFFICE_NAME(OFFICE_CODE) OFFICE_NAME
+     , LAWYER
+     , OFFICE_SEND_DATE
+     , OFFICE_RCPT_DATE
+     , OFFICE_REF_NO
+     , OTHER_NAME
+     , OTHER_ADDR
+     , OTHER_LAWYER
+     , OTHER_AGENT
+FROM   TB_IPB_DISPUTE
+WHERE  DISPUTE_ID = {@DISPUTE_ID}
+]]></query>
+
+<!-- 분쟁/소송의뢰접수 저장 -->
+<query name="/updateDisputeReceipt"><![CDATA[
+UPDATE TB_IPB_DISPUTE SET
+       OFFICE_RCPT_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , OFFICE_REF_NO = {@OFFICE_REF_NO}
+WHERE  DISPUTE_ID = {@DISPUTE_ID}
+]]></query>
+
+</root>

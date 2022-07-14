@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 접수 여부 -->
+<codeData name="/receiptYn">
+    <row CODE="0" NAME="미접수" />
+    <row CODE="1" NAME="접수" />
+</codeData>
+
+<!-- 접수 여부 -->
+<codeData name="/priorSearchReceiptYn">
+    <row CODE="0" NAME="미접수" />
+    <row CODE="1" NAME="접수" />
+    <row CODE="2" NAME="결과통보" />
+</codeData>
+
+<!-- 분쟁/소송 접수목록 검색번호 -->
+<codeData name="/disputeReceiptSearchNumKind">
+    <row CODE="MGT_NO" NAME="관리번호" />
+    <row CODE="DISPUTE_NO" NAME="분쟁(소송)번호" />
+</codeData>
+
+<!-- 분쟁/소송 접수목록 검색일자 -->
+<codeData name="/disputeReceiptSearchDateKind">
+    <row CODE="REQ_DATE" NAME="청구일" />
+    <row CODE="LAST_DISPOSAL_DATE" NAME="최종처분일" />
+    <row CODE="CRE_DATE" NAME="작성일" />
+</codeData>
+
+</root>

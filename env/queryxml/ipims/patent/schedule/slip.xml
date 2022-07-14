@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+<!-- ERP 전표 정보 조회 -->
+<query name="/retrieveSlipInfo"><![CDATA[
+SELECT SLIP_ID
+     , ACCOUNT_SLIP_NO
+     , ACCOUNT_PROC_USER
+FROM   IF_COST_SLIP
+WHERE  FLAG = 'S'
+  AND  END_YN = '0'
+GROUP BY SLIP_ID, ACCOUNT_SLIP_NO, ACCOUNT_PROC_USER
+]]></query>
+
+<!-- 전표 정보 수정 -->
+<query name="/updateSlipInfo"><![CDATA[
+UPDATE TB_COST_SLIP SET
+       ACCOUNT_SLIP_NO = {@ACCOUNT_SLIP_NO}
+      ,ACCOUNT_PROC_USER = {@ACCOUNT_PROC_USER}
+      ,ACCOUNT_PROC_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+      ,ACCOUNT_PROC_YN = '1'
+WHERE  SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- ERP 전표 완료 처리 -->
+<query name="/updateErpSlip"><![CDATA[
+UPDATE IF_COST_SLIP SET
+       END_YN = '1'
+      ,ACCOUNT_PROC_YN = '1'
+      ,ACCOUNT_PROC_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+      ,UPD_USER = CRE_USER
+      ,UPD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- 비용마스터 전표완료 상태 수정 -->
+<query name="/updateCostMasterSlipStatus"><![CDATA[
+UPDATE TB_COST_MST SET
+       SLIP_STATUS = '9'
+WHERE  SLIP_ID = {@SLIP_ID}
+]]></query>
+
+</root>

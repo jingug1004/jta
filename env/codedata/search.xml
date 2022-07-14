@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 검색항목 -->
+<codeData name="/searchItem">
+    <row CODE="ALL" NAME="모든검색 (ALL)" TYPE="TEXTAREA" />
+    <row CODE="KW" NAME="전문(발명의명칭/초록/청구범위) (KW)" TYPE="TEXTAREA" />
+    <row CODE="TL" NAME="발명(고안)의 명칭 (TL)" TYPE="TEXTAREA" />
+    <row CODE="AB" NAME="초록 (AB)" TYPE="TEXTAREA" />
+    <row CODE="CL" NAME="청구범위 (CL)" TYPE="TEXTAREA" />
+    <row CODE="IPC" NAME="IPC (IPC)" TYPE="TEXT" />
+    <row CODE="AN" NAME="출원번호 (AN)" TYPE="TEXT" />
+    <row CODE="OPN" NAME="공개번호 (OPN)" TYPE="TEXT" />
+    <row CODE="GN" NAME="등록번호 (GN)" TYPE="TEXT" />
+    <row CODE="RN" NAME="우선권주장번호 (RN)" TYPE="TEXT" />
+    <row CODE="AD" NAME="출원일자 (AD)" TYPE="DATE" />
+    <row CODE="OPD" NAME="공개일자 (OPD)" TYPE="DATE" />
+    <row CODE="GD" NAME="등록일자 (GD)" TYPE="DATE" />
+    <row CODE="RD" NAME="우선권주장일자 (RD)" TYPE="TEXT" />
+    <row CODE="IN" NAME="발명자 이름 (IN)" TYPE="TEXT" />
+    <row CODE="AG" NAME="대리인 이름 (AG)" TYPE="TEXT" />
+    <row CODE="FILES" NAME="첨부파일검색 (FILES)" TYPE="TEXT" />
+</codeData>
+
+<!-- 검색페이지당 갯수 -->
+<codeData name="/searchPageSize">
+    <row CODE="20" NAME="페이지당 20개" />
+    <row CODE="50" NAME="페이지당 50개" />
+    <row CODE="100" NAME="페이지당 100개" />
+    <row CODE="150" NAME="페이지당 150개" />
+    <row CODE="200" NAME="페이지당 200개" />
+</codeData>
+
+</root>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 디자인해외출원OL목록 조회 -->
+<query name="/retrieveDesignExtOrderLetterList"><![CDATA[
+SELECT A.OL_ID
+     , A.GRP_ID
+     , B.GRP_NO
+     , FN_GROUP_INT_APP_NOS(B.GRP_ID) KR_APP_NO
+     , FN_COM_CODE_NAME('RIGHT_DIV', B.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_OL_COUNTRY_NAMES(A.OL_ID) COUNTRY_NAME
+     , B.KO_APP_TITLE
+     , FN_BIZ_CODE_NAME(C.STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) STATUS_NAME
+     , B.JOB_MAN
+     , FN_USER_NAME(B.JOB_MAN) JOB_MAN_NAME
+     , FN_INVENTOR_NAMES(B.GRP_ID) INVENTOR_NAMES
+     , FN_OFFICE_NAME(B.OFFICE_CODE) KR_OFFICE
+     , B.CRE_USER
+     , FN_USER_NAME(B.CRE_USER) CRE_USER_NAME
+     , B.CRE_DATE
+     , FN_DEPT_NAME(B.DEPT_CODE) DEPT_NAME
+     , NVL(A.DIVISION_TYPE,'X') DIVISION_TYPE
+FROM   TB_APP_EXT_OL A
+     , TB_APP_EXT_GRP B
+     , TB_BIZ_COM_MST C
+WHERE  A.GRP_ID = B.GRP_ID
+AND    A.OL_ID = C.REF_ID(+)
+AND    B.RIGHT_DIV = '30'
+]]></query>
+<query name="/retrieveDesignExtOrderLetterList/grpNo"><![CDATA[
+AND    B.GRP_NO LIKE '%'||{@GRP_NO}||'%'
+]]></query>
+<query name="/retrieveDesignExtOrderLetterList/status"><![CDATA[
+AND    C.STATUS LIKE '%'||{@STATUS}||'%'
+]]></query>
+<query name="/retrieveDesignExtOrderLetterList/jobMan"><![CDATA[
+AND    B.JOB_MAN = {@JOB_MAN}
+]]></query>
+<query name="/retrieveDesignExtOrderLetterList/dateStart"><![CDATA[
+AND    B.CRE_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveDesignExtOrderLetterList/dateEnd"><![CDATA[
+AND    B.CRE_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 디자인 오더레터 그룹정보 조회 -->
+<query name="/retrieveDesignExtOrderLetterGroup"><![CDATA[
+SELECT GRP_ID
+     , GRP_NO
+     , LAB_CODE
+     , FN_LAB_NAME(LAB_CODE) AS LAB_NAME
+     , DEPT_CODE
+     , FN_DEPT_NAME(DEPT_CODE) AS DEPT_NAME
+     , DECODE(FIRSTAPP_COUNTRY, NULL,'0', '1') PRIORITY_CLAIM_YN
+     , FIRSTAPP_COUNTRY
+     , FIRSTAPP_DATE
+     , FN_OFFICE_NAME(OFFICE_CODE) OFFICE_NAME
+     , KO_APP_TITLE
+     , CORGT_YN
+     , CORGT_MAN
+     , REMARK
+FROM   TB_APP_EXT_GRP
+WHERE  GRP_ID = {@GRP_ID}
+]]></query>
+
+<!-- 디자인해외출원OL 조회 -->
+<query name="/retrieveDesignExtOrderLetter"><![CDATA[
+SELECT A.GRP_ID
+     , A.CRE_USER
+     , FN_USER_NAME(A.CRE_USER) AS CRE_USER_NAME
+     , A.CRE_DATE
+     , A.PRIORITY_CLAIM_YN
+     , A.PRIORITY_CLAIM_COUNTRY
+     , FN_COUNTRY_NAME(A.PRIORITY_CLAIM_COUNTRY) AS PRIORITY_CLAIM_COUNTRY_NAME
+     , A.EXAM_OPINION
+     , A.ATTACH_FILE
+FROM   TB_APP_EXT_OL A
+WHERE  A.OL_ID = {@OL_ID}
+]]></query>
+
+<!-- 디자인해외출원 신규OL 작성 -->
+<query name="/createDesignExtOrderLetter"><![CDATA[
+INSERT INTO TB_APP_EXT_OL (
+       OL_ID
+     , OL_DIV
+     , GRP_ID
+     , PRIORITY_CLAIM_YN
+     , PRIORITY_CLAIM_COUNTRY
+     , EXAM_OPINION
+     , ATTACH_FILE
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@OL_ID}
+     , 'N'
+     , {@GRP_ID}
+     , {@PRIORITY_CLAIM_YN}
+     , {@PRIORITY_CLAIM_COUNTRY}
+     , {@EXAM_OPINION}
+     , {@ATTACH_FILE}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE,'YYYYMMDD')
+)
+]]></query>
+
+<!-- 디자인해외출원OL 수정 -->
+<query name="/updateDesignExtOrderLetter"><![CDATA[
+UPDATE TB_APP_EXT_OL SET
+       PRIORITY_CLAIM_YN      = {@PRIORITY_CLAIM_YN}
+     , PRIORITY_CLAIM_COUNTRY = {@PRIORITY_CLAIM_COUNTRY}
+     , EXAM_OPINION           = {@EXAM_OPINION}
+     , ATTACH_FILE            = {@ATTACH_FILE}
+     , UPD_USER               = {@$USER_ID}
+     , UPD_DATE               = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  OL_ID = {@OL_ID}
+]]></query>
+
+</root>
+

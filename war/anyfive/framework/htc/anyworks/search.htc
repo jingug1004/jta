@@ -1,0 +1,289 @@
+﻿<PUBLIC:COMPONENT tagName="SEARCH" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="mode" get="getMode" put="setMode">
+    <PUBLIC:PROPERTY name="prx" get="getPrx">
+    <PUBLIC:PROPERTY name="win" get="getWin">
+    <PUBLIC:PROPERTY name="codeColumn" put="setCodeColumn">
+    <PUBLIC:PROPERTY name="nameExpr" put="setNameExpr">
+    <PUBLIC:PROPERTY name="value" get="getValue" put="setValue">
+    <PUBLIC:METHOD name="setColumn">
+    <PUBLIC:METHOD name="setMultiple">
+    <PUBLIC:METHOD name="doSearch">
+    <PUBLIC:METHOD name="focus">
+    <PUBLIC:EVENT name="OnChange" id="OnChangeEvent">
+    <PUBLIC:EVENT name="OnInit" id="OnInitEvent" />
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var control_id = element.id + "_" + element.sourceIndex;
+
+var spn_main;
+var spn_main_id = "spn_main_" + control_id;
+
+var txt_main;
+var txt_main_id = "txt_main_" + control_id;
+
+var btn_search;
+var btn_search_id = "btn_search_" + control_id;
+
+var gPrx;
+var gWin;
+var gCodeColumn;
+var gNameExpr;
+var gColumns;
+var gMultipleDelimiter;
+
+var gDiv;
+var gMode = "R";
+var gMode2 = "R";
+
+eval(function()
+{
+    if (element.document.media == "print") return;
+
+    gPrx = new any.proxy();
+
+    gWin = new any.window();
+    gWin.opt.width = 500;
+    gWin.opt.height = 500;
+
+    gColumns = new Array();
+
+    if (element.document.media == "print") return;
+
+    gDiv = element.document.createElement('DIV');
+    element.appendChild(gDiv);
+})();
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    for (var i = 0, elements = element.getElementsByTagName("*"); i < elements.length; i++) {
+        if (elements[i].tagName == "SCRIPT" || elements[i].tagName == "COMMENT") eval(elements[i].text);
+    }
+
+    OnInitEvent.fire(element.document.createEventObject());
+
+    makeHTML();
+
+    setTextBoxStyle();
+
+    element.isReady = true;
+}
+
+function makeHTML()
+{
+    var html = new Array();
+
+    if (gMode2 == "R") {
+        html.push('<SPAN id="' + spn_main_id + '"></SPAN>');
+    } else {
+        html.push('<TABLE border="0" cellspacing="0" cellpadding="0" width="100%">');
+        html.push('    <TR>');
+        html.push('        <TD width="100%">');
+        html.push('            <INPUT type="text" id="' + txt_main_id + '" class="text">');
+        html.push('        </TD>');
+        html.push('        <TD noWrap style="padding-left:2px;">');
+        html.push('            <BUTTON id="' + btn_search_id + '" width="25px" space="none"></BUTTON>');
+        html.push('        </TD>');
+        html.push('    </TR>');
+        html.push('</TABLE>');
+    }
+
+    gDiv.innerHTML = html.join("\n");
+
+    spn_main = element.document.getElementById(spn_main_id);
+    txt_main = element.document.getElementById(txt_main_id);
+
+    btn_search = element.document.getElementById(btn_search_id);
+
+    if (txt_main != null) {
+        txt_main.onkeypress = function()
+        {
+            if (txt_main.readOnly == true) return;
+
+            if (event.keyCode != 13) return;
+            event.keyCode = 0;
+            doSearch();
+        }
+
+        txt_main.onkeyup = function()
+        {
+            if (event.keyCode != 46) return;
+            doDelete();
+        }
+    }
+
+    if (btn_search != null) btn_search.onclick = doSearch;
+}
+
+function getMode()
+{
+    return gMode;
+}
+
+function setMode(val)
+{
+    if (gMode == val) return;
+
+    gMode = val;
+    gMode2 = gMode.substr(0, 1);
+
+    if (element.isReady == true) {
+        makeHTML();
+    }
+}
+
+function getPrx()
+{
+    return gPrx;
+}
+
+function getWin()
+{
+    return gWin;
+}
+
+function setCodeColumn(val)
+{
+    gCodeColumn = val;
+}
+
+function setNameExpr(val)
+{
+    gNameExpr = val;
+}
+
+function getValue()
+{
+    if (txt_main == null) return "";
+    if (txt_main.code == null) return "";
+
+    return txt_main.code;
+}
+
+function setValue(obj)
+{
+    for (var i = 0; i < gColumns.length; i++) {
+        if (obj[gColumns[i].popupColId] == null) continue;
+        if (obj[gColumns[i].controlColId] != null) continue;
+        obj[gColumns[i].controlColId] = obj[gColumns[i].popupColId];
+    }
+
+    if (gMultipleDelimiter == null) {
+        if (gMode2 == "R") {
+            spn_main.innerText = cfGetExprValue(obj, gNameExpr);
+        } else {
+            txt_main.code = obj[gCodeColumn];
+            txt_main.value = cfGetExprValue(obj, gNameExpr);
+        }
+    } else {
+        var codes = [];
+        var names = [];
+        for (var i = 0; i < obj.length; i++) {
+            codes.push(obj[i][gCodeColumn]);
+            names.push(cfGetExprValue(obj[i], gNameExpr));
+        }
+        if (gMode2 == "R") {
+            spn_main.innerText = names.join(gMultipleDelimiter.name);
+        } else {
+            txt_main.code = codes.join(gMultipleDelimiter.code);
+            txt_main.value = names.join(gMultipleDelimiter.name);
+        }
+    }
+
+    if (txt_main != null) {
+        txt_main.title = txt_main.value;
+    }
+
+    setTextBoxStyle();
+}
+
+function setColumn(controlColId, popupColId)
+{
+    gColumns.push({ controlColId:controlColId, popupColId:(popupColId == null ? controlColId : popupColId) });
+}
+
+function setMultiple(codeDelimiter, nameDelimiter)
+{
+    gMultipleDelimiter = { code:codeDelimiter, name:nameDelimiter };
+}
+
+function doSearch()
+{
+    if (txt_main.readOnly == true) return;
+
+    if (gPrx.path == null) {
+        gWin.arg.SEARCH_TEXT = txt_main.value;
+        gWin.arg.multiCheck = (gMultipleDelimiter != null);
+        gWin.show();
+        setData(gWin.rtn);
+    } else {
+        var ps = new cfPopupSearch();
+        ps.prx = gPrx;
+        ps.win = gWin;
+        ps.searchText = txt_main;
+        ps.resultFunc = setData;
+        ps.multiCheck = (gMultipleDelimiter != null);
+        ps.closePopup = true;
+        ps.search();
+    }
+}
+
+function setData(obj)
+{
+    if (obj == null) {
+        txt_main.focus();
+        return;
+    }
+
+    setValue(obj);
+
+    txt_main.blur();
+    txt_main.focus();
+    any.event.call(element, "OnChange");
+    /* OnChangeEvent.fire(element.document.createEventObject()); */
+}
+
+function doDelete()
+{
+    if (txt_main.readOnly != true) return;
+
+    txt_main.code = "";
+    txt_main.value = "";
+    txt_main.title = "";
+
+    setTextBoxStyle();
+
+    txt_main.blur();
+    txt_main.focus();
+
+    any.event.call(element, "OnChange");
+    /* OnChangeEvent.fire(element.document.createEventObject()); */
+}
+
+function setTextBoxStyle()
+{
+    if (txt_main == null) return;
+
+    if (txt_main.code == null || txt_main.code == "") {
+        txt_main.style.backgroundColor = "";
+        txt_main.readOnly = false;
+        btn_search.icon = top.getRoot() + "/anyfive/framework/htc/anyworks/image/icon_search.gif";
+        btn_search.onclick = doSearch;
+    } else {
+        txt_main.style.backgroundColor = "#F1F1EB";
+        txt_main.readOnly = true;
+        btn_search.icon = top.getRoot() + "/anyfive/framework/htc/anyworks/image/icon_delete.gif";
+        btn_search.onclick = doDelete;
+    }
+}
+
+function focus()
+{
+    txt_main.focus();
+}
+</SCRIPT>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="ba4fa17e-07e2-43e7-8d57-b728c94417eb" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CodeInsightWorkspaceSettings">
+    <option name="optimizeImportsOnTheFly" value="true" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="jar://$PROJECT_DIR$/lib/javax.servlet.jar!/javax/servlet/http/HttpServletRequest.class" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2AJtPBwyenwj6tPjz2RK2qDkekl" />
+  <component name="ProjectViewState">
+    <option name="autoscrollFromSource" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;1.8 (2)&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/AnyBuilder/workspace/mig/AnyToJu&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Problems&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\AnyBuilder\workspace\mig\jta\war" />
+      <recent name="D:\AnyBuilder\workspace\mig\jta\war\anyfive\framework\js" />
+      <recent name="D:\AnyBuilder\workspace\mig\jta\web\WEB-INF" />
+      <recent name="D:\AnyBuilder\workspace\mig\jta\war\WEB-INF" />
+      <recent name="D:\AnyBuilder\workspace\mig\jta\war\anyfive\ipims\share\login" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="anyfive.framework.authority" />
+    </key>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="SvnConfiguration" cleanupOnStartRun="true">
+    <configuration>C:\Users\a\AppData\Roaming\Subversion</configuration>
+    <supportedVersion>125</supportedVersion>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ba4fa17e-07e2-43e7-8d57-b728c94417eb" name="Changes" comment="" />
+      <created>1654739489480</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1654739489480</updated>
+      <workItem from="1654739490740" duration="3060000" />
+      <workItem from="1654748112059" duration="1285000" />
+      <workItem from="1654817997095" duration="57000" />
+      <workItem from="1654818081627" duration="54000" />
+      <workItem from="1654818152125" duration="5932000" />
+      <workItem from="1655080478098" duration="4306000" />
+      <workItem from="1655101835226" duration="2258000" />
+      <workItem from="1655164530331" duration="12416000" />
+      <workItem from="1655432837682" duration="14738000" />
+      <workItem from="1655681436021" duration="5757000" />
+      <workItem from="1655703706240" duration="6907000" />
+      <workItem from="1655767498825" duration="11575000" />
+      <workItem from="1655946075787" duration="64083000" />
+      <workItem from="1656570434670" duration="21513000" />
+      <workItem from="1657695430570" duration="1398000" />
+      <workItem from="1657754466197" duration="3441000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

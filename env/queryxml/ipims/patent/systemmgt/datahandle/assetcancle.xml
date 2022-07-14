@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 비용결재 취소 목록 조회 -->
+<query name="/retrieveAssetCancleList"><![CDATA[
+SELECT A.CONSULT_ID
+     , A.CONSULT_SUBJECT
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , A.CRE_DATE
+     , A.APPR_NO
+     , {#codeData:NVL(B.APPR_STATUS,'0'):/common/apprStatus} APPR_STATUS_NAME
+FROM   TB_COST_CONSULT A
+     , TB_APPR_MST B
+WHERE  A.APPR_NO = B.APPR_NO(+)
+AND    CONSULT_KIND IN ('S')
+AND    B.APPR_STATUS ='8'
+]]></query>
+<query name="/retrieveAssetCancleList/consultSubject"><![CDATA[
+AND    A.CONSULT_SUBJECT LIKE '%'||{@CONSULT_SUBJECT}||'%'
+]]></query>
+<query name="/retrieveAssetCancleList/consultStatusDefault"><![CDATA[
+AND    B.APPR_STATUS IS NULL
+]]></query>
+<query name="/retrieveAssetCancleList/creUser"><![CDATA[
+AND    FN_USER_NAME(A.CRE_USER) LIKE '%'||{@CRE_USER}||'%'
+]]></query>
+<query name="/retrieveAssetCancleList/dateStart"><![CDATA[
+AND    A.CRE_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveAssetCancleList/dateEnd"><![CDATA[
+AND    A.CRE_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 비용결제 취소 수정 -->
+<query name="/assetcancleListU"><![CDATA[
+{ CALL SP_APPRNO_DELETE({@APPR_NO}) }
+]]></query>
+
+</root>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 심의대상 맵핑 생성 -->
+<query name="/createMgtIdList"><![CDATA[
+INSERT INTO TB_MAPP_REVIEW_TARGET(
+       MGT_ID
+     , REF_ID
+)VALUES(
+       {@MGT_ID}
+     , {@REF_ID}
+)
+]]></query>
+
+<!-- 심의대상 맵핑 삭제 -->
+<query name="/deleteMgtIdList"><![CDATA[
+DELETE FROM TB_MAPP_REVIEW_TARGET
+WHERE MGT_ID = {@MGT_ID}
+AND REF_ID   = {@REF_ID}
+]]></query>
+
+<!-- 심의대상 맵핑 조회 -->
+<query name="/retrieveMgtIdList"><![CDATA[
+SELECT B.REF_ID
+     , B.REF_NO
+     , B.KO_APP_TITLE
+     , B.APP_NO
+     , B.APP_DATE
+     , B.REG_NO
+     , B.REG_DATE
+     , C.CRE_USER
+     , C.STATUS
+     , B.REVIEW_GRADE
+FROM  TB_MAPP_REVIEW_TARGET A
+    , TB_APP_MST B
+    , TB_REVIEW_REQ C
+WHERE A.REF_ID = B.REF_ID
+AND   A.MGT_ID = C.MGT_ID
+AND A.MGT_ID = {@MGT_ID}
+]]></query>
+
+
+<!-- 심의위원 맵핑 생성 -->
+<query name="/createReviewMemberList"><![CDATA[
+INSERT INTO TB_MAPP_REVIEW_MEMBER(
+       MGT_ID
+     , REVIEW_MEMBER
+)VALUES(
+       {@MGT_ID}
+     , {@USER_ID}
+)
+]]></query>
+
+<!-- 심의위원 맵핑 삭제 -->
+<query name="/deleteReviewMemberList"><![CDATA[
+DELETE FROM TB_MAPP_REVIEW_MEMBER
+WHERE MGT_ID        =  {@MGT_ID}
+AND   REVIEW_MEMBER = {@REVIEW_MEMBER}
+]]></query>
+
+<!-- 심의위원 맵핑 조회(심사요청) -->
+<query name="/retrieveReviewMemberList"><![CDATA[
+SELECT REVIEW_MEMBER AS USER_ID
+     , FN_USER_NAME(REVIEW_MEMBER) EMP_HNAME
+FROM TB_MAPP_REVIEW_MEMBER
+WHERE MGT_ID = {@MGT_ID}
+]]></query>
+
+<!-- 심의위원 맵핑 조회(심사평가) -->
+<query name="/retrieveReviewMemberListEvl"><![CDATA[
+SELECT REVIEW_MEMBER AS USER_ID
+     , FN_user_NAME(REVIEW_MEMBER) || ' [' ||decode(STATUS, '1', '평가완료', '평가중') || ']' EMP_HNAME
+     , STATUS
+FROM TB_MAPP_REVIEW_MEMBER
+WHERE MGT_ID = {@MGT_ID}
+]]></query>
+
+
+<!-- 심의대상 맵핑 전체삭제 -->
+<query name="/deleteAllMgtIdList"><![CDATA[
+DELETE FROM TB_MAPP_REVIEW_TARGET
+WHERE MGT_ID = {@MGT_ID}
+]]></query>
+
+
+<!-- 심의위원 맵핑 전체삭제 -->
+<query name="/deleteAllReviewMemberList"><![CDATA[
+DELETE FROM TB_MAPP_REVIEW_MEMBER
+WHERE MGT_ID        =  {@MGT_ID}
+]]></query>
+
+
+
+
+
+
+
+</root>

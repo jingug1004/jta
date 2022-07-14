@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 파일 목록 조회 -->
+<query name="/retrieveFileList"><![CDATA[
+SELECT FILE_ID
+     , FILE_SEQ
+     , FILE_POLICY
+     , FILE_REPOSITORY
+     , FILE_PATH
+     , FILE_NAME_ORG
+     , FILE_NAME
+     , FILE_SIZE
+     , DOWNLOAD_KEY
+FROM   TB_COM_FILE
+WHERE  FILE_ID = {@FILE_ID}
+ORDER  BY FILE_SEQ
+]]></query>
+
+<!-- 파일 다운로드정보 조회 -->
+<query name="/retrieveFileDownload"><![CDATA[
+SELECT FILE_ID
+     , FILE_SEQ
+     , FILE_POLICY
+     , FILE_REPOSITORY
+     , FILE_PATH
+     , FILE_NAME_ORG
+     , FILE_NAME
+FROM   TB_COM_FILE
+WHERE  DOWNLOAD_KEY = {@DOWNLOAD_KEY}
+]]></query>
+
+<!-- 파일 생성 -->
+<query name="/createFile"><![CDATA[
+INSERT INTO TB_COM_FILE (
+       FILE_ID
+     , FILE_SEQ
+     , FILE_POLICY
+     , FILE_REPOSITORY
+     , FILE_PATH
+     , FILE_NAME_ORG
+     , FILE_NAME
+     , FILE_EXT
+     , FILE_SIZE
+     , DOWNLOAD_KEY
+     , CRE_DATE
+     , CRE_USER
+) VALUES (
+       {@FILE_ID}
+     , (SELECT NVL(MAX(FILE_SEQ), 0) + {@FILE_IDX:NUMBER} + 1 FROM TB_COM_FILE WHERE FILE_ID = {@FILE_ID})
+     , {@FILE_POLICY}
+     , {@FILE_REPOSITORY}
+     , {@FILE_PATH}
+     , {@FILE_NAME_ORG}
+     , {@FILE_NAME}
+     , UPPER({@FILE_EXT})
+     , {@FILE_SIZE:NUMBER}
+     , {@DOWNLOAD_KEY}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , {@$USER_ID}
+)
+]]></query>
+
+<!-- 파일 목록 삭제 -->
+<query name="/deleteFileList"><![CDATA[
+DELETE FROM TB_COM_FILE
+WHERE  FILE_ID  = {@FILE_ID}
+AND    FILE_SEQ = {@FILE_SEQ}
+]]></query>
+
+<!-- 파일 목록 전체삭제 -->
+<query name="/deleteFileListAll"><![CDATA[
+DELETE FROM TB_COM_FILE
+WHERE  FILE_ID = {@FILE_ID}
+]]></query>
+
+</root>

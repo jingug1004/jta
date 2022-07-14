@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 특허평가현황 목록 조회 -->
+<query name="/retrieveEvaluationList"><![CDATA[
+SELECT A.*
+     , M.REF_NO
+     , M.KO_APP_TITLE
+     , B.EVAL_TITLE
+     , FN_USER_NAME(M.JOB_MAN) JOB_MAN_NAME
+     , B.EVAL_VIEW_PATH
+FROM   (SELECT A.REF_ID
+             , A.PAPER_LIST_SEQ
+             , A.EVAL_CODE
+             , A.INVDEPT_EVAL_REQ_DATE
+             , A.INVDEPT_EVAL_USER
+             , FN_USER_NAME(A.INVDEPT_EVAL_USER) INVDEPT_EVAL_USER_NAME
+             , A.INVDEPT_EVAL_DATE
+             , A.INVDEPT_EVAL_END_YN
+             , A.PATDEPT_EVAL_USER
+             , FN_USER_NAME(A.PATDEPT_EVAL_USER) PATDEPT_EVAL_USER_NAME
+             , A.PATDEPT_EVAL_DATE
+             , A.PATDEPT_EVAL_END_YN
+             , DECODE(A.INVDEPT_EVAL_SHEET_ID, NULL,'미평가', DECODE(A.PATDEPT_EVAL_SHEET_ID, NULL,'발명부서평가완료', '평가완료')) STATUS_NAME
+        FROM   TB_EVAL_COM_MST A
+             , V_MASTER_ALL M
+        WHERE  A.PAPER_LIST_SEQ IS NULL
+        AND    A.REF_ID = M.REF_ID
+        {#1}
+        UNION ALL
+        SELECT A.REF_ID
+             , A.LIST_SEQ PAPER_LIST_SEQ
+             , B.EVAL_CODE
+             , C.INVDEPT_EVAL_REQ_DATE
+             , C.INVDEPT_EVAL_USER
+             , FN_USER_NAME(C.INVDEPT_EVAL_USER) INVDEPT_EVAL_USER_NAME
+             , C.INVDEPT_EVAL_DATE
+             , C.INVDEPT_EVAL_END_YN
+             , C.PATDEPT_EVAL_USER
+             , FN_USER_NAME(C.PATDEPT_EVAL_USER) PATDEPT_EVAL_USER_NAME
+             , C.PATDEPT_EVAL_DATE
+             , C.PATDEPT_EVAL_END_YN
+             , FN_BIZ_CODE_NAME(Z.STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) STATUS_NAME
+        FROM   TB_PAPER_LIST A
+             , TB_PAPER_MGT_MST B
+             , TB_EVAL_COM_MST C
+             , V_MASTER_ALL M
+             , TB_BIZ_COM_MST Z
+        WHERE  A.PAPER_CODE = B.PAPER_CODE
+        AND    A.REF_ID = C.REF_ID(+)
+        AND    A.LIST_SEQ = C.PAPER_LIST_SEQ(+)
+        AND    A.REF_ID = M.REF_ID
+        AND    C.EVAL_ID = Z.REF_ID(+)
+        {#2}
+        UNION ALL
+        SELECT A.REF_ID
+             , TO_CHAR(A.PAY_YEARDEG) PAPER_LIST_SEQ
+             , C.EVAL_CODE
+             , C.INVDEPT_EVAL_REQ_DATE
+             , C.INVDEPT_EVAL_USER
+             , FN_USER_NAME(C.INVDEPT_EVAL_USER) INVDEPT_EVAL_USER_NAME
+             , C.INVDEPT_EVAL_DATE
+             , C.INVDEPT_EVAL_END_YN
+             , C.PATDEPT_EVAL_USER
+             , FN_USER_NAME(C.PATDEPT_EVAL_USER) PATDEPT_EVAL_USER_NAME
+             , C.PATDEPT_EVAL_DATE
+             , C.PATDEPT_EVAL_END_YN
+             , FN_BIZ_CODE_NAME(Z.STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) STATUS_NAME
+        FROM   TB_COST_REMINDER A
+             , TB_EVAL_COM_MST C
+             , V_MASTER_ALL M
+             , TB_BIZ_COM_MST Z
+        WHERE  A.REF_ID = C.REF_ID(+)
+        AND    A.PAY_YEARDEG = C.PAPER_LIST_SEQ(+)
+        AND    A.REF_ID = M.REF_ID
+        AND    C.EVAL_ID = Z.REF_ID(+)
+        {#2}
+       ) A
+     , TB_EVAL_CODE B
+     , V_MASTER_ALL M
+WHERE  A.EVAL_CODE = B.EVAL_CODE
+AND    A.REF_ID = M.REF_ID
+]]></query>
+<query name="/retrieveEvaluationList/inventor1"><![CDATA[
+AND    (M.CRE_USER = {@$USER_ID} OR A.REF_ID IN (SELECT T.REF_ID FROM TB_MAPP_INVENTOR T WHERE T.INV_USER = {@$USER_ID}))
+]]></query>
+<query name="/retrieveEvaluationList/inventor2"><![CDATA[
+AND    C.INVDEPT_EVAL_USER = {@$USER_ID}
+]]></query>
+<query name="/retrieveEvaluationList/searchNum"><![CDATA[
+AND    UPPER({#NUM_KIND}) LIKE '%'||UPPER({@NUM_TEXT})||'%'
+]]></query>
+<query name="/retrieveEvaluationList/inoutDiv"><![CDATA[
+AND    M.INOUT_DIV = {@INOUT_DIV}
+]]></query>
+<query name="/retrieveEvaluationList/evalCode"><![CDATA[
+AND    A.EVAL_CODE = {@EVAL_CODE}
+]]></query>
+<query name="/retrieveEvaluationList/jobMan"><![CDATA[
+AND    M.JOB_MAN = {@JOB_MAN}
+]]></query>
+<query name="/retrieveEvaluationList/dateStart"><![CDATA[
+AND    {#DATE_KIND} >= {@DATE_START}
+]]></query>
+<query name="/retrieveEvaluationList/dateEnd"><![CDATA[
+AND    {#DATE_KIND} <= {@DATE_END}
+]]></query>
+
+<!-- 특허평가현황 마스터 조회 -->
+<query name="/retrieveEvaluationMaster"><![CDATA[
+SELECT A.EVAL_ID
+     , NVL(A.REF_ID, {@REF_ID}) REF_ID
+     , NVL(A.PAPER_LIST_SEQ, {@PAPER_LIST_SEQ}) PAPER_LIST_SEQ
+     , (SELECT DECODE(COUNT(1), 0,'0', '1') FROM TB_EVAL_COM_ITEM T WHERE T.EVAL_ID = A.EVAL_ID AND T.EVAL_SHEET_ID = NVL(A.INVDEPT_EVAL_SHEET_ID, B.INVDEPT_EVAL_SHEET_ID)) INVDEPT_EVAL_YN
+     , NVL(A.INVDEPT_EVAL_SHEET_ID, B.INVDEPT_EVAL_SHEET_ID) INVDEPT_EVAL_SHEET_ID
+     , A.INVDEPT_EVAL_USER
+     , FN_USER_NAME(A.INVDEPT_EVAL_USER) INVDEPT_EVAL_USER_NAME
+     , (SELECT DECODE(COUNT(1), 0,'0', '1') FROM TB_EVAL_COM_ITEM T WHERE T.EVAL_ID = A.EVAL_ID AND T.EVAL_SHEET_ID = NVL(A.PATDEPT_EVAL_SHEET_ID, B.PATDEPT_EVAL_SHEET_ID)) PATDEPT_EVAL_YN
+     , NVL(A.PATDEPT_EVAL_SHEET_ID, B.PATDEPT_EVAL_SHEET_ID) PATDEPT_EVAL_SHEET_ID
+     , NVL(A.PATDEPT_EVAL_USER, (SELECT JOB_MAN FROM V_MASTER_ALL WHERE REF_ID = NVL(A.REF_ID, {@REF_ID}))) PATDEPT_EVAL_USER
+     , FN_USER_NAME(NVL(A.PATDEPT_EVAL_USER, (SELECT JOB_MAN FROM V_MASTER_ALL WHERE REF_ID = NVL(A.REF_ID, {@REF_ID})))) PATDEPT_EVAL_USER_NAME
+     , A.SUM_TOTAL
+     , A.EVAL_OPINION
+FROM   TB_EVAL_COM_MST A
+     , TB_EVAL_CODE B
+]]></query>
+<query name="/retrieveEvaluationMaster/refId"><![CDATA[
+WHERE  A.REF_ID(+) = {@REF_ID}
+AND    B.EVAL_CODE = {@EVAL_CODE}
+AND    A.EVAL_CODE(+) = B.EVAL_CODE
+]]></query>
+<query name="/retrieveEvaluationMaster/evalId"><![CDATA[
+WHERE  A.EVAL_ID = {@EVAL_ID}
+AND    A.EVAL_CODE = B.EVAL_CODE
+]]></query>
+<query name="/retrieveEvaluationMaster/paperListSeq"><![CDATA[
+AND    A.PAPER_LIST_SEQ(+) = {@PAPER_LIST_SEQ}
+]]></query>
+
+<!-- 국내특허출원품의서 조회 -->
+<query name="/retrieveIntPatConsult"><![CDATA[
+SELECT A.INV_GRADE
+FROM   TB_APP_INT_CONSULT_PAT A
+WHERE  A.REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 등록평가 결과서 조회 -->
+<query name="/retrieveEvalComRegResult"><![CDATA[
+SELECT A.REF_ID
+     , A.EVAL_ID
+     , A.EXE_DIV
+     , A.PROD_NAME
+     , A.FIRST_COMMERC_START
+     , A.REF_DIVISN
+     , A.EVAL_OPINION
+     , NVL(A.APP_EVAL_POINT, (SELECT SUM_TOTAL FROM TB_EVAL_COM_MST WHERE REF_ID = B.REF_ID AND EVAL_CODE = 'E01')) APP_EVAL_POINT
+     , A.PJT_TYPE
+     , FN_COM_CODE_NAME('ROJECT_TYPE', A.PJT_TYPE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) PJT_TYPE_NAME
+     , A.APP_REQCNT
+     , A.REG_REQCNT
+     , A.GRADE
+     , A.POINT
+     , (SELECT REWARD_GRADE FROM V_REG_REWARD_GRADE T WHERE T.REF_ID = A.REF_ID AND T.EXE_DIV = A.EXE_DIV AND T.PJT_TYPE = A.PJT_TYPE) REWARD_GRADE
+     , A.CRE_USER
+     , A.CRE_DATE
+FROM   TB_EVAL_COM_REG_RESULT A
+     , (SELECT {@REF_ID} REF_ID FROM DUAL) B
+WHERE  A.REF_ID(+) = B.REF_ID
+]]></query>
+
+<!-- 발명부서 평가자 지정 -->
+<query name="/createEvaluationInvDeptUser"><![CDATA[
+INSERT INTO TB_EVAL_COM_MST (
+       EVAL_ID
+     , REF_ID
+     , PAPER_LIST_SEQ
+     , EVAL_CODE
+     , INVDEPT_EVAL_REQ_USER
+     , INVDEPT_EVAL_REQ_DATE
+     , INVDEPT_EVAL_USER
+) VALUES (
+       {@EVAL_ID}
+     , {@REF_ID}
+     , {@PAPER_LIST_SEQ}
+     , {@EVAL_CODE}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , {@INVDEPT_EVAL_USER}
+)
+]]></query>
+
+<!-- 등록유지평가 마스터 조회 -->
+<query name="/retrieveEvaluationInfo"><![CDATA[
+SELECT B.KO_APP_TITLE
+     , FN_USER_NAME(A.INVDEPT_EVAL_USER) INVDEPT_EVAL_USER_NAME
+     , B.APP_NO
+     , FN_INVENTOR_NAMES(A.REF_ID) INV_NAMES
+FROM TB_EVAL_COM_MST A
+   , TB_APP_MST B
+WHERE A.REF_ID = B.REF_ID
+  AND A.EVAL_ID = {@EVAL_ID}
+]]></query>
+
+<!-- 국내특허출원품의서 업데이트 -->
+<query name="/updateIntPatConsult"><![CDATA[
+UPDATE TB_APP_INT_CONSULT_PAT SET
+       INV_GRADE = {@INV_GRADE}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 등록평가 결과서 생성 -->
+<query name="/createEvalComRegResult"><![CDATA[
+INSERT INTO TB_EVAL_COM_REG_RESULT (
+       REF_ID
+     , EVAL_ID
+     , EXE_DIV
+     , PROD_NAME
+     , FIRST_COMMERC_START
+     , REF_DIVISN
+     , EVAL_OPINION
+     , APP_EVAL_POINT
+     , PJT_TYPE
+     , APP_REQCNT
+     , REG_REQCNT
+     , GRADE
+     , POINT
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@REF_ID}
+     , {@EVAL_ID}
+     , {@EXE_DIV}
+     , {@PROD_NAME}
+     , {@FIRST_COMMERC_START}
+     , {@REF_DIVISN}
+     , {@EVAL_OPINION}
+     , {@APP_EVAL_POINT}
+     , {@PJT_TYPE}
+     , {@APP_REQCNT}
+     , {@REG_REQCNT}
+     , {@GRADE}
+     , {@POINT}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 등록평가 결과서 수정 -->
+<query name="/updateEvalComRegResult"><![CDATA[
+UPDATE TB_EVAL_COM_REG_RESULT SET
+       EVAL_ID = {@EVAL_ID}
+     , EXE_DIV = {@EXE_DIV}
+     , PROD_NAME = {@PROD_NAME}
+     , FIRST_COMMERC_START = {@FIRST_COMMERC_START}
+     , REF_DIVISN = {@REF_DIVISN}
+     , EVAL_OPINION = {@EVAL_OPINION}
+     , APP_EVAL_POINT = {@APP_EVAL_POINT}
+     , PJT_TYPE = {@PJT_TYPE}
+     , APP_REQCNT = {@APP_REQCNT}
+     , REG_REQCNT = {@REG_REQCNT}
+     , GRADE = {@GRADE}
+     , POINT = {@POINT}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 등록평가 결과서 조회 -->
+<query name="/retrieveEvalMailInfo"><![CDATA[
+SELECT MST.INVDEPT_EVAL_USER
+     , FN_USER_NAME(MST.INVDEPT_EVAL_USER) INVDEPT_EVAL_USER_NAME
+     , APP.KO_APP_TITLE
+     , USR.EMP_HNAME  EMP_HNAME
+     , USR.MAIL_ADDR  MAIL_ADDR
+     , APP.APP_NO
+     , MST.PAPER_LIST_SEQ
+     , APP.REF_ID
+     , FN_INVENTOR_NAMES(APP.REF_ID) INV_NAMES
+ FROM  TB_EVAL_COM_MST MST
+     , TB_APP_MST APP
+     , TB_USR_MST USR
+WHERE  EVAL_ID = {@EVAL_ID}
+  AND  MST.REF_ID = APP.REF_ID
+  AND  USR.USER_ID = MST.INVDEPT_EVAL_USER
+]]></query>
+
+<!-- 심의대상 등급 조회 -->
+<query name="/retrieveIntPatGrade"><![CDATA[
+SELECT REVIEW_GRADE
+FROM TB_MAPP_REVIEW_TARGET
+WHERE REF_ID = {@REF_ID}
+]]></query>
+
+
+<!-- 심의대상 등급 저장 -->
+<query name="/updateIntRgradeConsult"><![CDATA[
+UPDATE TB_MAPP_REVIEW_TARGET
+SET REVIEW_GRADE = {@REVIEW_GRADE}
+WHERE REF_ID = {@REF_ID}
+]]></query>
+</root>

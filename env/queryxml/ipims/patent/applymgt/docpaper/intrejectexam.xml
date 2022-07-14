@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 국내거절검토서 조회 -->
+<query name="/retrieveIntRejectExam"><![CDATA[
+SELECT B.OA_SEQ
+     , A.REF_NO
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.JOB_MAN
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , C.SEND_DATE
+     , B.DUE_DATE
+     , A.APP_NO
+     , A.APP_DATE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , A.KO_APP_TITLE
+     , C.OA_SEQ EXAM_OA_SEQ
+     , C.COPE_PLAN
+     , C.ATTACH_FILE
+     , C.EXAM_RESULT
+     , NVL(C.EXAM_DATE, TO_CHAR(SYSDATE, 'YYYYMMDD')) EXAM_DATE
+     , C.CRE_USER
+     , C.CRE_DATE
+FROM   TB_APP_MST A
+     , TB_OA_HIST B
+     , TB_OA_REJECT_EXAM_INT C
+     , TB_PAPER_LIST D
+WHERE  A.REF_ID = {@REF_ID}
+AND    B.REF_ID = A.REF_ID
+{#1}
+AND    C.REF_ID(+) = B.REF_ID
+AND    C.OA_SEQ(+) = B.OA_SEQ
+AND    C.EXAM_DIV(+) = {@EXAM_DIV}
+AND    D.REF_ID = B.REF_ID
+AND    D.OA_SEQ = B.OA_SEQ
+AND    D.LIST_SEQ = B.START_PAPER_SEQ
+]]></query>
+<query name="/retrieveIntRejectExam/oaSeq"><![CDATA[
+AND    B.OA_SEQ = {@OA_SEQ}
+]]></query>
+<query name="/retrieveIntRejectExam/maxOaSeq"><![CDATA[
+AND    B.OA_SEQ = (SELECT MAX(OA_SEQ) FROM TB_OA_HIST WHERE REF_ID = {@REF_ID})
+AND    D.PAPER_CODE IN (SELECT PAPER_CODE
+                        FROM   TB_PAPER_MGT_MST T
+                        WHERE  T.COPE_PAPER_CODE = {@PAPER_CODE}
+                       )
+]]></query>
+<query name="/retrieveIntRejectExam/listSeq"><![CDATA[
+AND    B.OA_SEQ = (SELECT OA_SEQ FROM TB_PAPER_LIST WHERE REF_ID = {@REF_ID} AND LIST_SEQ = {@LIST_SEQ})
+]]></query>
+
+<!-- 국내거절검토서 경과목록 조회 -->
+<query name="/retrieveIntRejectExamPassList"><![CDATA[
+SELECT LIST_SEQ
+     , TO_CHAR(TO_DATE(PAPER_DATE, 'YYYYMMDD'), 'YYYY/MM/DD') PAPER_DATE
+     , FN_PAPER_NAME(PAPER_CODE) PAPER_NAME
+FROM   TB_PAPER_LIST
+WHERE  REF_ID = {@REF_ID}
+AND    OA_SEQ = {@OA_SEQ}
+ORDER BY PAPER_DATE, LIST_SEQ
+]]></query>
+
+<!-- 국내거절검토서 관련해외REF-NO 목록 조회 -->
+<query name="/retrieveIntRejectExamExtRefList"><![CDATA[
+SELECT EXT1.REF_ID
+     , EXT1.REF_NO
+FROM   TB_APP_MST EXT1
+     , TB_APP_MST_EXT EXT2
+     , TB_MAPP_REF_ID MAPP
+     , TB_APP_MST INT
+WHERE  EXT1.REF_ID = EXT2.REF_ID
+AND    EXT2.GRP_ID = MAPP.GRP_ID
+AND    MAPP.REF_ID = INT.REF_ID
+AND    EXT1.COUNTRY_CODE = 'US'
+AND    INT.REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 국내거절검토서 생성 -->
+<query name="/createIntRejectExam"><![CDATA[
+INSERT INTO TB_OA_REJECT_EXAM_INT (
+       REF_ID
+     , OA_SEQ
+     , EXAM_DIV
+     , COPE_PLAN
+     , ATTACH_FILE
+     , EXAM_RESULT
+     , EXAM_DATE
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@REF_ID}
+     , {@OA_SEQ}
+     , {@EXAM_DIV}
+     , {@COPE_PLAN}
+     , {@ATTACH_FILE}
+     , {@EXAM_RESULT}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 국내거절검토서 수정 -->
+<query name="/updateIntRejectExam"><![CDATA[
+UPDATE TB_OA_REJECT_EXAM_INT SET
+       EXAM_DIV    = {@EXAM_DIV}
+     , COPE_PLAN   = {@COPE_PLAN}
+     , ATTACH_FILE = {@ATTACH_FILE}
+     , EXAM_RESULT = {@EXAM_RESULT}
+WHERE  REF_ID = {@REF_ID}
+AND    OA_SEQ = {@OA_SEQ}
+]]></query>
+
+</root>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+<!-- 팀정보 목록 조회 -->
+<query name="/retrievePatTeamTeamList"><![CDATA[
+SELECT DEPT_CODE
+     , FN_DIVISN_NAME(DIVISN_CODE) DIVISN_NAME
+     , DEPT_NAME
+     , TO_CHAR(CRE_DATETIME, 'YYYYMMDD') CRE_DATE
+     , FN_COM_CODE_NAME('YES_NO', USE_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) USE_YN_NAME
+FROM   TB_ORG_DEPT
+WHERE  1=1
+]]></query>
+<query name="/retrievePatTeamTeamList/deptName"><![CDATA[
+AND    DEPT_NAME LIKE '%'||{@DEPT_NAME}||'%'
+]]></query>
+<query name="/retrievePatTeamTeamList/useYn"><![CDATA[
+AND    USE_YN = {@USE_YN}
+]]></query>
+
+<query name="/updatePatTeamTeamList"><![CDATA[
+UPDATE TB_ORG_DEPT SET
+       USE_YN = {@USE_YN}
+WHERE  DEPT_CODE = {@DEPT_CODE}
+]]></query>
+
+
+
+</root>

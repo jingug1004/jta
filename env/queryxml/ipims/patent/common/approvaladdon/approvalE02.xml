@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 특허부서 평가완료여부 업데이트 -->
+<query name="/updateEvalComMstPatdeptEndYn"><![CDATA[
+UPDATE TB_EVAL_COM_MST SET
+       PATDEPT_EVAL_END_YN = '1'
+WHERE  EVAL_ID = {@EVAL_ID}
+]]></query>
+
+</root>

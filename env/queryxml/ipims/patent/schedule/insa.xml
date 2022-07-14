@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- Veiw 인사정보 조회 -->
+<query name="/retrieveUsrInfoTIF"><![CDATA[
+SELECT EMP_ID
+       ,DEPT_CODE
+       ,NVL(POSITION_NAME,'')POSITION_NAME
+       ,NVL(OFFICE_TEL,'')OFFICE_TEL
+       ,NVL(MOBILE_PHONE,'')MOBILE_PHONE
+       ,NVL(HOME_ADDR,'')HOME_ADDR
+       ,NVL(HOME_ZIPCODE,'')HOME_ZIPCODE
+       ,NVL(EMP_HNAME,'')EMP_HNAME
+       ,NVL(EMP_ENAME,'')EMP_ENAME
+       ,NVL(EMP_CNAME,'')EMP_CNAME
+       ,JUMIN_NO1
+       ,JUMIN_NO2
+       ,NVL(MAIL_ADDR,'')MAIL_ADDR
+       ,NVL(STAT_CD,'C') STAT_CD
+       ,NVL(PWD,'0000') PWD
+  FROM IF_EMP_INFO
+  WHERE 1=1
+  AND   FLAG = 'I'
+]]></query>
+
+<!-- 임시 테이블 정보 삭제 -->
+<query name="/deleteUserInfo"><![CDATA[
+DELETE FROM TB_USR_MST_IF
+]]></query>
+
+
+<!-- 인사정보(Temp) 생성 -->
+<query name="/createUsrTempInfo"><![CDATA[
+INSERT INTO TB_USR_MST_IF (
+        EMP_NO
+        ,USER_ID
+        ,DEPT_CODE
+        ,POSITION_NAME
+        ,OFFICE_TEL
+        ,MOBILE_PHONE
+        ,HOME_ADDR
+        ,HOME_ZIPCODE
+        ,EMP_HNAME
+        ,EMP_ENAME
+        ,EMP_CNAME
+        ,JUMIN_NO1
+        ,JUMIN_NO2
+        ,MAIL_ADDR
+        ,HT_CODE
+        ,CRE_USER
+        ,CRE_DATETIME
+        ,PWD
+)
+(
+SELECT  RTRIM(LTRIM(EMP_ID))
+      , 'P00'||EMP_ID
+      , DEPT_CODE
+      , POSITION_NAME
+      , OFFICE_TEL
+      , MOBILE_PHONE
+      , HOME_ADDR
+      , HOME_ZIPCODE
+      , EMP_HNAME
+      , EMP_ENAME
+      , EMP_CNAME
+      , JUMIN_NO1
+      , JUMIN_NO2
+      , MAIL_ADDR
+      , NVL(STAT_CD, 'C') STAT_CD
+      , '0000000000'
+      , TO_CHAR(SYSDATE, 'YYYYMMDD')
+      , PWD
+  FROM IF_EMP_INFO
+  WHERE EMP_ID = {@EMP_ID}
+  )
+]]></query>
+
+<!-- IF 인사테이블 상태값 S -->
+<query name="/updateIFEmpInfo"><![CDATA[
+UPDATE IF_EMP_INFO
+SET    FLAG = 'S'
+WHERE  FLAG = 'I'
+
+]]></query>
+
+
+<!-- 인사정보(Master) 추가사용자 -->
+<query name="/retrieveAddUser"><![CDATA[
+SELECT   TRIM(UMI.EMP_NO) EMP_NO
+      , 'PATENT'
+      , UMI.EMP_HNAME
+      , UMI.EMP_ENAME
+      , UMI.EMP_CNAME
+      , UMI.JUMIN_NO1
+      , UMI.JUMIN_NO2
+      , UMI.MAIL_ADDR
+      , UMI.HT_CODE
+      , TRIM(UMI.EMP_NO)
+      , UMI.JUMIN_NO2
+      , DECODE('C','1','0') USE_YN
+      , '0000000000'
+      , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM      TB_USR_MST_IF UMI
+LEFT JOIN TB_USR_MST UM ON UMI.EMP_NO = UM.LOGIN_ID
+WHERE UM.LOGIN_ID IS NULL
+]]></query>
+
+<!-- 인사정보(MASTER) 생성 -->
+<query name="/createUsrMasterInfo"><![CDATA[
+INSERT INTO TB_USR_MST (
+       USER_ID
+     , SYSTEM_TYPE
+     , EMP_HNAME
+     , EMP_ENAME
+     , EMP_CNAME
+     , JUMIN_NO1
+     , JUMIN_NO2
+     , MAIL_ADDR
+     , HT_CODE
+     , LOGIN_ID
+     , LOGIN_PW
+     , USE_YN
+     , CRE_USER
+     , CRE_DATETIME
+)
+(SELECT USER_ID
+        , 'PATENT'
+        , EMP_HNAME
+        , EMP_ENAME
+        , EMP_CNAME
+        , JUMIN_NO1
+        , JUMIN_NO2
+        , MAIL_ADDR
+        , HT_CODE
+        , TRIM(EMP_NO)
+        , NVL(PWD, '0000') PWD
+        , DECODE(HT_CODE,'C','1','0') USE_YN
+        , '0000000000'
+        , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM    TB_USR_MST_IF
+WHERE   EMP_NO = {@EMP_NO}
+)
+]]></query>
+
+<!-- 인사정보(PATENT) 생성 -->
+<query name="/createUsrPatentInfo"><![CDATA[
+INSERT INTO TB_USR_PATENT (
+       USER_ID
+     , EMP_NO
+     , EMP_GUBUN
+     , DEPT_CODE
+     , POSITION_NAME
+     , OFFICE_TEL
+     , MOBILE_PHONE
+     , HOME_ADDR
+     , HOME_ZIPCODE
+     , USE_YN
+     , CRE_USER
+     , CRE_DATETIME
+)
+(SELECT   USER_ID
+        , TRIM(EMP_NO)
+        , '0'
+        , DEPT_CODE
+        , POSITION_NAME
+        , OFFICE_TEL
+        , MOBILE_PHONE
+        , HOME_ADDR
+        , TRIM(HOME_ZIPCODE)
+        , DECODE(HT_CODE,'C','1','0')  USE_YN
+        , '0000000000'
+        , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM    TB_USR_MST_IF
+WHERE   EMP_NO = {@EMP_NO}
+)
+]]></query>
+
+<!-- 인사정보(MASTER) 수정  -->
+<query name="/updateUsrMasterInfo"><![CDATA[
+MERGE INTO TB_USR_MST PAT
+USING (
+    SELECT EMP_NO
+        ,  EMP_HNAME
+        ,  EMP_ENAME
+        ,  EMP_CNAME
+        ,  JUMIN_NO1
+        ,  JUMIN_NO2
+        ,  MAIL_ADDR
+        ,  HT_CODE
+        ,  '0000000000' UPD_USER
+        ,  TO_CHAR(SYSDATE, 'YYYYMMDD') UPD_DATETIME
+        ,  NVL(PWD, '0000') AS LOGIN_PW
+    FROM   TB_USR_MST_IF
+) V
+ON (PAT.LOGIN_ID = TRIM(V.EMP_NO))
+WHEN MATCHED THEN
+UPDATE SET
+        PAT.EMP_HNAME       = V.EMP_HNAME
+      , PAT.EMP_ENAME       = V.EMP_ENAME
+      , PAT.EMP_CNAME       = V.EMP_CNAME
+      , PAT.JUMIN_NO1       = V.JUMIN_NO1
+      , PAT.JUMIN_NO2       = V.JUMIN_NO2
+      , PAT.MAIL_ADDR       = V.MAIL_ADDR
+      , PAT.HT_CODE         = V.HT_CODE
+      , PAT.UPD_USER        = V.UPD_USER
+      , PAT.UPD_DATETIME    = V.UPD_DATETIME
+      , PAT.LOGIN_PW        = V.LOGIN_PW
+
+]]></query>
+
+<!-- 인사정보(PATENT) 수정 -->
+<query name="/updateUsrPatentInfo"><![CDATA[
+MERGE INTO TB_USR_PATENT PAT
+USING (
+    SELECT  EMP_NO
+         ,  '0' EMP_GUBUN
+         ,  DEPT_CODE
+         ,  POSITION_NAME
+         ,  OFFICE_TEL
+         ,  MOBILE_PHONE
+         ,  HOME_ADDR
+         ,  TRIM(HOME_ZIPCODE) HOME_ZIPCODE
+         , '0000000000' UPD_USER
+         ,  TO_CHAR(SYSDATE, 'YYYYMMDD') UPD_DATETIME
+    FROM   TB_USR_MST_IF
+) V
+ON (PAT.EMP_NO = TRIM(V.EMP_NO))
+WHEN MATCHED THEN
+UPDATE SET
+        PAT.EMP_GUBUN       = V.EMP_GUBUN
+      , PAT.DEPT_CODE       = V.DEPT_CODE
+      , PAT.POSITION_NAME   = V.POSITION_NAME
+      , PAT.OFFICE_TEL      = V.OFFICE_TEL
+      , PAT.MOBILE_PHONE    = V.MOBILE_PHONE
+      , PAT.HOME_ADDR       = V.HOME_ADDR
+      , PAT.HOME_ZIPCODE    = V.HOME_ZIPCODE
+      , PAT.UPD_USER        = V.UPD_USER
+      , PAT.UPD_DATETIME    = V.UPD_DATETIME
+]]></query>
+
+<!-- Veiw 인사정보 조회 -->
+<query name="/retrieveUsrInfo"><![CDATA[
+SELECT EMP_ID
+       ,DEPT_CODE
+       ,NVL(POSITION_NAME,'')POSITION_NAME
+       ,NVL(OFFICE_TEL,'')OFFICE_TEL
+       ,NVL(MOBILE_PHONE,'')MOBILE_PHONE
+       ,NVL(HOME_ADDR,'')HOME_ADDR
+       ,NVL(HOME_ZIPCODE,'')HOME_ZIPCODE
+       ,NVL(EMP_HNAME,'')EMP_HNAME
+       ,NVL(EMP_ENAME,'')EMP_ENAME
+       ,NVL(EMP_CNAME,'')EMP_CNAME
+       ,SUBSTR(JUMIN_NO1, 1, 6) JUMIN_NO1
+       ,SUBSTR(JUMIN_NO2, 7, 13) JUMIN_NO2
+       ,NVL(MAIL_ADDR,'')MAIL_ADDR
+       ,NVL(STAT_CD,'C') STAT_CD
+       ,NVL(PWD, '0000') PWD
+  FROM IF_EMP_INFO
+WHERE EMP_ID ={@EMP_ID}
+]]></query>
+
+<!-- 특허팀으로 등록된 아이디 조회 -->
+<query name="/retrievePatentUserIdInfo1"><![CDATA[
+    SELECT USER_ID FROM TB_USR_PATENT WHERE DEPT_CODE = 'O000000015'
+]]></query>
+
+<!-- 특허팀으로 등록된 아이디 중에서 특허팀 권한 여부 조회 -->
+<query name="/retrievePatentUserIdInfo2Cnt"><![CDATA[
+    SELECT COUNT(*) CNT
+      FROM TB_MNU_GROUP_USER
+     WHERE SYSTEM_TYPE = 'PATENT'
+       AND GROUP_CODE = 'PAT'
+       AND USER_ID = {@USER_ID}
+]]></query>
+
+
+<!-- 특허팀으로 변경시 특허팀에 관한 권한을 가지고 있지 않은 USER_ID에관한 권한 수정-->
+<query name="/createPatentUserIdInfo"><![CDATA[
+INSERT INTO TB_MNU_GROUP_USER (
+       SYSTEM_TYPE
+     , GROUP_CODE
+     , USER_ID
+)
+SELECT {@SYSTEM_TYPE}
+     , {@GROUP_CODE}
+     , {@USER_ID}
+FROM   DUAL
+WHERE  NOT EXISTS (SELECT 1
+                   FROM   TB_MNU_GROUP_USER
+                   WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+                   AND    GROUP_CODE = {@GROUP_CODE}
+                   AND    USER_ID = {@USER_ID}
+                  )
+]]></query>
+
+
+
+</root>

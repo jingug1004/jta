@@ -1,0 +1,30 @@
+CREATE OR REPLACE FUNCTION FN_INVENTOR_NAMES
+(
+    I_REF_ID                    IN  TB_MAPP_INVENTOR.REF_ID%TYPE
+)
+RETURN VARCHAR2 IS R_TEXT VARCHAR2(4000);
+
+    CURSOR C1 IS
+    SELECT B.EMP_HNAME
+    FROM   TB_MAPP_INVENTOR A
+         , TB_USR_MST B
+    WHERE  A.REF_ID IN (SELECT I_REF_ID FROM DUAL
+                        UNION
+                        SELECT GRP_ID FROM TB_APP_MST_EXT WHERE REF_ID = I_REF_ID
+                       )
+    AND    A.INV_USER = B.USER_ID(+)
+    ORDER BY A.MAIN_INVENTOR_YN DESC, QUOTA_RATIO, EMP_HNAME
+    ;
+
+BEGIN
+
+    FOR R1 IN C1 LOOP
+        IF LENGTH(R_TEXT) > 0 THEN
+            R_TEXT := R_TEXT || ',';
+        END IF;
+        R_TEXT := R_TEXT || R1.EMP_HNAME;
+    END LOOP;
+
+    RETURN R_TEXT;
+
+END;

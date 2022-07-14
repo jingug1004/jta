@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- OL국가 맵핑목록 조회 -->
+<query name="/retrieveOLCountryList"><![CDATA[
+SELECT A.REF_ID
+     , C.REF_NO
+     , A.COUNTRY_CODE
+     , B.COUNTRY_NAME
+     , A.EXAMREQ_YN
+     , A.APP_IMMED_YN
+     , A.EXT_OFFICE_CODE
+     , FN_OFFICE_NAME(A.EXT_OFFICE_CODE) EXT_OFFICE_NAME
+     , C.OFFICE_REF_NO
+     , C.OFFICE_JOB_MAN
+     , FN_USER_NAME(C.OFFICE_JOB_MAN) OFFICE_JOB_MAN_NAME
+     , D.EXT_OFFICE_CODE
+     , D.EXT_OFFICE_REF_NO
+FROM   TB_APP_EXT_OL_COUNTRY A
+     , TB_COM_COUNTRY B
+     , TB_APP_MST C
+     , TB_APP_MST_EXT D
+WHERE  A.OL_ID = {@OL_ID}
+AND    A.COUNTRY_CODE = B.COUNTRY_CODE
+AND    A.REF_ID = C.REF_ID(+)
+AND    A.REF_ID = D.REF_ID(+)
+ORDER BY B.DISP_ORD
+]]></query>
+
+</root>

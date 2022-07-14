@@ -1,0 +1,87 @@
+﻿<PUBLIC:COMPONENT tagName="SPAN" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="format" get="getFormat" put="setFormat">
+    <PUBLIC:PROPERTY name="value" get="getValue" put="setValue">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var myFormat = new Object();
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    if (myFormat != null && myFormat.format != null) {
+        setValue(element.innerText);
+    }
+
+    element.isReady = true;
+}
+
+function getFormat()
+{
+    if (myFormat.number == null) {
+        return myFormat.format;
+    } else {
+        return myFormat.format + "(" + myFormat.number + "." + myFormat.digits + ")";
+    }
+}
+
+function setFormat(val)
+{
+    if (element.document.media == "print") return;
+
+    myFormat = cfGetMyFormat(val);
+
+    switch (myFormat.format) {
+    case "date":
+        break;
+    case "number":
+        element.style.textAlign = "right";
+        break;
+    }
+}
+
+function getValue()
+{
+    var val = element.innerText;
+
+    switch (myFormat.format) {
+    case "date":
+        return cfGetUnformatDate(val);
+        break;
+    case "number":
+        return cfGetUnformatNumber(val);
+        break;
+    default:
+        return val;
+        break;
+    }
+}
+
+function setValue(val)
+{
+    switch (myFormat.format) {
+    case "date":
+        element.innerText = cfGetFormatDate(val);
+        break;
+    case "number":
+        if (isNaN(val) == true) {
+            element.innerText = val;
+        } else if (val == "") {
+            element.innerText = "";
+        } else {
+            element.innerText = cfGetFormatNumber(val, myFormat.digits, myFormat.comma != true);
+        }
+        break;
+    case "message":
+        element.innerText = any.message.get(val);
+        break;
+    default:
+        element.innerText = val;
+        break;
+    }
+}
+</SCRIPT>

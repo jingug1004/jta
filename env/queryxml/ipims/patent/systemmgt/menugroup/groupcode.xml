@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 그룹관리 목록 조회 -->
+<query name="/retrieveGroupCodeList"><![CDATA[
+SELECT SYSTEM_TYPE
+     , FN_COM_CODE_NAME('SYSTEM_TYPE', SYSTEM_TYPE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) SYSTEM_TYPE_NAME
+     , GROUP_CODE
+     , GROUP_NAME
+     , (SELECT COUNT(1) FROM TB_MNU_GROUP_MENU WHERE SYSTEM_TYPE = A.SYSTEM_TYPE AND GROUP_CODE = A.GROUP_CODE) GROUP_MENU_CNT
+     , CASE WHEN SYSTEM_TYPE = 'PATENT' AND GROUP_CODE = 'COM' THEN (SELECT COUNT(1) FROM TB_USR_PATENT)
+            WHEN SYSTEM_TYPE = 'OFFICE' AND GROUP_CODE = 'COM' THEN (SELECT COUNT(1) FROM TB_USR_OFFICE)
+            ELSE (SELECT COUNT(1) FROM TB_MNU_GROUP_USER WHERE SYSTEM_TYPE = A.SYSTEM_TYPE AND GROUP_CODE = A.GROUP_CODE)
+       END GROUP_USER_CNT
+     , FN_COM_CODE_NAME('USE_YN', USE_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) USE_YN_NAME
+FROM   TB_MNU_GROUP A
+WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+]]></query>
+<query name="/retrieveGroupCodeList/searchText"><![CDATA[
+AND    (UPPER(GROUP_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+]]></query>
+
+<!-- 그룹관리 조회 -->
+<query name="/retrieveGroupCode"><![CDATA[
+SELECT FN_COM_CODE_NAME('SYSTEM_TYPE', SYSTEM_TYPE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) SYSTEM_TYPE_NAME
+     , GROUP_CODE
+     , GROUP_NAME
+     , USE_YN
+FROM   TB_MNU_GROUP
+WHERE  SYSTEM_TYPE  = {@SYSTEM_TYPE}
+AND    GROUP_CODE = {@GROUP_CODE}
+]]></query>
+
+<!-- 그룹관리 생성 -->
+<query name="/createGroupCode"><![CDATA[
+INSERT INTO TB_MNU_GROUP (
+       SYSTEM_TYPE
+     , GROUP_CODE
+     , GROUP_NAME
+     , USE_YN
+) VALUES (
+       {@SYSTEM_TYPE}
+     , {@GROUP_CODE}
+     , {@GROUP_NAME}
+     , {@USE_YN}
+)
+]]></query>
+
+<!-- 그룹관리 일반사용자 메뉴 생성 -->
+<query name="/createGroupCommonMenu"><![CDATA[
+INSERT INTO TB_MNU_GROUP_MENU (
+       SYSTEM_TYPE
+     , GROUP_CODE
+     , MENU_CODE
+)
+SELECT {@SYSTEM_TYPE}
+     , {@GROUP_CODE}
+     , MENU_CODE
+FROM   TB_MNU_GROUP_MENU
+WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+AND    GROUP_CODE = 'COM'
+]]></query>
+
+<!-- 그룹관리 수정 -->
+<query name="/updateGroupCode"><![CDATA[
+UPDATE TB_MNU_GROUP SET
+       GROUP_NAME = {@GROUP_NAME}
+     , USE_YN     = {@USE_YN}
+WHERE  SYSTEM_TYPE  = {@SYSTEM_TYPE}
+AND    GROUP_CODE = {@GROUP_CODE}
+]]></query>
+
+<!-- 그룹관리 삭제 -->
+<query name="/deleteGroupCode"><![CDATA[
+DELETE TB_MNU_GROUP
+WHERE  SYSTEM_TYPE  = {@SYSTEM_TYPE}
+AND    GROUP_CODE = {@GROUP_CODE}
+]]></query>
+
+<!-- 그룹별 메뉴 목록 삭제 -->
+<query name="/deleteGroupMenuList"><![CDATA[
+DELETE TB_MNU_GROUP_MENU
+WHERE  SYSTEM_TYPE  = {@SYSTEM_TYPE}
+AND    GROUP_CODE = {@GROUP_CODE}
+]]></query>
+
+<!-- 그룹별 사용자 목록 삭제 -->
+<query name="/deleteGroupUserList"><![CDATA[
+DELETE TB_MNU_GROUP_USER
+WHERE  SYSTEM_TYPE  = {@SYSTEM_TYPE}
+AND    GROUP_CODE = {@GROUP_CODE}
+]]></query>
+
+</root>

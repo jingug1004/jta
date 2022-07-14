@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+<!-- 특허팀 사용자 목록 조회 -->
+<query name="/retrievePatTeamUserList"><![CDATA[
+SELECT A.USER_ID
+     , EMP_HNAME
+     , FN_COM_CODE_NAME('HT_CODE', A.HT_CODE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) HT_CODE_NAME
+     , EMP_ENAME
+     , POSITION_NAME
+     , FN_LAB_NAME(B.LAB_CODE) LAB_NAME
+     , FN_DEPT_NAME(B.DEPT_CODE) TEAM_NAME
+     , OFFICE_TEL
+     , MAIL_ADDR
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+WHERE  A.USER_ID = B.USER_ID
+]]></query>
+<query name="/retrievePatTeamUserList/mailAddr"><![CDATA[
+AND    UPPER(MAIL_ADDR) LIKE '%'||UPPER({@MAIL_ADDR})||'%'
+]]></query>
+<query name="/retrievePatTeamUserList/empName"><![CDATA[
+AND    (UPPER(EMP_HNAME) LIKE '%'||UPPER({@EMP_NAME})||'%' OR
+        UPPER(EMP_ENAME) LIKE '%'||UPPER({@EMP_NAME})||'%' OR
+        UPPER(EMP_CNAME) LIKE '%'||UPPER({@EMP_NAME})||'%'
+       )
+]]></query>
+
+<!-- 특허팀 사용자  조회 -->
+<query name="/retrievePatTeamUser"><![CDATA[
+SELECT A.SYSTEM_TYPE
+     , A.EMP_HNAME
+     , A.EMP_ENAME
+     , A.EMP_CNAME
+     , FN_COM_CODE_NAME('HT_CODE', A.HT_CODE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) HT_CODE_NAME
+     , A.JUMIN_NO1
+     , A.JUMIN_NO2
+     , A.MAIL_ADDR
+     , A.LOGIN_ID
+     , A.LOGIN_PW
+     , FN_DIVISN_NAME(B.DIVISN_CODE) DIVISN_NAME
+     , FN_DEPT_NAME(B.DEPT_CODE) DEPT_NAME
+     , B.POSITION_NAME
+     , B.OFFICE_TEL
+     , B.MOBILE_PHONE
+     , B.HOME_ADDR
+     , B.HOME_ZIPCODE
+     , FN_LAB_NAME(B.LAB_CODE) LAB_NAME
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+WHERE  A.USER_ID = B.USER_ID
+AND    A.USER_ID = {@USER_ID}
+]]></query>
+
+<!-- 특허팀 사용자  수정 -->
+<query name="/updatePatTeamUser"><![CDATA[
+UPDATE TB_USR_MST SET
+       LOGIN_ID = {@LOGIN_ID}
+     , LOGIN_PW = {@LOGIN_PW}
+WHERE  USER_ID  = {@USER_ID}
+AND    LOGIN_ID = {@LOGIN_ID}
+]]></query>
+
+</root>

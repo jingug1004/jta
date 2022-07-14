@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 등록유지평가 현황 목록 -->
+<query name="/retrieveAnnualValuationList"><![CDATA[
+SELECT CASE WHEN C.INVDEPT_EVAL_USER IS NULL AND D.USER_ID IS NULL THEN '0' ELSE '1' END ROW_CHK
+     , B.REF_ID
+     , B.INOUT_DIV
+     , B.REF_NO
+     , B.KO_APP_TITLE
+     , FN_COM_CODE_NAME('RIGHT_DIV', B.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , DECODE(C.INVDEPT_EVAL_USER, NULL,D.USER_ID, C.INVDEPT_EVAL_USER) INVDEPT_EVAL_USER
+     , FN_USER_NAME(DECODE(C.INVDEPT_EVAL_USER, NULL,D.USER_ID, C.INVDEPT_EVAL_USER)) INVDEPT_EVAL_USER_NAME
+     , C.INVDEPT_EVAL_DATE
+     , C.PATDEPT_EVAL_USER
+     , FN_USER_NAME(C.PATDEPT_EVAL_USER) PATDEPT_EVAL_USER_NAME
+     , C.PATDEPT_EVAL_DATE
+     , A.PAY_YEARDEG
+     , A.PAY_LIMIT
+     , B.APP_NO
+     , B.APP_DATE
+     , B.REG_NO
+     , B.REG_DATE
+     , C.STATUS
+     , {#codeData:C.STATUS:/costmgt/annualValuationStatus} STATUS_NAME
+     , FN_APP_MAN_NAME(B.COSTSHARE_OWNER) COSTSHARE_OWNER_NAME
+     , E.INDEP_CLAIM
+     , E.SUBORD_CLAIM
+     , CASE A.KEEP_YN WHEN '1' THEN '유지' WHEN '0' THEN '포기' ELSE '평가대기' END KEEP_YN
+     , B.PAT_APP_NO
+FROM   TB_COST_REMINDER A
+     , TB_APP_MST B
+     , (SELECT T1.REF_ID
+             , T2.INVDEPT_EVAL_USER
+             , T2.INVDEPT_EVAL_DATE
+             , T2.PATDEPT_EVAL_USER
+             , T2.PATDEPT_EVAL_DATE
+             , CASE WHEN T1.EVAL_END_YN = '1' THEN 'E'
+                    WHEN T2.EVAL_ID IS NULL THEN 'S'
+                    WHEN T2.INVDEPT_EVAL_END_YN = '0' AND T2.PATDEPT_EVAL_END_YN = '0' THEN 'I'
+                    WHEN T2.INVDEPT_EVAL_END_YN = '1' AND T2.PATDEPT_EVAL_END_YN = '0' THEN 'P'
+                    WHEN T2.INVDEPT_EVAL_END_YN = '1' AND T2.PATDEPT_EVAL_END_YN = '1' THEN 'E'
+               END STATUS
+             , T1.PAY_YEARDEG
+        FROM   TB_COST_REMINDER T1
+             , TB_EVAL_COM_MST T2
+        WHERE  T1.EVAL_ID = T2.EVAL_ID(+)
+       ) C
+     , (SELECT U1.REF_ID
+             , MIN(U1.INV_USER) USER_ID
+        FROM   V_INVENTOR_ALL U1
+             , TB_USR_MST U2
+        WHERE  U1.INV_USER = U2.USER_ID
+        AND    U1.MAIN_INVENTOR_YN = '1'
+        AND    U2.HT_CODE = 'C'
+        GROUP BY U1.REF_ID
+       ) D
+     , TB_APP_MST_INT E
+WHERE  A.REF_ID = B.REF_ID
+AND    A.REF_ID = C.REF_ID
+AND    A.REF_ID = D.REF_ID(+)
+AND    A.REF_ID = E.REF_ID(+)
+AND    A.PAY_YEARDEG = C.PAY_YEARDEG
+]]></query>
+<query name="/retrieveAnnualValuationList/rightDiv"><![CDATA[
+AND    B.RIGHT_DIV = {@RIGHT_DIV}
+]]></query>
+<query name="/retrieveAnnualValuationList/annualDiv"><![CDATA[
+AND    B.INOUT_DIV = {@ANNUAL_DIV}
+]]></query>
+<query name="/retrieveAnnualValuationList/koAppTitle"><![CDATA[
+AND    UPPER(B.KO_APP_TITLE) LIKE '%'||UPPER({@KO_APP_TITLE})||'%'
+]]></query>
+<query name="/retrieveAnnualValuationList/status"><![CDATA[
+AND    C.STATUS = {@STATUS}
+]]></query>
+<query name="/retrieveAnnualValuationList/searchText"><![CDATA[
+AND    B.{#SEARCH_TYPE} LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrieveAnnualValuationList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveAnnualValuationList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+
+<!-- 발명부서 평가자 목록 검색 -->
+<query name="/retrieveAnnualValuationInvUserSearchList"><![CDATA[
+SELECT A.INV_USER USER_ID
+     , C.EMP_NO
+     , B.EMP_HNAME
+     , C.DEPT_NAME
+     , DECODE(A.MAIN_INVENTOR_YN, '1','주', '0','부') MAIN_INVENTOR_YN_NAME
+     , A.QUOTA_RATIO / 100 QUOTA_RATIO
+     , FN_COM_CODE_NAME('HT_CODE', B.HT_CODE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) HT_CODE_NAME
+     , C.INOUT_NAME
+FROM   TB_MAPP_INVENTOR A
+     , TB_USR_MST B
+     , (SELECT USER_ID
+             , EMP_NO
+             , FN_DEPT_NAME(DEPT_CODE) DEPT_NAME
+             , '내부' INOUT_NAME
+        FROM   TB_USR_PATENT
+        UNION ALL
+        SELECT USER_ID
+             , EMP_NO
+             , DEPT_NAME
+             , '외부' INOUT_NAME
+        FROM   TB_USR_OUT_INVENTOR
+       ) C
+WHERE  1 = 1
+AND    A.INV_USER = B.USER_ID(+)
+AND    A.INV_USER = C.USER_ID(+)
+AND    A.REF_ID IN (SELECT {@REF_ID} FROM DUAL
+                    UNION
+                    SELECT GRP_ID FROM TB_APP_MST_EXT WHERE REF_ID = {@REF_ID}
+                   )
+]]></query>
+<query name="/retrieveAnnualValuationInvUserSearchList/searchText"><![CDATA[
+AND    (UPPER(C.EMP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(B.EMP_HNAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+       )
+]]></query>
+
+<!-- 발명부서 평가자 목록 검색 - 전체 발명자 -->
+<query name="/retrieveAnnualValuationInvUserSearchAllList"><![CDATA[
+SELECT A.USER_ID
+     , B.EMP_NO
+     , A.EMP_HNAME
+     , B.DEPT_NAME
+     , NULL MAIN_INVENTOR_YN_NAME
+     , NULL QUOTA_RATIO
+     , FN_COM_CODE_NAME('HT_CODE', A.HT_CODE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) HT_CODE_NAME
+     , B.INOUT_NAME
+FROM   TB_USR_MST A
+     , (SELECT USER_ID
+             , EMP_NO
+             , FN_DEPT_NAME(DEPT_CODE) DEPT_NAME
+             , '내부' INOUT_NAME
+        FROM   TB_USR_PATENT
+        UNION ALL
+        SELECT USER_ID
+             , EMP_NO
+             , DEPT_NAME
+             , '외부' INOUT_NAME
+        FROM   TB_USR_OUT_INVENTOR
+       ) B
+WHERE  A.USER_ID = B.USER_ID
+]]></query>
+<query name="/retrieveAnnualValuationInvUserSearchAllList/searchText"><![CDATA[
+AND    (UPPER(B.EMP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(A.EMP_HNAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+       )
+]]></query>
+
+<!-- 등록유지평가 마스터 조회 -->
+<query name="/retrieveValuationMaster"><![CDATA[
+SELECT A.EVAL_ID
+     , NVL(A.REF_ID, {@REF_ID}) REF_ID
+     , NVL(A.PAPER_LIST_SEQ, {@PAPER_LIST_SEQ}) PAPER_LIST_SEQ
+     , (SELECT DECODE(COUNT(1), 0,'0', '1') FROM TB_EVAL_COM_ITEM T WHERE T.EVAL_ID = A.EVAL_ID AND T.EVAL_SHEET_ID = NVL(A.INVDEPT_EVAL_SHEET_ID, B.INVDEPT_EVAL_SHEET_ID)) INVDEPT_EVAL_YN
+     , NVL(A.INVDEPT_EVAL_SHEET_ID, B.INVDEPT_EVAL_SHEET_ID) INVDEPT_EVAL_SHEET_ID
+     , A.INVDEPT_EVAL_USER
+     , FN_USER_NAME(A.INVDEPT_EVAL_USER) INVDEPT_EVAL_USER_NAME
+     , (SELECT DECODE(COUNT(1), 0,'0', '1') FROM TB_EVAL_COM_ITEM T WHERE T.EVAL_ID = A.EVAL_ID AND T.EVAL_SHEET_ID = NVL(A.PATDEPT_EVAL_SHEET_ID, B.PATDEPT_EVAL_SHEET_ID)) PATDEPT_EVAL_YN
+     , NVL(A.PATDEPT_EVAL_SHEET_ID, B.PATDEPT_EVAL_SHEET_ID) PATDEPT_EVAL_SHEET_ID
+     , NVL(A.PATDEPT_EVAL_USER, (SELECT JOB_MAN FROM V_MASTER_ALL WHERE REF_ID = NVL(A.REF_ID, {@REF_ID}))) PATDEPT_EVAL_USER
+     , FN_USER_NAME(NVL(A.PATDEPT_EVAL_USER, (SELECT JOB_MAN FROM V_MASTER_ALL WHERE REF_ID = NVL(A.REF_ID, {@REF_ID})))) PATDEPT_EVAL_USER_NAME
+     , A.SUM_TOTAL
+FROM   TB_EVAL_COM_MST A
+     , TB_EVAL_CODE B
+]]></query>
+<query name="/retrieveValuationMaster/refId"><![CDATA[
+WHERE  A.REF_ID(+) = {@REF_ID}
+AND    B.EVAL_CODE = {@EVAL_CODE}
+AND    A.EVAL_CODE(+) = B.EVAL_CODE
+]]></query>
+<query name="/retrieveValuationMaster/evalId"><![CDATA[
+WHERE  A.EVAL_ID = {@EVAL_ID}
+AND    A.EVAL_CODE = B.EVAL_CODE
+]]></query>
+<query name="/retrieveValuationMaster/paperListSeq"><![CDATA[
+AND    A.PAPER_LIST_SEQ(+) = {@PAPER_LIST_SEQ}
+]]></query>
+
+<!-- 등록유지평가 결과서 조회 -->
+<query name="/retrieveValuationResult"><![CDATA[
+SELECT REF_ID
+     , EVAL_ID
+     , KEEP_YN
+FROM   TB_COST_REMINDER
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 발명부서 평가자 지정 -->
+<query name="/createAnnualValuationInvUser"><![CDATA[
+INSERT INTO TB_EVAL_COM_MST (
+       EVAL_ID
+     , REF_ID
+     , PAPER_LIST_SEQ
+     , EVAL_CODE
+     , INVDEPT_EVAL_REQ_USER
+     , INVDEPT_EVAL_REQ_DATE
+     , INVDEPT_EVAL_USER
+) VALUES (
+       {@EVAL_ID}
+     , {@REF_ID}
+     , {@PAPER_LIST_SEQ}
+     , {@EVAL_CODE}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , {@INVDEPT_EVAL_USER}
+)
+]]></query>
+
+<!-- 리마인더에 평가ID 저장 -->
+<query name="/updateAnnualReminderEvalID"><![CDATA[
+UPDATE TB_COST_REMINDER SET
+       EVAL_ID = {@EVAL_ID}
+WHERE  REF_ID = {@REF_ID}
+AND    PAY_YEARDEG = {@PAPER_LIST_SEQ}
+]]></query>
+
+<!-- 리마인더에 평가결과(유지여부) 저장 -->
+<query name="/updateAnnualReminderKeepYn"><![CDATA[
+UPDATE TB_COST_REMINDER SET
+       KEEP_YN = {@KEEP_YN}
+WHERE  EVAL_ID = {@EVAL_ID}
+]]></query>
+
+<!-- 발명부서 평가자 정보 -->
+<query name="/InvUserInfo"><![CDATA[
+SELECT EMP_HNAME
+     , MAIL_ADDR
+FROM tb_usr_mst
+WHERE user_id = {@INVDEPT_EVAL_USER}
+]]></query>
+
+<!-- 등록유지평가 마스터 조회 -->
+<query name="/retrieveAnnualValuationInfo"><![CDATA[
+SELECT B.KO_APP_TITLE
+     , FN_USER_NAME(A.INVDEPT_EVAL_USER) INVDEPT_EVAL_USER_NAME
+     , B.APP_NO
+     , FN_INVENTOR_NAMES(A.REF_ID) INV_NAMES
+FROM TB_EVAL_COM_MST A
+   , TB_APP_MST B
+WHERE A.REF_ID = B.REF_ID
+  AND A.EVAL_ID = {@EVAL_ID}
+]]></query>
+
+<!-- 지적재산팀 일괄평가 저장 -->
+<query name="/updateAnnualValuationKeepYn"><![CDATA[
+UPDATE TB_COST_REMINDER SET
+       KEEP_YN = {@KEEP_YN}
+     , EVAL_END_YN = '1'
+     , EVAL_ID = {@EVAL_ID}
+WHERE REF_ID = {@REF_ID}
+AND PAY_YEARDEG = {@PAY_YEARDEG}
+]]></query>
+
+<!-- 평가 마스터 생성 - 특허부서 - 일괄평가일 경우 -->
+<query name="/createEvaluationMasterPat"><![CDATA[
+INSERT INTO TB_EVAL_COM_MST (
+       EVAL_ID
+     , REF_ID
+     , EVAL_CODE
+     , PATDEPT_EVAL_USER
+     , PATDEPT_EVAL_DATE
+     , PATDEPT_EVAL_END_YN
+) VALUES (
+       {@EVAL_ID}
+     , {@REF_ID}
+     , {@EVAL_CODE}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , '1'
+)
+]]></query>
+
+</root>

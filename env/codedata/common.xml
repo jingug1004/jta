@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 사용자 검색 구분 -->
+<codeData name="/userSearchGubun">
+    <row CODE="EMP_NAME" NAME="이름" />
+    <row CODE="EMP_NO"   NAME="사번" />
+</codeData>
+
+<!-- 결재 진행상태 -->
+<codeData name="/apprStatus">
+    <row CODE="0" NAME="작성중" />
+    <row CODE="1" NAME="결재중" />
+    <row CODE="8" NAME="결재완료" />
+    <row CODE="9" NAME="반려" />
+</codeData>
+
+<!-- 사무소담당자 -->
+<query name="/officeJobMan"><![CDATA[
+SELECT USER_ID CODE
+     , FN_USER_NAME(USER_ID) NAME
+FROM   TB_USR_OFFICE
+WHERE  OFFICE_CODE = {@1}
+]]></query>
+
+<!-- 사무소사용자별 사무소담당자 -->
+<query name="/officeJobManByOfficeUser"><![CDATA[
+SELECT USER_ID CODE
+     , FN_USER_NAME(USER_ID) NAME
+FROM   TB_USR_OFFICE
+WHERE  OFFICE_CODE = {@$OFFICE_CODE}
+]]></query>
+
+<!-- 진행서류 입력대상 -->
+<codeData name="/paperInputAvailGubun">
+    <row CODE="PATTEAM" NAME="특허팀" />
+    <row CODE="OFFICE" NAME="사무소" />
+    <row CODE="INVENTOR" NAME="발명자" />
+</codeData>
+
+<!-- 업무별 진행상태 -->
+<query name="/bizStatus"><![CDATA[
+SELECT A.CURR_STATUS CODE
+     , FN_BIZ_CODE_NAME(A.CURR_STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) NAME
+FROM   TB_BIZ_MGT_PROC A
+WHERE  A.BIZ_STEP_ID IN (SELECT BIZ_STEP_ID FROM TB_BIZ_MGT_STEP WHERE BIZ_MGT_ID = {@1})
+AND    A.CURR_STATUS NOT LIKE 'SZ%'
+AND    A.BIZ_ACT != 'AZ5555'
+GROUP BY A.CURR_STATUS
+ORDER BY MIN(A.BIZ_STEP_ID || '-' || LPAD(A.DISP_ORD, 3, '0'))
+]]></query>
+
+<!-- 업무단계별 진행상태 -->
+<query name="/bizStepStatus"><![CDATA[
+SELECT A.CURR_STATUS CODE
+     , FN_BIZ_CODE_NAME(A.CURR_STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) NAME
+FROM   TB_BIZ_MGT_PROC A
+WHERE  A.BIZ_STEP_ID IN ({@1})
+AND    A.CURR_STATUS NOT LIKE 'SZ%'
+AND    A.BIZ_ACT != 'AZ5555'
+GROUP BY A.CURR_STATUS
+ORDER BY MIN(A.BIZ_STEP_ID || '-' || LPAD(A.DISP_ORD, 3, '0'))
+]]></query>
+
+<!-- 업무단계별 진행상태 -->
+<query name="/bizStepRequestStatus"><![CDATA[
+SELECT A.CURR_STATUS CODE
+     , FN_BIZ_CODE_NAME(A.CURR_STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) NAME
+FROM   TB_BIZ_MGT_PROC A
+WHERE  A.BIZ_STEP_ID BETWEEN 'WP_P01_100' AND 'WP_P01_300'
+AND    A.CURR_STATUS NOT LIKE 'SZ%'
+AND    A.BIZ_ACT != 'AZ5555'
+AND    A.CURR_STATUS NOT IN ('S00009', 'S00021')
+GROUP BY A.CURR_STATUS
+ORDER BY MIN(A.BIZ_STEP_ID || '-' || LPAD(A.DISP_ORD, 3, '0'))
+]]></query>
+
+<!-- 전체 건담당자 -->
+<query name="/jobManAll"><![CDATA[
+SELECT DISTINCT
+       USER_ID CODE
+     , FN_USER_NAME(USER_ID) NAME
+FROM   TB_MNU_GROUP_USER
+WHERE  SYSTEM_TYPE = 'PATENT'
+AND    GROUP_CODE IN ('PAT', 'TRA', 'DES')
+]]></query>
+
+<!-- 건담당자 -->
+<query name="/jobMan"><![CDATA[
+SELECT DISTINCT
+       USER_ID CODE
+     , FN_USER_NAME(USER_ID) NAME
+FROM   TB_MNU_GROUP_USER
+WHERE  SYSTEM_TYPE = 'PATENT'
+AND    GROUP_CODE IN ('PAT', 'TRA', 'DES')
+AND    GROUP_CODE IN ({@1})
+]]></query>
+
+<!-- 연구소코드 -->
+<query name="/labCode"><![CDATA[
+SELECT LAB_CODE CODE
+     , LAB_NAME NAME
+FROM   TB_ORG_LAB
+WHERE  USE_YN = '1'
+ORDER BY NAME
+]]></query>
+
+<!-- 국가코드 -->
+<query name="/countryCode"><![CDATA[
+SELECT COUNTRY_CODE CODE
+     , COUNTRY_NAME NAME
+FROM   TB_COM_COUNTRY
+ORDER BY DISP_ORD, COUNTRY_NAME
+]]></query>
+
+<!-- 화폐코드 -->
+<query name="/currencyCode"><![CDATA[
+SELECT DISTINCT
+       CURRENCY_CODE CODE
+     , CURRENCY_CODE NAME
+FROM   TB_COM_COUNTRY
+WHERE  CURRENCY_CODE IS NOT NULL
+ORDER BY CURRENCY_CODE
+]]></query>
+
+<!-- 사무소코드 -->
+<query name="/officeCode"><![CDATA[
+SELECT OFFICE_CODE CODE
+     , FIRM_HNAME NAME
+FROM   TB_ORG_OFFICE
+WHERE  USE_YN = '1'
+ORDER BY DISP_ORD, FIRM_HNAME
+]]></query>
+
+<!-- 국내사무소코드 -->
+<query name="/intOfficeCode"><![CDATA[
+SELECT OFFICE_CODE CODE
+     , FIRM_HNAME NAME
+FROM   TB_ORG_OFFICE
+WHERE  USE_YN = '1'
+AND    COUNTRY_CODE = 'KR'
+ORDER BY DISP_ORD, FIRM_HNAME
+]]></query>
+
+<!-- 국외사무소코드 -->
+<query name="/extOfficeCode"><![CDATA[
+SELECT OFFICE_CODE CODE
+     , FIRM_HNAME NAME
+FROM   TB_ORG_OFFICE
+WHERE  COUNTRY_CODE != 'KR'
+ORDER BY DISP_ORD, FIRM_HNAME
+]]></query>
+
+
+
+<!-- 해외신규OL사무소코드 -->
+<query name="/inExOfficeCode"><![CDATA[
+SELECT OFFICE_CODE CODE
+     , FIRM_HNAME NAME
+FROM   TB_ORG_OFFICE
+WHERE  COUNTRY_CODE = {@1}
+ORDER BY DISP_ORD, FIRM_HNAME
+]]></query>
+
+<!-- 서류구분 및 국내외구분별 진행서류 -->
+<query name="/paperCodeByPaperInoutDiv"><![CDATA[
+SELECT A.PAPER_CODE CODE
+     , A.PAPER_NAME NAME
+FROM   TB_PAPER_MGT_MST A
+WHERE  A.PAPER_DIV = DECODE(NVL({@1}, A.PAPER_DIV), '20','10', NVL({@1}, A.PAPER_DIV))
+AND    A.INOUT_DIV = NVL({@2}, A.INOUT_DIV)
+ORDER BY A.PAPER_CODE
+]]></query>
+
+<!-- REF별 진행서류 -->
+<query name="/paperCodeByRef"><![CDATA[
+SELECT A.PAPER_CODE CODE
+     , A.PAPER_NAME NAME
+FROM   TB_PAPER_MGT_MST A
+     , V_MASTER_ALL B
+WHERE  A.PAPER_DIV = DECODE(B.RIGHT_DIV, '20','10', B.RIGHT_DIV)
+AND    A.INOUT_DIV = B.INOUT_DIV
+AND    A.PATTEAM_INPUT_YN = '1'
+AND    A.USE_YN = '1'
+AND    B.REF_ID = {@1}
+AND    A.PAPER_STEP IN ('ALL', FN_PAPER_STEP({@1}))
+ORDER BY A.PAPER_NAME, A.PAPER_CODE
+]]></query>
+
+<!-- REF별 진행서류(발명자용) -->
+<query name="/paperCodeByRefForInv"><![CDATA[
+SELECT A.PAPER_CODE CODE
+     , A.PAPER_NAME NAME
+FROM   TB_PAPER_MGT_MST A
+     , V_MASTER_ALL B
+WHERE  A.PAPER_DIV = DECODE(B.RIGHT_DIV, '20','10', B.RIGHT_DIV)
+AND    A.INOUT_DIV = B.INOUT_DIV
+AND    A.INVENTOR_INPUT_YN = '1'
+AND    A.USE_YN = '1'
+AND    B.REF_ID = {@1}
+ORDER BY A.PAPER_NAME, A.PAPER_CODE
+]]></query>
+
+<!-- REF별 진행서류(사무소용) -->
+<query name="/paperCodeByRefForOff"><![CDATA[
+SELECT A.PAPER_CODE CODE
+     , A.PAPER_NAME NAME
+FROM   TB_PAPER_MGT_MST A
+     , V_MASTER_ALL B
+WHERE  A.PAPER_DIV = DECODE(B.RIGHT_DIV, '20','10', B.RIGHT_DIV)
+AND    A.INOUT_DIV = B.INOUT_DIV
+AND    A.OFFICE_INPUT_YN = '1'
+AND    A.USE_YN = '1'
+AND    B.REF_ID = {@1}
+AND    A.PAPER_STEP IN ('ALL', FN_PAPER_STEP({@1}))
+ORDER BY A.PAPER_NAME, A.PAPER_CODE
+]]></query>
+
+<!-- 세부진행서류 -->
+<query name="/paperSubcode"><![CDATA[
+SELECT PAPER_SUBCODE CODE
+     , PAPER_SUBNAME NAME
+     , BIZ_BUTTON_NAME
+     , BIZ_VIEW_PATH
+FROM   TB_PAPER_MGT_SUB
+WHERE  PAPER_CODE = {@1}
+AND    USE_YN = '1'
+ORDER BY PAPER_SUBCODE, PAPER_SUBNAME
+]]></query>
+
+<!-- 세부진행서류 전체 -->
+<query name="/paperSubcodeAll"><![CDATA[
+SELECT PAPER_SUBCODE CODE
+     , PAPER_SUBNAME NAME
+FROM   TB_PAPER_MGT_SUB
+WHERE  PAPER_CODE = {@1}
+ORDER BY PAPER_SUBCODE, PAPER_SUBNAME
+]]></query>
+
+<!-- 평가항목별 요소 -->
+<query name="/evalSheetItemElem"><![CDATA[
+SELECT ELEM_SEQ CODE
+     , ELEM_NAME || DECODE(ELEM_VALUE, -1,NULL, '(' || ELEM_VALUE || ')') NAME
+     , ELEM_VALUE
+FROM   TB_EVAL_SHEET_ITEM_ELEM
+WHERE  EVAL_SHEET_ID = {@1}
+AND    ITEM_SEQ = {@2}
+ORDER BY DISP_ORD
+]]></query>
+
+
+<!-- 조사기관 코드 -->
+<query name="/inInspOrgan"><![CDATA[
+SELECT OFFICE_CODE CODE
+     , FIRM_HNAME NAME
+FROM   TB_ORG_OFFICE
+WHERE   COUNTRY_CODE = 'KR'
+ORDER BY DISP_ORD, FIRM_HNAME
+]]></query>
+
+<!-- 비용분담주체 코드 (출원인 데이터)-->
+<query name="/inAppManCode"><![CDATA[
+SELECT APP_MAN_CODE CODE
+     , APP_MAN_NAME NAME
+FROM TB_APP_MAN
+WHERE USE_YN = '1'
+]]></query>
+
+<!-- 프로젝트 목록 -->
+<query name="/project"><![CDATA[
+SELECT PJT_CODE CODE
+     , PJT_NAME NAME
+FROM   TB_COM_PJT
+ORDER BY CODE
+]]></query>
+
+
+<!-- 권리구분 입력대상-->
+<codeData name="/ourRight">
+    <row CODE="10" NAME="특허" />
+    <row CODE="20" NAME="실용신안" />
+    <row CODE="30" NAME="디자인" />
+</codeData>
+
+<!-- 출원번호 입력대상-->
+<codeData name="/ourNo">
+    <row CODE="APP" NAME="출원번호" />
+    <row CODE="REGNO" NAME="등록번호" />
+    <row CODE="PUBNO" NAME="공개번호" />
+</codeData>
+</root>

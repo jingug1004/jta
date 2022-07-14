@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 국내분할 모출원 서지사항 조회 -->
+<query name="/retrieveIntPatentMasterDivPrior"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , FN_OFFICE_NAME(A.OFFICE_CODE) INT_OFFICE_NAME
+     , FN_COM_CODE_NAME('EXAMREQ_YN', A.EXAMREQ_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) EXAMREQ_YN_NAME
+     , A.KO_APP_TITLE
+     , A.APP_NO
+     , A.APP_DATE
+     , A.REG_NO
+     , A.REG_DATE
+     , FN_REF_NO(B.PRIORITY_REF_ID) PRIORITY_REF_NO
+     , B.FIRSTAPP_DATE
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+WHERE  A.REF_ID = {@DIVISION_PRIOR_REF_ID}
+AND    A.REF_ID = B.REF_ID(+)
+]]></query>
+
+<!-- 국내분할 분할코드 조회 -->
+<query name="/retrieveIntPatentMasterDivDivisionCode"><![CDATA[
+SELECT MAX(DIVISION_CODE) DIVISION_CODE
+FROM   TB_APP_MST A
+WHERE  A.DIVISION_PRIOR_REF_ID = {@DIVISION_PRIOR_REF_ID}
+AND    A.RIGHT_DIV = (SELECT RIGHT_DIV FROM TB_APP_MST WHERE REF_ID = {@DIVISION_PRIOR_REF_ID})
+AND    A.DIVISION_TYPE = {@DIVISION_TYPE}
+]]></query>
+
+<!-- 국내마스터 생성 -->
+<query name="/createIntPatentMaster"><![CDATA[
+INSERT INTO TB_APP_MST (
+       REF_ID
+     , REF_NO
+     , RIGHT_DIV
+     , INOUT_DIV
+     , COUNTRY_CODE
+     , DIVISN_CODE
+     , DEPT_CODE
+     , LAB_CODE
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , STATUS
+     , STATUS_DATE
+     , JOB_MAN
+     , OFFICE_CODE
+     , ETC_MEMO
+     , DIVISION_PRIOR_REF_ID
+     , DIVISION_TYPE
+     , DIVISION_CODE
+     , DIVISION_LEVEL
+     , OFFICE_CONTACT_YN
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@REF_ID}
+     , {@REF_NO}
+     , A.RIGHT_DIV
+     , A.INOUT_DIV
+     , A.COUNTRY_CODE
+     , A.DIVISN_CODE
+     , A.DEPT_CODE
+     , A.LAB_CODE
+     , A.KO_APP_TITLE
+     , A.EN_APP_TITLE
+     , A.STATUS
+     , A.STATUS_DATE
+     , A.JOB_MAN
+     , A.OFFICE_CODE
+     , {@ETC_MEMO}
+     , {@DIVISION_PRIOR_REF_ID}
+     , {@DIVISION_TYPE}
+     , {@DIVISION_CODE}
+     , {@DIVISION_LEVEL}
+     , A.OFFICE_CONTACT_YN
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_MST A
+WHERE  A.REF_ID = {@DIVISION_PRIOR_REF_ID}
+]]></query>
+
+<!-- 국내마스터 생성 - 특허 -->
+<query name="/createIntPatentMasterPat"><![CDATA[
+INSERT INTO TB_APP_MST_INT (
+       REF_ID
+     , PATTEAM_RCPT_DATE
+     , FIRSTAPP_DATE
+)
+SELECT {@REF_ID}
+     , A.PATTEAM_RCPT_DATE
+     , A.FIRSTAPP_DATE
+FROM   TB_APP_MST_INT A
+WHERE  A.REF_ID = {@DIVISION_PRIOR_REF_ID}
+]]></query>
+
+<!-- 국내출원품의서 생성 -->
+<query name="/createIntPatentConsult"><![CDATA[
+INSERT INTO TB_APP_INT_CONSULT (
+       REF_ID
+     , REF_NO
+     , RIGHT_DIV
+     , DEPT_CODE
+     , LAB_CODE
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , PATTEAM_RCPT_DATE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+     , OFFICE_CODE
+     , CRE_USER
+     , CRE_DATE
+     , OFFICE_CONTACT_YN
+)
+SELECT {@REF_ID}
+     , {@REF_NO}
+     , A.RIGHT_DIV
+     , A.DEPT_CODE
+     , A.LAB_CODE
+     , A.KO_APP_TITLE
+     , A.EN_APP_TITLE
+     , A.PATTEAM_RCPT_DATE
+     , A.APP_IMMED_YN
+     , A.APP_IMMED_REASON
+     , A.OFFICE_CODE
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , A.OFFICE_CONTACT_YN
+FROM   TB_APP_INT_CONSULT A
+WHERE  A.REF_ID = {@DIVISION_PRIOR_REF_ID}
+]]></query>
+
+<!-- 국내출원품의서 생성 - 특허 -->
+<query name="/createIntPatentConsultPat"><![CDATA[
+INSERT INTO TB_APP_INT_CONSULT_PAT (
+       REF_ID
+     , PRSCH_FILE
+     , EXT_APP_NEED_YN
+     , EXT_APP_NEED_REASON
+     , EXAMREQ_YN
+     , INV_GRADE
+     , DOC_FILE
+     , REMARK
+)
+SELECT {@REF_ID}
+     , A.PRSCH_FILE
+     , A.EXT_APP_NEED_YN
+     , A.EXT_APP_NEED_REASON
+     , A.EXAMREQ_YN
+     , A.INV_GRADE
+     , A.DOC_FILE
+     , {@ETC_MEMO}
+FROM   TB_APP_INT_CONSULT_PAT A
+WHERE  A.REF_ID = {@DIVISION_PRIOR_REF_ID}
+]]></query>
+
+<!-- 국내출원품의서 생성(품의서가 없는 경우 마스터로부터) -->
+<query name="/createIntPatentConsultByMaster"><![CDATA[
+INSERT INTO TB_APP_INT_CONSULT (
+       REF_ID
+     , REF_NO
+     , RIGHT_DIV
+     , DEPT_CODE
+     , LAB_CODE
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , OFFICE_CODE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@REF_ID}
+     , {@REF_NO}
+     , A.RIGHT_DIV
+     , A.DEPT_CODE
+     , A.LAB_CODE
+     , A.KO_APP_TITLE
+     , A.EN_APP_TITLE
+     , A.OFFICE_CODE
+     , B.APP_IMMED_YN
+     , B.APP_IMMED_REASON
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+WHERE  A.REF_ID = {@DIVISION_PRIOR_REF_ID}
+AND    A.REF_ID = B.REF_ID(+)
+]]></query>
+
+<!-- 국내출원품의서 생성(품의서가 없는 경우 마스터로부터) - 특허 -->
+<query name="/createIntPatentConsultByMasterPat"><![CDATA[
+INSERT INTO TB_APP_INT_CONSULT_PAT (
+       REF_ID
+     , EXAMREQ_YN
+     , INV_GRADE
+     , EXT_APP_NEED_YN
+     , EXT_APP_NEED_REASON
+)
+SELECT {@REF_ID}
+     , A.EXAMREQ_YN
+     , B.INV_GRADE
+     , B.EXT_APP_NEED_YN
+     , B.EXT_APP_NEED_REASON
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+WHERE  A.REF_ID = {@DIVISION_PRIOR_REF_ID}
+AND    A.REF_ID = B.REF_ID(+)
+]]></query>
+
+</root>

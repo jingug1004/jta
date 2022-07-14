@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 출원인 맵핑 조회 -->
+<query name="/retrieveAppManCodeList"><![CDATA[
+SELECT FN_APP_MAN_NAME(APP_MAN_CODE) APP_MAN_NAME
+     , APP_MAN_CODE
+     , MAPP_DIV
+     , REF_ID
+FROM TB_MAPP_APP_MAN
+WHERE REF_ID = {@REF_ID}
+AND   MAPP_DIV = {@MAPP_DIV}
+ORDER BY APP_MAN_CODE
+]]></query>
+
+<!-- 출원인 맵핑 생성 -->
+<query name="/createAppManCodeList"><![CDATA[
+INSERT INTO TB_MAPP_APP_MAN(
+       APP_MAN_CODE
+     , MAPP_DIV
+     , REF_ID
+)VALUES(
+       {@APP_MAN_CODE}
+     , {@MAPP_DIVT}
+     , {@REF_IDT}
+)
+]]></query>
+
+<!-- 출원인 맵핑 삭제 -->
+<query name="/deleteAppManCodeList"><![CDATA[
+DELETE FROM TB_MAPP_APP_MAN
+WHERE  APP_MAN_CODE = {@APP_MAN_CODE}
+AND    MAPP_DIV = {@MAPP_DIVT}
+AND    REF_ID = {@REF_IDT}
+]]></query>
+
+
+<!-- 발명자 맵핑 삭제 -->
+<query name="/deleteInventor"><![CDATA[
+DELETE FROM TB_MAPP_INVENTOR
+WHERE  REF_ID = {@REF_ID}
+AND    INV_USER = {@USER_ID}
+]]></query>
+
+
+
+</root>

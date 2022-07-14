@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Cache-Control" content="no-cache; no-store; no-save">
+<meta http-equiv="Expires" content="0">
+<meta http-equiv="Pragma" content="no-cache">
+<script type="text/javascript">
+window.onload = function()
+{
+    var url = window.opener.any.window.openWindows[window.name].f.url();
+    var frm = document.getElementsByTagName("FORM")[0];
+    var ind = url.indexOf("?");
+
+    if (ind == -1) {
+        frm.action = url;
+    } else {
+        frm.action = url.substr(0, ind);
+        var params = url.substr(ind + 1).split("&");
+        for (var i = 0, ii = params.length; i < ii; i++) {
+            if (params[i].indexOf("=") == -1) {
+                continue;
+            }
+            var elem = document.createElement("input");
+            elem.type = "hidden";
+            elem.name = params[i].substr(0, params[i].indexOf("="));
+            elem.value = params[i].substr(params[i].indexOf("=") + 1);
+            frm.appendChild(elem);
+        }
+    }
+
+    frm.submit();
+};
+</script>
+</head>
+<body>
+<form></form>
+</body>
+</html>

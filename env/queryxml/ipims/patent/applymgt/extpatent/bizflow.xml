@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 업무흐름 건수 조회 -->
+<query name="/retrieveExtPatentBizFlowCount"><![CDATA[
+SELECT COUNT(1) CNT FROM (
+{#LIST_QUERY}
+) A
+]]></query>
+
+<!-- 해외출원대상선정 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_PA01"><![CDATA[
+SELECT A.REF_NO
+     , A.APP_NO
+     , A.KO_APP_TITLE
+     , A.CRE_DATE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , A.REG_NO
+     , FN_COM_CODE_NAME('EXT_APP_STATUS', B.EXT_APP_STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) EXT_APP_STATUS_NAME
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+WHERE  A.REF_ID = B.REF_ID
+AND    B.EXT_APP_STATUS  = '0'
+AND    A.ABD_YN = '0'
+AND    A.RIGHT_DIV IN ('10', '20')
+AND    TO_CHAR(ADD_MONTHS(A.APP_DATE, 12), 'YYYYMMDD') >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+]]></query>
+
+<!-- 해외출원품의 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_PA02"><![CDATA[
+SELECT C.GRP_NO
+     , A.APP_NO
+     , FN_COM_CODE_NAME('RIGHT_DIV', C.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , A.KO_APP_TITLE
+     , FN_USER_NAME(C.JOB_MAN) JOB_MAN_NAME
+     , FN_INVENTOR_NAMES(C.GRP_ID) INVENTOR_NAMES
+     , FN_OFFICE_NAME(C.OFFICE_CODE) OFFICE_NAME
+     , C.CRE_DATE
+FROM   TB_APP_MST A
+     , TB_APP_MST_EXT B
+     , TB_APP_EXT_GRP C
+WHERE  A.REF_ID = B.REF_ID
+AND    B.GRP_ID = C.GRP_ID
+AND    C.RIGHT_DIV IN ('10', '20')
+AND    C.GRP_ID NOT IN (SELECT GRP_ID FROM TB_APP_EXT_OL)
+]]></query>
+
+<!-- 종료 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_PA03"><![CDATA[
+SELECT C.GRP_NO
+     , A.APP_NO
+     , FN_COM_CODE_NAME('RIGHT_DIV', C.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , A.KO_APP_TITLE
+     , FN_USER_NAME(C.JOB_MAN) JOB_MAN_NAME
+     , FN_INVENTOR_NAMES(C.GRP_ID) INVENTOR_NAMES
+     , FN_OFFICE_NAME(C.OFFICE_CODE) OFFICE_NAME
+     , C.CRE_DATE
+FROM   TB_APP_MST A
+     , TB_APP_MST_EXT B
+     , TB_APP_EXT_GRP C
+WHERE  A.REF_ID = B.REF_ID
+AND    B.GRP_ID = C.GRP_ID
+AND    C.RIGHT_DIV IN ('10', '20')
+AND    A.STATUS = 'S00021'
+]]></query>
+
+<!-- O/L 작성 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_PA04"><![CDATA[
+SELECT B.GRP_NO
+     , FN_GROUP_INT_APP_NOS(B.GRP_ID) AS APP_NO
+     , FN_COM_CODE_NAME('RIGHT_DIV', B.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_OL_COUNTRY_NAMES(A.OL_ID) COUNTRY_NAMES
+     , B.KO_APP_TITLE
+     , FN_BIZ_CODE_NAME(Z.STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) STATUS_NAME
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , FN_OFFICE_NAME(B.OFFICE_CODE) OFFICE_NAME
+FROM   TB_APP_EXT_OL A
+     , TB_APP_EXT_GRP B
+     , TB_BIZ_COM_MST Z
+WHERE  A.GRP_ID = B.GRP_ID
+AND    A.OL_ID = Z.REF_ID(+)
+AND    B.RIGHT_DIV IN ('10', '20')
+AND    Z.STATUS NOT IN  ('S00009')
+]]></query>
+
+<!-- 사무소 접수 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_PA05"><![CDATA[
+SELECT DISTINCT B.GRP_NO
+     , FN_GROUP_INT_APP_NOS(B.GRP_ID) AS APP_NO
+     , FN_COM_CODE_NAME('RIGHT_DIV', B.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_OL_COUNTRY_NAMES(A.OL_ID) COUNTRY_NAMES
+     , B.KO_APP_TITLE
+     , FN_BIZ_CODE_NAME(Z.STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) STATUS_NAME
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , FN_OFFICE_NAME(B.OFFICE_CODE) OFFICE_NAME
+FROM   TB_APP_EXT_OL A
+     , TB_APP_EXT_GRP B
+     , TB_BIZ_COM_MST Z
+     , TB_APP_MST C
+     , TB_APP_MST_EXT D
+     , (SELECT T1.REF_ID
+        FROM   TB_PAPER_LIST T1
+             , (SELECT REF_ID, MAX(LIST_SEQ) LIST_SEQ
+                FROM   TB_PAPER_LIST
+                WHERE  (PAPER_CODE, PAPER_SUBCODE) IN (SELECT PAPER_CODE, PAPER_SUBCODE
+                                                       FROM   TB_PAPER_MGT_WF_LIST
+                                                       WHERE  WF_CODE IN (SELECT WF_CODE FROM TB_PAPER_MGT_WF WHERE WF_ID IN ('APP_EXT35'))
+                                                      )
+                GROUP BY REF_ID
+               ) T2
+        WHERE  T1.REF_ID = T2.REF_ID
+        AND    T1.LIST_SEQ = T2.LIST_SEQ
+       ) X
+WHERE  A.GRP_ID = B.GRP_ID
+AND    A.OL_ID = Z.REF_ID(+)
+AND    C.REF_ID = D.REF_ID
+AND    B.GRP_ID = D.GRP_ID
+AND    C.INOUT_DIV = 'EXT'
+AND    C.RIGHT_DIV IN ('10', '20')
+AND    C.ABD_YN = '0'
+AND    C.REG_NO IS NULL
+]]></query>
+
+<!-- 명세서 작성 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_PA06"><![CDATA[
+SELECT C.REF_NO
+     , C.APP_NO
+     , FN_PAPER_NAME(A.PAPER_CODE) PAPER_NAME
+     , A.COMMENTS
+     , C.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.PAPER_DATE
+     , A.DUE_DATE
+     , FN_OFFICE_NAME(C.OFFICE_CODE) AS OFFICE_CODE_NAME
+     , FN_USER_NAME(C.JOB_MAN) AS JOB_MAN_NAME
+     , FN_PAPER_NAME(C.STATUS) STATUS_NAME
+FROM   TB_PAPER_LIST A
+     , TB_APP_MST C
+     , (SELECT REF_ID, MAX(LIST_SEQ) LIST_SEQ
+        FROM   TB_PAPER_LIST
+        WHERE  (PAPER_CODE, PAPER_SUBCODE) IN (SELECT PAPER_CODE, PAPER_SUBCODE
+                                               FROM   TB_PAPER_MGT_WF_LIST
+                                               WHERE  WF_CODE IN (SELECT WF_CODE FROM TB_PAPER_MGT_WF WHERE WF_ID IN ('APP_EXT40'))
+                                              )
+        GROUP BY REF_ID
+       ) X
+WHERE  A.REF_ID = C.REF_ID
+AND    A.REF_ID = X.REF_ID
+AND    A.LIST_SEQ = X.LIST_SEQ
+AND    C.INOUT_DIV = 'INT'
+AND    C.RIGHT_DIV IN ('10', '20')
+AND    C.ABD_YN = '0'
+AND    C.REG_NO IS NULL
+]]></query>
+
+<!-- 명세서검토 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_PA07"><![CDATA[
+SELECT C.REF_NO
+     , C.APP_NO
+     , FN_PAPER_NAME(A.PAPER_CODE) PAPER_NAME
+     , A.COMMENTS
+     , C.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.PAPER_DATE
+     , A.DUE_DATE
+     , FN_OFFICE_NAME(C.OFFICE_CODE) AS OFFICE_CODE_NAME
+     , FN_USER_NAME(C.JOB_MAN) AS JOB_MAN_NAME
+     , FN_PAPER_NAME(C.STATUS) STATUS_NAME
+FROM   TB_PAPER_LIST A
+     , TB_APP_MST C
+     , (SELECT REF_ID, MAX(LIST_SEQ) LIST_SEQ
+        FROM   TB_PAPER_LIST
+        WHERE  (PAPER_CODE, PAPER_SUBCODE) IN (SELECT PAPER_CODE, PAPER_SUBCODE
+                                               FROM   TB_PAPER_MGT_WF_LIST
+                                               WHERE  WF_CODE IN (SELECT WF_CODE FROM TB_PAPER_MGT_WF WHERE WF_ID IN ('APP_EXT50', 'APP_EXT60'))
+                                              )
+        GROUP BY REF_ID
+       ) X
+WHERE  A.REF_ID = C.REF_ID
+AND    A.REF_ID = X.REF_ID
+AND    A.LIST_SEQ = X.LIST_SEQ
+AND    C.INOUT_DIV = 'INT'
+AND    C.RIGHT_DIV IN ('10', '20')
+AND    C.ABD_YN = '0'
+AND    C.REG_NO IS NULL
+]]></query>
+
+<!-- 제출 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_PA08"><![CDATA[
+SELECT DISTINCT B.GRP_NO
+     , FN_GROUP_INT_APP_NOS(B.GRP_ID) AS APP_NO
+     , FN_COM_CODE_NAME('RIGHT_DIV', B.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_OL_COUNTRY_NAMES(A.OL_ID) COUNTRY_NAMES
+     , B.KO_APP_TITLE
+     , FN_BIZ_CODE_NAME(Z.STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) STATUS_NAME
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , FN_OFFICE_NAME(B.OFFICE_CODE) OFFICE_NAME
+FROM   TB_APP_EXT_OL A
+     , TB_APP_EXT_GRP B
+     , TB_BIZ_COM_MST Z
+     , TB_APP_MST C
+     , TB_APP_MST_EXT D
+     , (SELECT T1.REF_ID
+             , T1.PAPER_CODE
+             , T1.PAPER_SUBCODE
+        FROM   TB_PAPER_LIST T1
+             , (SELECT REF_ID, MAX(LIST_SEQ) LIST_SEQ
+                FROM   TB_PAPER_LIST
+                WHERE  (PAPER_CODE, PAPER_SUBCODE) IN (SELECT PAPER_CODE, PAPER_SUBCODE
+                                                       FROM   TB_PAPER_MGT_WF_LIST
+                                                       WHERE  WF_CODE IN (SELECT WF_CODE FROM TB_PAPER_MGT_WF WHERE WF_ID IN ('APP_EXT65'))
+                                                      )
+                GROUP BY REF_ID
+               ) T2
+        WHERE  T1.REF_ID = T2.REF_ID
+        AND    T1.LIST_SEQ = T2.LIST_SEQ
+       ) X
+WHERE  A.GRP_ID = B.GRP_ID
+AND    A.OL_ID = Z.REF_ID(+)
+AND    C.REF_ID = D.REF_ID
+AND    B.GRP_ID = D.GRP_ID
+AND    C.REF_ID = X.REF_ID
+AND    C.INOUT_DIV = 'EXT'
+AND    C.RIGHT_DIV IN ('10', '20')
+AND    C.ABD_YN = '0'
+AND    C.REG_NO IS NULL
+]]></query>
+
+<!-- 출원 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_PA09"><![CDATA[
+SELECT DISTINCT B.GRP_NO
+     , FN_GROUP_INT_APP_NOS(B.GRP_ID) AS APP_NO
+     , FN_COM_CODE_NAME('RIGHT_DIV', B.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_OL_COUNTRY_NAMES(A.OL_ID) COUNTRY_NAMES
+     , B.KO_APP_TITLE
+     , FN_BIZ_CODE_NAME(Z.STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) STATUS_NAME
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , FN_OFFICE_NAME(B.OFFICE_CODE) OFFICE_NAME
+FROM   TB_APP_EXT_OL A
+     , TB_APP_EXT_GRP B
+     , TB_BIZ_COM_MST Z
+     , TB_APP_MST C
+     , TB_APP_MST_EXT D
+WHERE  A.GRP_ID = B.GRP_ID
+AND    A.OL_ID = Z.REF_ID(+)
+AND    C.REF_ID = D.REF_ID
+AND    B.GRP_ID = D.GRP_ID
+AND    C.INOUT_DIV = 'EXT'
+AND    C.RIGHT_DIV IN ('10', '20')
+AND    C.ABD_YN = '0'
+AND    C.APP_NO IS NOT NULL
+AND    C.REG_NO IS NULL
+]]></query>
+
+<!-- OA현황 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_OA01"><![CDATA[
+SELECT C.REF_NO
+     , C.APP_NO
+     , FN_PAPER_NAME(A.PAPER_CODE) PAPER_NAME
+     , A.COMMENTS
+     , C.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.PAPER_DATE
+     , A.DUE_DATE
+     , FN_OFFICE_NAME(C.OFFICE_CODE) AS OFFICE_CODE_NAME
+     , FN_USER_NAME(C.JOB_MAN) AS JOB_MAN_NAME
+     , FN_PAPER_NAME(C.STATUS) STATUS_NAME
+FROM   TB_PAPER_LIST A
+     , TB_APP_MST C
+     , (SELECT REF_ID, MAX(LIST_SEQ) LIST_SEQ
+        FROM   TB_PAPER_LIST
+        WHERE  (PAPER_CODE, PAPER_SUBCODE) IN (SELECT PAPER_CODE, PAPER_SUBCODE
+                                               FROM   TB_PAPER_MGT_WF_LIST
+                                               WHERE  WF_CODE IN (SELECT WF_CODE FROM TB_PAPER_MGT_WF WHERE WF_ID IN ('OA_EXT10'))
+                                              )
+        GROUP BY REF_ID
+       ) X
+     , TB_OA_HIST Z
+WHERE  A.REF_ID = C.REF_ID
+AND    A.REF_ID = X.REF_ID
+AND    A.LIST_SEQ = X.LIST_SEQ
+AND    C.INOUT_DIV = 'EXT'
+AND    C.RIGHT_DIV IN ('10', '20')
+AND    C.ABD_YN = '0'
+AND    C.REG_NO IS NULL
+AND    Z.REF_ID = A.REF_ID
+AND    Z.END_YN = '0'
+]]></query>
+
+<!-- 대응방안검토 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_OA02"><![CDATA[
+SELECT C.REF_NO
+     , C.APP_NO
+     , FN_PAPER_NAME(A.PAPER_CODE) PAPER_NAME
+     , A.COMMENTS
+     , C.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.PAPER_DATE
+     , A.DUE_DATE
+     , FN_OFFICE_NAME(C.OFFICE_CODE) AS OFFICE_CODE_NAME
+     , FN_USER_NAME(C.JOB_MAN) AS JOB_MAN_NAME
+     , FN_PAPER_NAME(C.STATUS) STATUS_NAME
+FROM   TB_PAPER_LIST A
+     , TB_APP_MST C
+     , (SELECT REF_ID, MAX(LIST_SEQ) LIST_SEQ
+        FROM   TB_PAPER_LIST
+        WHERE  (PAPER_CODE, PAPER_SUBCODE) IN (SELECT PAPER_CODE, PAPER_SUBCODE
+                                               FROM   TB_PAPER_MGT_WF_LIST
+                                               WHERE  WF_CODE IN (SELECT WF_CODE FROM TB_PAPER_MGT_WF WHERE WF_ID IN ('OA_EXT20', 'OA_EXT30'))
+                                              )
+        GROUP BY REF_ID
+       ) X
+     , TB_OA_HIST Z
+WHERE  A.REF_ID = C.REF_ID
+AND    A.REF_ID = X.REF_ID
+AND    A.LIST_SEQ = X.LIST_SEQ
+AND    C.INOUT_DIV = 'EXT'
+AND    C.RIGHT_DIV IN ('10', '20')
+AND    C.ABD_YN = '0'
+AND    C.REG_NO IS NULL
+AND    Z.REF_ID = A.REF_ID
+AND    Z.END_YN = '0'
+]]></query>
+
+<!-- 의견안 작성 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_OA03"><![CDATA[
+SELECT C.REF_NO
+     , C.APP_NO
+     , FN_PAPER_NAME(A.PAPER_CODE) PAPER_NAME
+     , A.COMMENTS
+     , C.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.PAPER_DATE
+     , A.DUE_DATE
+     , FN_OFFICE_NAME(C.OFFICE_CODE) AS OFFICE_CODE_NAME
+     , FN_USER_NAME(C.JOB_MAN) AS JOB_MAN_NAME
+     , FN_PAPER_NAME(C.STATUS) STATUS_NAME
+FROM   TB_PAPER_LIST A
+     , TB_APP_MST C
+     , (SELECT REF_ID, MAX(LIST_SEQ) LIST_SEQ
+        FROM   TB_PAPER_LIST
+        WHERE  (PAPER_CODE, PAPER_SUBCODE) IN (SELECT PAPER_CODE, PAPER_SUBCODE
+                                               FROM   TB_PAPER_MGT_WF_LIST
+                                               WHERE  WF_CODE IN (SELECT WF_CODE FROM TB_PAPER_MGT_WF WHERE WF_ID IN ('OA_EXT40'))
+                                              )
+        GROUP BY REF_ID
+       ) X
+     , TB_OA_HIST Z
+WHERE  A.REF_ID = C.REF_ID
+AND    A.REF_ID = X.REF_ID
+AND    A.LIST_SEQ = X.LIST_SEQ
+AND    C.INOUT_DIV = 'EXT'
+AND    C.RIGHT_DIV IN ('10', '20')
+AND    C.ABD_YN = '0'
+AND    C.REG_NO IS NULL
+AND    Z.REF_ID = A.REF_ID
+AND    Z.END_YN = '0'
+]]></query>
+
+<!-- 의견안 검토 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_OA04"><![CDATA[
+SELECT C.REF_NO
+     , C.APP_NO
+     , FN_PAPER_NAME(A.PAPER_CODE) PAPER_NAME
+     , A.COMMENTS
+     , C.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.PAPER_DATE
+     , A.DUE_DATE
+     , FN_OFFICE_NAME(C.OFFICE_CODE) AS OFFICE_CODE_NAME
+     , FN_USER_NAME(C.JOB_MAN) AS JOB_MAN_NAME
+     , FN_PAPER_NAME(C.STATUS) STATUS_NAME
+FROM   TB_PAPER_LIST A
+     , TB_APP_MST C
+     , (SELECT REF_ID, MAX(LIST_SEQ) LIST_SEQ
+        FROM   TB_PAPER_LIST
+        WHERE  (PAPER_CODE, PAPER_SUBCODE) IN (SELECT PAPER_CODE, PAPER_SUBCODE
+                                               FROM   TB_PAPER_MGT_WF_LIST
+                                               WHERE  WF_CODE IN (SELECT WF_CODE FROM TB_PAPER_MGT_WF WHERE WF_ID IN ('OA_EXT50'))
+                                              )
+        GROUP BY REF_ID
+       ) X
+     , TB_OA_HIST Z
+WHERE  A.REF_ID = C.REF_ID
+AND    A.REF_ID = X.REF_ID
+AND    A.LIST_SEQ = X.LIST_SEQ
+AND    C.INOUT_DIV = 'EXT'
+AND    C.RIGHT_DIV IN ('10', '20')
+AND    C.ABD_YN = '0'
+AND    C.REG_NO IS NULL
+AND    Z.REF_ID = A.REF_ID
+AND    Z.END_YN = '0'
+]]></query>
+
+<!-- 제출 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_OA05"><![CDATA[
+SELECT C.REF_NO
+     , C.APP_NO
+     , FN_PAPER_NAME(A.PAPER_CODE) PAPER_NAME
+     , A.COMMENTS
+     , C.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.PAPER_DATE
+     , A.DUE_DATE
+     , FN_OFFICE_NAME(C.OFFICE_CODE) AS OFFICE_CODE_NAME
+     , FN_USER_NAME(C.JOB_MAN) AS JOB_MAN_NAME
+     , FN_PAPER_NAME(C.STATUS) STATUS_NAME
+FROM   TB_PAPER_LIST A
+     , TB_APP_MST C
+     , (SELECT REF_ID, MAX(LIST_SEQ) LIST_SEQ
+        FROM   TB_PAPER_LIST
+        WHERE  (PAPER_CODE, PAPER_SUBCODE) IN (SELECT PAPER_CODE, PAPER_SUBCODE
+                                               FROM   TB_PAPER_MGT_WF_LIST
+                                               WHERE  WF_CODE IN (SELECT WF_CODE FROM TB_PAPER_MGT_WF WHERE WF_ID IN ('OA_EXT60'))
+                                              )
+        GROUP BY REF_ID
+       ) X
+     , TB_OA_HIST Z
+WHERE  A.REF_ID = C.REF_ID
+AND    A.REF_ID = X.REF_ID
+AND    A.LIST_SEQ = X.LIST_SEQ
+AND    C.INOUT_DIV = 'EXT'
+AND    C.RIGHT_DIV IN ('10', '20')
+AND    C.ABD_YN = '0'
+AND    C.REG_NO IS NULL
+AND    Z.REF_ID = A.REF_ID
+AND    Z.END_YN = '0'
+]]></query>
+
+<!-- 포기 -->
+<query name="/retrieveExtPatentBizFlowList_EXT_OA06"><![CDATA[
+SELECT C.REF_NO
+     , C.APP_NO
+     , FN_PAPER_NAME(A.PAPER_CODE) PAPER_NAME
+     , A.COMMENTS
+     , C.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.PAPER_DATE
+     , A.DUE_DATE
+     , FN_OFFICE_NAME(C.OFFICE_CODE) AS OFFICE_CODE_NAME
+     , FN_USER_NAME(C.JOB_MAN) AS JOB_MAN_NAME
+     , FN_PAPER_NAME(C.STATUS) STATUS_NAME
+FROM   TB_PAPER_LIST A
+     , TB_APP_MST C
+WHERE  A.REF_ID = C.REF_ID
+AND    C.INOUT_DIV = 'EXT'
+AND    C.RIGHT_DIV IN ('10', '20')
+AND    C.ABD_YN = '1'
+AND    EXISTS (SELECT 1 FROM TB_OA_HIST Z WHERE Z.REF_ID = C.REF_ID)
+]]></query>
+
+</root>

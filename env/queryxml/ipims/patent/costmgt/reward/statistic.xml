@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 보상금통계 목록 조회 -->
+<query name="/retrieveRewardStatisticList1"><![CDATA[
+SELECT FN_COM_CODE_NAME('REWARD_DIV', A.REWARD_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) REWARD_DIV_NAME
+     , NVL(FN_DEPT_NAME(B.DEPT_CODE), '부서 없음') DEPT_NAME
+     , SUM(A.INT_CNT)   INT_CNT
+     , SUM(A.INT_PRICE) INT_PRICE
+     , SUM(A.EXT_CNT)   EXT_CNT
+     , SUM(A.EXT_PRICE) EXT_PRICE
+FROM  (SELECT A.REF_ID
+            , C.REWARD_DIV
+            , B.INV_GRADE GRADE
+            , D.INV_USER
+            , 1 INT_CNT
+            , ROUND(TO_NUMBER(C.REWARD_PRICE)*TO_NUMBER(D.QUOTA_RATIO)/100,0) INT_PRICE
+            , 0 EXT_CNT
+            , 0 EXT_PRICE
+       FROM   TB_APP_MST A
+            , TB_APP_MST_INT B
+            , TB_COST_MGT_REWARD C
+            , TB_MAPP_INVENTOR D
+            , TB_USR_MST E
+            , TB_APP_REWARD R
+       WHERE  A.REF_ID     = B.REF_ID
+       AND    A.RIGHT_DIV  = C.RIGHT_DIV
+       AND    B.INV_GRADE  = C.INV_GRADE
+       AND    A.REF_ID     = D.REF_ID
+       AND    D.INV_USER   = E.USER_ID
+       AND    A.DIVISION_TYPE IS NULL
+       AND    R.REF_ID = A.REF_ID
+       AND    R.REWARD_DIV = C.REWARD_DIV
+       AND    (CASE C.REWARD_DIV
+                    WHEN 'APP' THEN A.APP_NO
+                    WHEN 'REG' THEN A.REG_NO
+               END) IS NOT NULL
+       UNION ALL
+       SELECT A.REF_ID
+            , C.REWARD_DIV
+            , R.REWARD_GRADE GRADE
+            , D.INV_USER
+            , 0 INT_CNT
+            , 0 INT_PRICE
+            , 1 EXT_CNT
+            , ROUND(TO_NUMBER(C.REWARD_PRICE)*TO_NUMBER(D.QUOTA_RATIO)/100,0) EXT_PRICE
+       FROM   TB_APP_MST A
+            , TB_APP_MST_EXT B
+            , TB_COST_MGT_REWARD C
+            , TB_MAPP_INVENTOR D
+            , TB_USR_MST E
+            , TB_APP_EXT_GRP F
+            , TB_APP_REWARD R
+       WHERE  A.REF_ID = B.REF_ID(+)
+       AND    B.GRP_ID = F.GRP_ID(+)
+       AND    A.RIGHT_DIV = C.RIGHT_DIV
+       AND    C.INOUT_DIV = 'EXT'
+       AND    F.GRP_ID = D.REF_ID
+       AND    D.INV_USER = E.USER_ID
+       AND    R.REF_ID = F.GRP_ID
+       AND    R.REWARD_DIV = C.REWARD_DIV
+       AND    R.REWARD_GRADE = C.INV_GRADE
+       AND    (CASE C.REWARD_DIV
+                    WHEN 'APP' THEN A.APP_NO
+                    WHEN 'REG' THEN A.REG_NO
+               END) IS NOT NULL ) A
+     , TB_APP_MST B
+WHERE  A.REF_ID = B.REF_ID
+AND    NOT EXISTS (
+                SELECT 1
+                FROM   TB_COST_MST C
+                     , TB_COST_MST_REWARD D
+                WHERE  A.REF_ID   = C.REF_ID
+                AND    C.COST_SEQ = D.COST_SEQ
+                AND    A.INV_USER = D.INV_USER
+                AND    A.REWARD_DIV = D.REWARD_DIV)
+]]></query>
+<query name="/retrieveRewardStatisticList1/dateStart"><![CDATA[
+AND    {#DATE_KIND} >= {@DATE_START}
+]]></query>
+<query name="/retrieveRewardStatisticList1/dateEnd"><![CDATA[
+AND    {#DATE_KIND} <= {@DATE_END}
+]]></query>
+<query name="/retrieveRewardStatisticList1/groupBy"><![CDATA[
+GROUP BY A.REWARD_DIV, B.DEPT_CODE
+]]></query>
+
+<!-- 보상금통계 목록 조회 -->
+<query name="/retrieveRewardStatisticList2"><![CDATA[
+SELECT FN_COM_CODE_NAME('REWARD_DIV', A.REWARD_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) REWARD_DIV_NAME
+     , NVL(FN_DEPT_NAME(A.DEPT_CODE), '부서 없음') DEPT_NAME
+     , SUM(A.INT_CNT)   INT_CNT
+     , SUM(A.INT_PRICE) INT_PRICE
+     , SUM(A.EXT_CNT)   EXT_CNT
+     , SUM(A.EXT_PRICE) EXT_PRICE
+FROM  (SELECT A.DEPT_CODE
+            , D.REWARD_DIV
+            , A.APP_DATE
+            , A.REG_DATE
+            , C.CONSULT_ID
+            , C.SLIP_STATUS
+            , COUNT(C.COST_SEQ) INT_CNT
+            , SUM(PRICE) INT_PRICE
+            , 0 EXT_CNT
+            , 0 EXT_PRICE
+       FROM   TB_APP_MST A
+            , TB_APP_MST_INT B
+            , TB_COST_MST C
+            , TB_COST_MST_REWARD D
+            , TB_COST_CONSULT F
+            , TB_APPR_MST G
+            , TB_APPR_ANS H
+       WHERE  A.REF_ID = B.REF_ID
+       AND    A.REF_ID = C.REF_ID
+       AND    C.COST_SEQ = D.COST_SEQ
+       AND    C.CONSULT_ID = F.CONSULT_ID
+       AND    F.APPR_NO = G.APPR_NO
+       AND    G.APPR_NO = H.APPR_NO
+       AND    H.ANS_STATUS = '8'
+       GROUP BY D.REWARD_DIV, A.DEPT_CODE, A.APP_DATE, A.REG_DATE, C.CONSULT_ID, C.SLIP_STATUS
+       UNION ALL
+       SELECT A.DEPT_CODE
+            , E.REWARD_DIV
+            , A.APP_DATE
+            , A.REG_DATE
+            , D.CONSULT_ID
+            , D.SLIP_STATUS
+            , 0 INT_CNT
+            , 0 INT_PRICE
+            , COUNT(D.COST_SEQ) EXT_CNT
+            , SUM(D.PRICE) EXT_PRICE
+       FROM   TB_APP_MST A
+            , TB_APP_MST_EXT B
+            , TB_APP_EXT_GRP C
+            , TB_COST_MST D
+            , TB_COST_MST_REWARD E
+            , TB_COST_CONSULT F
+            , TB_APPR_MST G
+            , TB_APPR_ANS H
+       WHERE  A.REF_ID = B.REF_ID
+       AND    B.GRP_ID = C.GRP_ID
+       AND    A.REF_ID = D.REF_ID
+       AND    D.COST_SEQ = E.COST_SEQ
+       AND    D.CONSULT_ID = F.CONSULT_ID
+       AND    F.APPR_NO = G.APPR_NO
+       AND    G.APPR_NO = H.APPR_NO
+       AND    H.ANS_STATUS = '8'
+       GROUP BY E.REWARD_DIV, A.DEPT_CODE,  A.APP_DATE, A.REG_DATE, D.CONSULT_ID,D.SLIP_STATUS  ) A
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveRewardStatisticList2/status0"><![CDATA[
+AND    A.SLIP_STATUS = {@STATUS}
+AND    A.CONSULT_ID IS NOT NULL
+]]></query>
+<query name="/retrieveRewardStatisticList2/dateStart"><![CDATA[
+AND    {#DATE_KIND} >= {@DATE_START}
+]]></query>
+<query name="/retrieveRewardStatisticList2/dateEnd"><![CDATA[
+AND    {#DATE_KIND} <= {@DATE_END}
+]]></query>
+<query name="/retrieveRewardStatisticList2/groupBy"><![CDATA[
+GROUP BY A.DEPT_CODE, A.REWARD_DIV, A.SLIP_STATUS
+]]></query>
+
+</root>

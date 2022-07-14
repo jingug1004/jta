@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 사무소 사용자 목록 조회 -->
+<query name="/retrieveOfficeMgtUserList"><![CDATA[
+SELECT A.USER_ID
+     , C.FIRM_HNAME
+     , B.EMP_NO
+     , A.EMP_HNAME
+     , B.DEPT_NAME
+     , B.POSITION_NAME
+     , B.OFFICE_TEL
+     , A.MAIL_ADDR
+     , FN_COM_CODE_NAME('USE_YN', B.USE_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) USE_YN_NAME
+FROM   TB_USR_MST A
+     , TB_USR_OFFICE B
+     , TB_ORG_OFFICE C
+WHERE  A.USER_ID = B.USER_ID
+AND    B.OFFICE_CODE = C.OFFICE_CODE
+]]></query>
+<query name="/retrieveOfficeMgtUserList/officeCode"><![CDATA[
+AND    B.OFFICE_CODE = {@OFFICE_CODE}
+]]></query>
+<query name="/retrieveOfficeMgtUserList/empName"><![CDATA[
+AND    (UPPER(EMP_HNAME) LIKE '%'||UPPER({@EMP_NAME})||'%' OR
+        UPPER(EMP_ENAME) LIKE '%'||UPPER({@EMP_NAME})||'%' OR
+        UPPER(EMP_CNAME) LIKE '%'||UPPER({@EMP_NAME})||'%'
+       )
+]]></query>
+
+<!-- 사무소 사용자 조회 -->
+<query name="/retrieveOfficeMgtUser"><![CDATA[
+SELECT A.USER_ID
+     , A.LOGIN_ID
+     , A.LOGIN_PW
+     , A.PW_END_DATE
+     , A.PW_ERR_CNT
+     , B.OFFICE_CODE
+     , B.EMP_NO
+     , A.EMP_HNAME
+     , A.EMP_ENAME
+     , A.EMP_CNAME
+     , A.JUMIN_NO1
+     , A.JUMIN_NO2
+     , B.MOBILE_TEL
+     , B.OFFICE_TEL
+     , B.OFFICE_FAX
+     , A.MAIL_ADDR
+     , B.DEPT_NAME
+     , B.POSITION_NAME
+     , B.INPUT_DATE
+     , B.COMMENTS
+     , B.USE_YN
+FROM   TB_USR_MST A
+     , TB_USR_OFFICE B
+WHERE  A.USER_ID = {@USER_ID}
+AND    A.USER_ID = B.USER_ID
+]]></query>
+
+<!-- 사용자 마스터 생성 -->
+<query name="/createUserMst"><![CDATA[
+INSERT INTO TB_USR_MST (
+       USER_ID
+     , SYSTEM_TYPE
+     , EMP_HNAME
+     , EMP_ENAME
+     , EMP_CNAME
+     , JUMIN_NO1
+     , JUMIN_NO2
+     , MAIL_ADDR
+     , HT_CODE
+     , LOGIN_ID
+     , LOGIN_PW
+     , USE_YN
+     , CRE_USER
+     , CRE_DATETIME
+)
+SELECT {@USER_ID}
+     , 'OFFICE'
+     , {@EMP_HNAME}
+     , {@EMP_ENAME}
+     , {@EMP_CNAME}
+     , {@JUMIN_NO1}
+     , {@JUMIN_NO2}
+     , {@MAIL_ADDR}
+     , 'C'
+     , {@LOGIN_ID}
+     , {@LOGIN_PW}
+     , {@USE_YN}
+     , {@$USER_ID}
+     , SYSDATE
+FROM   DUAL
+WHERE  NOT EXISTS (SELECT 1
+                   FROM   TB_USR_MST
+                   WHERE  LOGIN_ID = {@LOGIN_ID}
+                  )
+]]></query>
+
+<!-- 사무소 사용자 생성 -->
+<query name="/createOfficeMgtUser"><![CDATA[
+INSERT INTO TB_USR_OFFICE (
+       USER_ID
+     , OFFICE_CODE
+     , EMP_NO
+     , MOBILE_TEL
+     , OFFICE_TEL
+     , OFFICE_FAX
+     , DEPT_NAME
+     , POSITION_NAME
+     , INPUT_DATE
+     , COMMENTS
+     , USE_YN
+     , CRE_USER
+     , CRE_DATETIME
+) VALUES (
+       {@USER_ID}
+     , {@OFFICE_CODE}
+     , {@EMP_NO}
+     , {@MOBILE_TEL}
+     , {@OFFICE_TEL}
+     , {@OFFICE_FAX}
+     , {@DEPT_NAME}
+     , {@POSITION_NAME}
+     , {@INPUT_DATE}
+     , {@COMMENTS}
+     , {@USE_YN}
+     , {@$USER_ID}
+     , SYSDATE
+)
+]]></query>
+
+<!-- 사용자 마스터 수정 -->
+<query name="/updateUserMst"><![CDATA[
+UPDATE TB_USR_MST SET
+       EMP_HNAME    = {@EMP_HNAME}
+     , EMP_ENAME    = {@EMP_ENAME}
+     , EMP_CNAME    = {@EMP_CNAME}
+     , JUMIN_NO1    = {@JUMIN_NO1}
+     , JUMIN_NO2    = {@JUMIN_NO2}
+     , MAIL_ADDR    = {@MAIL_ADDR}
+     , LOGIN_ID     = {@LOGIN_ID}
+     , LOGIN_PW     = {@LOGIN_PW}
+     , USE_YN       = {@USE_YN}
+     , UPD_USER     = {@$USER_ID}
+     , UPD_DATETIME = SYSDATE
+WHERE  USER_ID = {@USER_ID}
+]]></query>
+
+<!-- 사무소 사용자 수정 -->
+<query name="/updateOfficeMgtUser"><![CDATA[
+UPDATE TB_USR_OFFICE SET
+       OFFICE_CODE   = {@OFFICE_CODE}
+     , EMP_NO        = {@EMP_NO}
+     , MOBILE_TEL    = {@MOBILE_TEL}
+     , OFFICE_TEL    = {@OFFICE_TEL}
+     , OFFICE_FAX    = {@OFFICE_FAX}
+     , DEPT_NAME     = {@DEPT_NAME}
+     , POSITION_NAME = {@POSITION_NAME}
+     , INPUT_DATE    = {@INPUT_DATE}
+     , COMMENTS      = {@COMMENTS}
+     , USE_YN        = {@USE_YN}
+     , UPD_USER      = {@$USER_ID}
+     , UPD_DATETIME  = SYSDATE
+WHERE  USER_ID = {@USER_ID}
+]]></query>
+
+<!-- 사용자 마스터 삭제 -->
+<query name="/deleteUserMst"><![CDATA[
+DELETE FROM TB_USR_MST
+WHERE  USER_ID = {@USER_ID}
+]]></query>
+
+<!-- 사무소 사용자 삭제 -->
+<query name="/deleteOfficeMgtUser"><![CDATA[
+DELETE FROM TB_USR_OFFICE
+WHERE  USER_ID = {@USER_ID}
+]]></query>
+
+<!-- 비밀번호 오류횟수 초기화 -->
+<query name="/updateUserMstPwErrCnt"><![CDATA[
+UPDATE TB_USR_MST SET
+       PW_ERR_CNT = 0
+WHERE  USER_ID = {@USER_ID}
+]]></query>
+
+</root>

@@ -1,0 +1,290 @@
+﻿<PUBLIC:COMPONENT lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:ATTACH event="onpropertychange" onevent="property_onchange();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="auto" get="getAuto" put="setAuto">
+    <PUBLIC:PROPERTY name="icon" put="setIcon">
+    <PUBLIC:PROPERTY name="text" put="setText">
+    <PUBLIC:PROPERTY name="color" put="setColor">
+    <PUBLIC:PROPERTY name="space" put="setSpace">
+    <PUBLIC:PROPERTY name="width" put="setWidth">
+    <PUBLIC:PROPERTY name="height" put="setHeight">
+    <PUBLIC:PROPERTY name="hpad" put="setHpad">
+    <PUBLIC:PROPERTY name="display" get="getDisplay" put="setDisplay">
+    <PUBLIC:METHOD name="refresh">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var autoWidth = true;
+var defaultHpad = 12;
+var tempDisplay;
+
+var myAuto;
+var myIcon;
+var myText;
+var myLine;
+var myColor;
+var myHpad;
+
+eval(function()
+{
+    if (element.document.media == "print") return;
+
+    setColor();
+
+    myIcon = element.document.createElement('<IMG align="absmiddle">');
+    myIcon.hspace = 2;
+    myIcon.style.display = "none";
+    element.appendChild(myIcon);
+
+    myText = element.document.createElement('<SPAN>');
+    myText.style.paddingLeft = "2px";
+    myText.style.paddingRight = "2px";
+    myText.style.display = "none";
+    element.appendChild(myText);
+
+    myLine = element.document.createElement('<IMG align="absmiddle">');
+    myLine.hspace = 1;
+    myLine.style.display = "none";
+    myLine.isButtonLine = true;
+    element.insertAdjacentElement("afterEnd", myLine);
+
+    setSpace();
+
+    element.attachEvent("onmouseover", function()
+    {
+        element.style.color = "#C00000";
+    });
+
+    element.attachEvent("onmouseout", function()
+    {
+        element.style.color = "";
+    });
+})();
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    refresh();
+
+    element.isReady = true;
+}
+
+function property_onchange()
+{
+    switch (event.propertyName) {
+    case "disabled":
+        if (element.disabled != true) element.style.color = "";
+        break;
+    case "style.display":
+        refresh();
+        break;
+    }
+}
+
+function getAuto()
+{
+    return myAuto;
+}
+
+function setAuto(val)
+{
+    if (element.document.media == "print") return;
+
+    if (val == null) return;
+
+    myAuto = val.toLowerCase();
+
+    switch (myAuto) {
+    case "line":
+        element.style.display = "none";
+        myLine.src = top.getRoot() + "/anyfive/framework/htc/anyworks/image/button_line.gif";
+        myLine.style.marginLeft = element.style.marginLeft;
+        myLine.style.marginRight = element.style.marginRight;
+        myLine.style.display = "";
+        break;
+    case "retrieve":
+    case "search":
+        setColor("1");
+        element.style.display = "";
+        setText(any.message.get("btn.com." + myAuto));
+        break;
+    case "list":
+    case "close":
+        setColor("1");
+        element.style.display = "";
+        if (any.topPageType == "popup") {
+            setText(any.message.get("btn.com.close"));
+            element.onclick = function()
+            {
+                top.window.close();
+            }
+        } else {
+            setText(any.message.get("btn.com.list"));
+            element.onclick = function()
+            {
+                try {
+                    if (parent["_PAGE_TYPE_"] == "default" && element.list != null && element.list != "") {
+                        window.location.replace(element.list);
+                    } else {
+                        parent.goList();
+                    }
+                } catch(ex) {
+                    history.back();
+                }
+            }
+        }
+        break;
+    case "print":
+        setText("Print");
+        element.style.display = "";
+        element.onclick = function()
+        {
+            cfPrintPage();
+        }
+        break;
+    case "none":
+        element.style.display = "none";
+        myLine.style.display = "none";
+        break;
+    }
+}
+
+function setIcon(ico)
+{
+    if (myIcon == null) return;
+
+    myIcon.src = ico;
+    myIcon.style.display = "";
+    refresh();
+}
+
+function setText(txt)
+{
+    if (myText == null) return;
+
+    myText.innerHTML = txt;
+    myText.style.display = "";
+    refresh();
+}
+
+function setColor(val)
+{
+    myColor = new Object();
+
+    switch (Number(val)) {
+    case 1:
+        myColor.background = "#FAF2AC";
+        myColor.borderLight = "#D8D295";
+        myColor.borderDark = "#6D6A4B";
+        break;
+    default:
+        myColor.background = "#EEEEEE";
+        myColor.borderLight = "#CCCCCC";
+        myColor.borderDark = "#666666";
+        break;
+    }
+
+    myColor.border = myColor.borderLight + " " + myColor.borderDark + " " + myColor.borderDark + " " + myColor.borderLight;
+
+    element.style.backgroundColor = myColor.background;
+    element.style.borderColor = myColor.border;
+}
+
+function setSpace()
+{
+    if (element.document.media == "print") return;
+
+    var dir;
+    var vol;
+    var obj;
+
+    try {
+        dir = arguments[0].split(":")[0];
+        vol = arguments[0].split(":")[1];
+    } catch(ex) {
+    }
+
+    if (dir == null || dir == "") dir = "left";
+    if (vol == null || vol == "") vol = "4";
+
+    if (myLine.style.display != "none") {
+        obj = myLine;
+    } else {
+        obj = element;
+    }
+
+    switch (dir) {
+    case "left":
+        obj.style.marginLeft = vol;
+        obj.style.marginRight = "0px";
+        break;
+    case "right":
+        obj.style.marginLeft = "0px";
+        obj.style.marginRight = vol;
+        break;
+    case "none":
+        obj.style.marginLeft = "0px";
+        obj.style.marginRight = "0px";
+        break;
+    }
+}
+
+function setWidth(val)
+{
+    if (val == null || val == "") {
+        autoWidth = true;
+        refresh();
+    } else {
+        autoWidth = false;
+        element.style.width = val;
+    }
+}
+
+function setHeight(val)
+{
+    element.style.height = val;
+}
+
+function setHpad(val)
+{
+    if (isNaN(val) == true) {
+        myHpad = defaultHpad;
+    } else {
+        myHpad = Number(val);
+    }
+
+    refresh();
+}
+
+function getDisplay()
+{
+    return (myAuto == "line" ? myLine : element).style.display;
+}
+
+function setDisplay(disp)
+{
+    (myAuto == "line" ? myLine : element).style.display = disp;
+}
+
+function refresh()
+{
+    if (element.document.media == "print") return;
+
+    if (autoWidth != true) return;
+
+    var width = 0;
+
+    if (myIcon.style.display != "none") {
+        width += Number(cfGetOffsetWidth(myIcon.outerHTML));
+    }
+
+    if (myText.style.display != "none") {
+        width += Number(cfGetOffsetWidth(myText.innerHTML));
+    }
+
+    element.style.width = width + ((isNaN(myHpad) == true ? defaultHpad : myHpad) * 2);
+}
+</SCRIPT>

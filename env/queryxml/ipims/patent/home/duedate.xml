@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- DUE-DATE별 건수 조회 -->
+<query name="/retrieveDueDateCount"><![CDATA[
+SELECT A.DUE_DATE
+     , COUNT(1) DUE_COUNT
+FROM   TB_OA_HIST A
+     , TB_APP_MST B
+WHERE  A.REF_ID = B.REF_ID
+AND    A.END_YN = '0'
+AND    A.DUE_DATE LIKE {@DUE_YEAR} || LPAD({@DUE_MONTH}, 2, '0') || '%'
+AND    B.JOB_MAN = {@$USER_ID}
+GROUP BY DUE_DATE
+]]></query>
+
+<!-- DUE-DATE별 목록 조회 -->
+<query name="/retrieveDueDateList"><![CDATA[
+SELECT /*+ INDEX(XPKTB_PAPER_LIST) */
+       A.REF_ID
+     , B.REF_NO
+     , FN_PAPER_NAME(C.PAPER_CODE) PAPER_NAME
+     , FN_COM_CODE_NAME('RIGHT_DIV', B.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , B.KO_APP_TITLE
+     , A.DUE_DATE
+FROM   TB_OA_HIST A
+     , TB_APP_MST B
+     , TB_PAPER_LIST C
+WHERE  A.REF_ID = B.REF_ID
+AND    A.REF_ID = C.REF_ID
+AND    A.START_PAPER_SEQ = C.LIST_SEQ
+AND    A.END_YN = '0'
+AND    B.JOB_MAN = {@$USER_ID}
+AND    A.DUE_DATE = {@DUE_DATE}
+]]></query>
+
+</root>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 결재처리함 목록 처리상태 -->
+<codeData name="/apprAnsStatus">
+    <row CODE="0" NAME="대기중" />
+    <row CODE="1" NAME="결재중" />
+    <row CODE="7" NAME="상위요청" />
+    <row CODE="8" NAME="승인" />
+    <row CODE="9" NAME="반려" />
+</codeData>
+
+<!-- 결재요청함 목록 진행상태 -->
+<codeData name="/apprReqStatus">
+    <row CODE="1" NAME="결재중" />
+    <row CODE="8" NAME="최종승인" />
+    <row CODE="9" NAME="반려" />
+</codeData>
+
+<!-- 결재구분 -->
+<query name="/apprCode"><![CDATA[
+SELECT APPR_CODE CODE
+     , APPR_NAME NAME
+FROM   TB_APPR_MGT
+ORDER BY APPR_NAME
+]]></query>
+
+</root>

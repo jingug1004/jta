@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 진행서류 목록 조회 -->
+<query name="/retrievePaperCodeList"><![CDATA[
+SELECT PAPER_CODE
+     , PAPER_NAME
+     , FN_COM_CODE_NAME('PAPER_DIV', PAPER_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) PAPER_DIV_NAME
+     , FN_COM_CODE_NAME('PAPER_INOUT_DIV', INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , FN_COM_CODE_NAME('OA_MGT_STEP', OA_MGT_STEP, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) OA_MGT_STEP_NAME
+     , FN_COM_CODE_NAME('PAPER_STEP', PAPER_STEP, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) PAPER_STEP_NAME
+     , FN_COM_CODE_NAME('YES_NO', MST_STATUS_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) MST_STATUS_YN_NAME
+     , FN_COM_CODE_NAME('YES_NO', MST_ABD_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) MST_ABD_YN_NAME
+     , FN_COM_CODE_NAME('USE_YN', USE_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) USE_YN_NAME
+FROM   TB_PAPER_MGT_MST A
+WHERE  1 = 1
+]]></query>
+<query name="/retrievePaperCodeList/searchText"><![CDATA[
+AND    (UPPER(PAPER_CODE) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(PAPER_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+       )
+]]></query>
+<query name="/retrievePaperCodeList/paperDiv"><![CDATA[
+AND    PAPER_DIV = {@PAPER_DIV}
+]]></query>
+<query name="/retrievePaperCodeList/inoutDiv"><![CDATA[
+AND    INOUT_DIV = {@INOUT_DIV}
+]]></query>
+<query name="/retrievePaperCodeList/oaMgtStep"><![CDATA[
+AND    OA_MGT_STEP = {@OA_MGT_STEP}
+]]></query>
+<query name="/retrievePaperCodeList/paperStep"><![CDATA[
+AND    PAPER_STEP = {@PAPER_STEP}
+]]></query>
+
+<!-- 진행서류 조회 -->
+<query name="/retrievePaperCode"><![CDATA[
+SELECT PAPER_DIV
+     , FN_COM_CODE_NAME('PAPER_DIV', PAPER_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) PAPER_DIV_NAME
+     , INOUT_DIV
+     , FN_COM_CODE_NAME('PAPER_INOUT_DIV', INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , PAPER_NAME
+     , PAPER_STEP
+     , OA_MGT_STEP
+     , EVAL_CODE
+     , PATTEAM_INPUT_YN
+     , PATTEAM_MAIL_YN
+     , OFFICE_INPUT_YN
+     , OFFICE_MAIL_YN
+     , OFFICE_DISP_YN
+     , INVENTOR_INPUT_YN
+     , INVENTOR_MAIL_YN
+     , INVENTOR_DISP_YN
+     , MST_STATUS_YN
+     , MST_ABD_YN
+     , WITH_PAPER_CODE
+     , FN_PAPER_NAME(WITH_PAPER_CODE) WITH_PAPER_NAME
+     , WITH_PAPER_SUBCODE
+     , FN_PAPER_SUBNAME(WITH_PAPER_CODE, WITH_PAPER_SUBCODE) WITH_PAPER_SUBNAME
+     , COPE_PAPER_CODE
+     , FN_PAPER_NAME(COPE_PAPER_CODE) COPE_PAPER_NAME
+     , DUP_AVAIL_YN
+     , BIZ_BUTTON_NAME
+     , BIZ_VIEW_PATH
+     , PATTEAM_COPE_BUTTON
+     , PATTEAM_COPE_VIEW
+     , OFFICE_COPE_BUTTON
+     , OFFICE_COPE_VIEW
+     , INVENTOR_COPE_BUTTON
+     , INVENTOR_COPE_VIEW
+     , INPUT_HELP
+     , REMARK
+     , USE_YN
+FROM   TB_PAPER_MGT_MST
+WHERE  PAPER_CODE = {@PAPER_CODE}
+]]></query>
+
+<!-- 진행서류 코드 조회 -->
+<query name="/retrieveNewPaperCode"><![CDATA[
+SELECT {@PAPER_DIV} || {@INOUT_DIV} || '-' || LPAD(NVL(MAX(TO_NUMBER(SUBSTR(PAPER_CODE, 7))), 0) + 1, 4, '0') PAPER_CODE
+FROM   TB_PAPER_MGT_MST
+WHERE  PAPER_DIV = {@PAPER_DIV}
+AND    INOUT_DIV = {@INOUT_DIV}
+]]></query>
+
+<!-- 진행서류 생성 -->
+<query name="/createPaperCode"><![CDATA[
+INSERT INTO TB_PAPER_MGT_MST (
+       PAPER_CODE
+     , PAPER_NAME
+     , PAPER_DIV
+     , INOUT_DIV
+     , PAPER_STEP
+     , OA_MGT_STEP
+     , EVAL_CODE
+     , PATTEAM_INPUT_YN
+     , PATTEAM_MAIL_YN
+     , OFFICE_INPUT_YN
+     , OFFICE_MAIL_YN
+     , OFFICE_DISP_YN
+     , INVENTOR_INPUT_YN
+     , INVENTOR_MAIL_YN
+     , INVENTOR_DISP_YN
+     , MST_STATUS_YN
+     , MST_ABD_YN
+     , WITH_PAPER_CODE
+     , WITH_PAPER_SUBCODE
+     , COPE_PAPER_CODE
+     , DUP_AVAIL_YN
+     , BIZ_BUTTON_NAME
+     , BIZ_VIEW_PATH
+     , PATTEAM_COPE_BUTTON
+     , PATTEAM_COPE_VIEW
+     , OFFICE_COPE_BUTTON
+     , OFFICE_COPE_VIEW
+     , INVENTOR_COPE_BUTTON
+     , INVENTOR_COPE_VIEW
+     , INPUT_HELP
+     , REMARK
+     , USE_YN
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@PAPER_CODE}
+     , {@PAPER_NAME}
+     , {@PAPER_DIV}
+     , {@INOUT_DIV}
+     , {@PAPER_STEP}
+     , {@OA_MGT_STEP}
+     , {@EVAL_CODE}
+     , {@PATTEAM_INPUT_YN}
+     , {@PATTEAM_MAIL_YN}
+     , {@OFFICE_INPUT_YN}
+     , {@OFFICE_MAIL_YN}
+     , {@OFFICE_DISP_YN}
+     , {@INVENTOR_INPUT_YN}
+     , {@INVENTOR_MAIL_YN}
+     , {@INVENTOR_DISP_YN}
+     , {@MST_STATUS_YN}
+     , {@MST_ABD_YN}
+     , {@WITH_PAPER_CODE}
+     , {@WITH_PAPER_SUBCODE}
+     , {@COPE_PAPER_CODE}
+     , {@DUP_AVAIL_YN}
+     , {@BIZ_BUTTON_NAME}
+     , {@BIZ_VIEW_PATH}
+     , {@PATTEAM_COPE_BUTTON}
+     , {@PATTEAM_COPE_VIEW}
+     , {@OFFICE_COPE_BUTTON}
+     , {@OFFICE_COPE_VIEW}
+     , {@INVENTOR_COPE_BUTTON}
+     , {@INVENTOR_COPE_VIEW}
+     , {@INPUT_HELP}
+     , {@REMARK}
+     , {@USE_YN}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 진행서류 수정 -->
+<query name="/updatePaperCode"><![CDATA[
+UPDATE TB_PAPER_MGT_MST SET
+       PAPER_NAME           = {@PAPER_NAME}
+     , PAPER_STEP           = {@PAPER_STEP}
+     , OA_MGT_STEP          = {@OA_MGT_STEP}
+     , EVAL_CODE            = {@EVAL_CODE}
+     , PATTEAM_INPUT_YN     = {@PATTEAM_INPUT_YN}
+     , PATTEAM_MAIL_YN      = {@PATTEAM_MAIL_YN}
+     , OFFICE_INPUT_YN      = {@OFFICE_INPUT_YN}
+     , OFFICE_MAIL_YN       = {@OFFICE_MAIL_YN}
+     , OFFICE_DISP_YN       = {@OFFICE_DISP_YN}
+     , INVENTOR_INPUT_YN    = {@INVENTOR_INPUT_YN}
+     , INVENTOR_MAIL_YN     = {@INVENTOR_MAIL_YN}
+     , INVENTOR_DISP_YN     = {@INVENTOR_DISP_YN}
+     , MST_STATUS_YN        = {@MST_STATUS_YN}
+     , MST_ABD_YN           = {@MST_ABD_YN}
+     , WITH_PAPER_CODE      = {@WITH_PAPER_CODE}
+     , WITH_PAPER_SUBCODE   = {@WITH_PAPER_SUBCODE}
+     , COPE_PAPER_CODE      = {@COPE_PAPER_CODE}
+     , DUP_AVAIL_YN         = {@DUP_AVAIL_YN}
+     , BIZ_BUTTON_NAME      = {@BIZ_BUTTON_NAME}
+     , BIZ_VIEW_PATH        = {@BIZ_VIEW_PATH}
+     , PATTEAM_COPE_BUTTON  = {@PATTEAM_COPE_BUTTON}
+     , PATTEAM_COPE_VIEW    = {@PATTEAM_COPE_VIEW}
+     , OFFICE_COPE_BUTTON   = {@OFFICE_COPE_BUTTON}
+     , OFFICE_COPE_VIEW     = {@OFFICE_COPE_VIEW}
+     , INVENTOR_COPE_BUTTON = {@INVENTOR_COPE_BUTTON}
+     , INVENTOR_COPE_VIEW   = {@INVENTOR_COPE_VIEW}
+     , INPUT_HELP           = {@INPUT_HELP}
+     , REMARK               = {@REMARK}
+     , USE_YN               = {@USE_YN}
+     , UPD_USER             = {@$USER_ID}
+     , UPD_DATE             = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  PAPER_CODE = {@PAPER_CODE}
+]]></query>
+
+<!-- 진행서류 삭제 -->
+<query name="/deletePaperCode"><![CDATA[
+DELETE FROM TB_PAPER_MGT_MST A
+WHERE  PAPER_CODE = {@PAPER_CODE}
+]]></query>
+
+<!-- 세부서류 목록 삭제 -->
+<query name="/deleteSubPaperCodeList"><![CDATA[
+DELETE FROM TB_PAPER_MGT_SUB A
+WHERE  PAPER_CODE = {@PAPER_CODE}
+]]></query>
+
+<!-- 세부서류 목록 조회 -->
+<query name="/retrieveSubPaperCodeList"><![CDATA[
+SELECT PAPER_SUBCODE
+     , PAPER_SUBNAME
+     , FN_COM_CODE_NAME('YES_NO', MST_ABD_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) MST_ABD_YN_NAME
+     , BIZ_BUTTON_NAME
+     , BIZ_VIEW_PATH
+     , FN_COM_CODE_NAME('USE_YN', USE_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) USE_YN_NAME
+FROM   TB_PAPER_MGT_SUB A
+WHERE  PAPER_CODE = {@PAPER_CODE}
+]]></query>
+
+<!-- 세부서류 조회 -->
+<query name="/retrieveSubPaperCode"><![CDATA[
+SELECT PAPER_SUBNAME
+     , MST_ABD_YN
+     , BIZ_BUTTON_NAME
+     , BIZ_VIEW_PATH
+     , USE_YN
+FROM   TB_PAPER_MGT_SUB A
+WHERE  PAPER_CODE = {@PAPER_CODE}
+AND    PAPER_SUBCODE = {@PAPER_SUBCODE}
+]]></query>
+
+<!-- 세부서류 코드 조회 -->
+<query name="/retrievePaperSubcode"><![CDATA[
+SELECT LPAD(NVL(MAX(TO_NUMBER(PAPER_SUBCODE)), 0) + 1, 3, '0')
+FROM   TB_PAPER_MGT_SUB
+WHERE  PAPER_CODE = {@PAPER_CODE}
+]]></query>
+
+<!-- 세부서류 생성 -->
+<query name="/createSubPaperCode"><![CDATA[
+INSERT INTO TB_PAPER_MGT_SUB (
+       PAPER_CODE
+     , PAPER_SUBCODE
+     , PAPER_SUBNAME
+     , MST_ABD_YN
+     , BIZ_BUTTON_NAME
+     , BIZ_VIEW_PATH
+     , USE_YN
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@PAPER_CODE}
+     , {@PAPER_SUBCODE}
+     , {@PAPER_SUBNAME}
+     , {@MST_ABD_YN}
+     , {@BIZ_BUTTON_NAME}
+     , {@BIZ_VIEW_PATH}
+     , {@USE_YN}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   DUAL
+WHERE  NOT EXISTS (SELECT 1
+                   FROM   TB_PAPER_MGT_SUB
+                   WHERE  PAPER_CODE = {@PAPER_CODE}
+                   AND    PAPER_SUBCODE = {@PAPER_SUBCODE}
+                  )
+]]></query>
+
+<!-- 세부서류 수정 -->
+<query name="/updateSubPaperCode"><![CDATA[
+UPDATE TB_PAPER_MGT_SUB SET
+       PAPER_CODE      = {@PAPER_CODE}
+     , PAPER_SUBCODE   = {@PAPER_SUBCODE}
+     , PAPER_SUBNAME   = {@PAPER_SUBNAME}
+     , MST_ABD_YN      = {@MST_ABD_YN}
+     , BIZ_BUTTON_NAME = {@BIZ_BUTTON_NAME}
+     , BIZ_VIEW_PATH   = {@BIZ_VIEW_PATH}
+     , USE_YN          = {@USE_YN}
+     , UPD_USER        = {@$USER_ID}
+     , UPD_DATE        = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  PAPER_CODE = {@PAPER_CODE}
+AND    PAPER_SUBCODE = {@PAPER_SUBCODE}
+]]></query>
+
+<!-- 세부서류 삭제 -->
+<query name="/deleteSubPaperCode"><![CDATA[
+DELETE FROM TB_PAPER_MGT_SUB A
+WHERE  PAPER_CODE = {@PAPER_CODE}
+AND    PAPER_SUBCODE = {@PAPER_SUBCODE}
+]]></query>
+
+</root>

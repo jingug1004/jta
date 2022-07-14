@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 보상금비용 전표작성대상 목록 조회 -->
+<query name="/retrieveRewardSlipList"><![CDATA[
+SELECT A.CONSULT_ID
+     , A.CONSULT_SUBJECT
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , (SELECT COUNT(COST_SEQ) FROM TB_COST_MST B WHERE A.CONSULT_ID = B.CONSULT_ID) TOT_CNT
+     , A.CRE_DATE
+FROM   TB_COST_CONSULT A
+WHERE  EXISTS ( SELECT 1
+                FROM   TB_COST_MST B
+                WHERE  B.CONSULT_ID = A.CONSULT_ID
+                AND    B.SLIP_STATUS = '1'
+                AND    B.COST_KIND   = '6'
+                AND    B.SLIP_ID IS NULL )
+]]></query>
+
+<!-- 보상금 알림메일 발송목록 조회 -->
+<query name="/retrieveRewardInformMailList"><![CDATA[
+SELECT T.*
+     , DECODE(MAIL_SEND_YN, '1','0', '1') ROW_CHK
+     , '[알림] ' || INOUT_DIV_NAME || ' ' || REWARD_DIV_NAME || ' 지급' SUBJECT
+     , '"' || EMP_HNAME || '" 님에게 "' || REWARD_DIV_NAME || '" 이 다음과 같이 지급 예정입니다.
+
+[REF-NO] ' || REF_NO || ' (' || INOUT_DIV_NAME || ')
+[발명의명칭] ' || KO_APP_TITLE || '
+[보상금종류] ' || REWARD_DIV_NAME || '
+[보상금액] ' || REWARD_PRICE || '
+
+직무발명보상은 기타소득처리하며, 출원보상금에 한해서 50,000초과시 22%세금공제 합니다.
+보상금지급내역에서 확인하시기 바랍니다.
+
+이상입니다.' BODY
+FROM   (SELECT C.COST_SEQ
+             , D.MAIL_SEND_YN
+             , A.REF_NO
+             , FN_COM_CODE_NAME('INOUT_DIV', A.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+             , FN_COM_CODE_NAME('RIGHT_DIV', A.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+             , FN_COM_CODE_NAME('REWARD_DIV', D.REWARD_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) REWARD_DIV_NAME
+             , D.REWARD_GRADE GRADE
+             , FN_USER_NAME(D.INV_USER) AS EMP_HNAME
+             , A.KO_APP_TITLE
+             , A.APP_NO
+             , A.APP_DATE
+             , A.REG_NO
+             , A.REG_DATE
+             , C.PRICE AS REWARD_PRICE
+             , M.MAIL_ADDR
+             , G.EMP_NO
+             , FN_DEPT_NAME(G.DEPT_CODE) DEPT_NAME
+             , FN_COM_CODE_NAME('YES_NO', D.MAIL_SEND_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) MAIL_SEND_YN_NAME
+        FROM   TB_APP_MST A
+             , TB_APP_MST_INT B
+             , TB_COST_MST C
+             , TB_COST_MST_REWARD D
+             , TB_APP_MST_EXT E
+             , TB_APP_EXT_GRP F
+             , TB_USR_MST M
+             , TB_USR_PATENT G
+        WHERE A.REF_ID   = B.REF_ID(+)
+        AND   A.REF_ID   = C.REF_ID(+)
+        AND   C.COST_SEQ = D.COST_SEQ
+        AND   A.REF_ID   = E.REF_ID(+)
+        AND   E.GRP_ID   = F.GRP_ID(+)
+        AND   D.INV_USER = M.USER_ID
+        AND   D.INV_USER = G.USER_ID
+        AND   C.SLIP_ID = {@SLIP_ID}
+    ) T
+]]></query>
+
+<!-- 보상금 알림메일 발송여부 업데이트 -->
+<query name="/updateRewardInformMailSendYn"><![CDATA[
+UPDATE TB_COST_MST_REWARD SET
+       MAIL_SEND_YN = '1'
+WHERE  COST_SEQ = {@COST_SEQ}
+]]></query>
+
+<!-- 보상금전표 다운로드 -->
+<query name="/retrieveRewardSlipDownloadList"><![CDATA[
+SELECT HEADER_DIV
+     , LINE
+     , DOC_DATE
+     , DOC_TYPE
+     , POSTING_DATE
+     , CURRENCY
+     , REFERENCE
+     , HEADER_TEXT
+     , POSTING_KEY
+     , ACCOUNT
+     , SPECIAL_GL
+     , AMOUNT
+     , TAX_CODE
+     , BUSINESS_PLACE
+     , ASSIGNMENT
+     , TEXT
+FROM ( -- Header
+     SELECT SLIP_ID
+           , 'H' HEADER_DIV
+           , '1' LINE
+           , TO_CHAR(TO_DATE(SYSDATE),'YYYY.MM.DD') DOC_DATE
+           , 'K1' DOC_TYPE
+           , TO_CHAR(TO_DATE(SYSDATE),'YYYY.MM.DD') POSTING_DATE
+           , 'KRW' CURRENCY
+           , FN_DEPT_NAME({@DEPT_CODE})||' '||FN_USER_NAME({@$USER_ID}) REFERENCE
+           , SLIP_SUBJECT||'(ANYFIVE)' HEADER_TEXT
+           , '' POSTING_KEY
+           , '' ACCOUNT
+           , '' SPECIAL_GL
+           , TO_NUMBER('') AMOUNT
+           , '' TAX_CODE
+           , '' BUSINESS_PLACE
+           , '' ASSIGNMENT
+           , '' TEXT
+      FROM   TB_COST_SLIP
+      UNION ALL
+      --실보상금
+      SELECT C.SLIP_ID
+           , 'D' HEADER_DIV
+           , '1' LINE
+           , '0000.00.00' DOC_DATE
+           , '' DOC_TYPE
+           , '0000.00.00' POSTING_DATE
+           , '' CURRENCY
+           , '' REFERENCE
+           , '' HEADER_TEXT
+           , '39' POSTING_KEY
+           , E.ACCOUNT
+           , 'E' SPECIAL_GL
+           , (CASE B.REWARD_DIV
+                   WHEN 'APP' THEN (CASE WHEN A.PRICE > 50000 THEN(TO_NUMBER(A.PRICE) - TO_NUMBER(A.PRICE)/100*22)
+                                         ELSE A.PRICE
+                                    END)
+                   ELSE A.PRICE
+              END) AMOUNT
+           , 'K7' TAX_CODE
+           , 'P100' BUSINESS_PLACE
+           , FN_DEPT_NAME(E.DEPT_CODE)||' '||FN_USER_NAME(B.INV_USER) ASSIGNMENT
+           , SUBSTR(C.SLIP_SUBJECT, 1, 9)||(CASE B.REWARD_DIV WHEN 'APP' THEN ' 출원보상금 ' ELSE ' 등록보상금 ' END)||FN_USER_NAME(B.INV_USER) TEXT
+      FROM   TB_COST_MST A
+           , TB_COST_MST_REWARD B
+           , TB_COST_SLIP C
+           , TB_APP_MST D
+           , (SELECT USER_ID
+                   , DEPT_CODE
+                   , (CASE SUBSTR(EMP_NO, 1,1)
+                           WHEN 'P' THEN REPLACE(EMP_NO , 'P', 'PB')
+                           ELSE 'PA'||EMP_NO
+                      END) ACCOUNT
+              FROM   TB_USR_PATENT ) E
+      WHERE  A.COST_SEQ = B.COST_SEQ
+      AND    A.SLIP_ID  = C.SLIP_ID
+      AND    A.REF_ID   = D.REF_ID
+      AND    B.INV_USER = E.USER_ID
+      UNION ALL
+      -- 세금 - 소득세
+      SELECT C.SLIP_ID
+           , 'D' HEADER_DIV
+           , '1' LINE
+           , '0000.00.00' DOC_DATE
+           , '' DOC_TYPE
+           , '0000.00.00' POSTING_DATE
+           , '' CURRENCY
+           , '' REFERENCE
+           , '' HEADER_TEXT
+           , '50' POSTING_KEY
+           , '220250130' ACCOUNT
+           , '' SPECIAL_GL
+           , (TO_NUMBER(A.PRICE)/100*20) AMOUNT
+           , '' TAX_CODE
+           , 'P100' BUSINESS_PLACE
+           , FN_DEPT_NAME(E.DEPT_CODE)||' '||FN_USER_NAME(B.INV_USER) ASSIGNMENT
+           , SUBSTR(C.SLIP_SUBJECT, 1, 9)||(CASE B.REWARD_DIV WHEN 'APP' THEN ' 출원보상금 ' ELSE ' 등록보상금 ' END)||FN_USER_NAME(B.INV_USER)||' 소득세' TEXT
+      FROM   TB_COST_MST A
+           , TB_COST_MST_REWARD B
+           , TB_COST_SLIP C
+           , TB_APP_MST D
+           , TB_USR_PATENT E
+      WHERE  A.COST_SEQ = B.COST_SEQ
+      AND    A.SLIP_ID  = C.SLIP_ID
+      AND    A.REF_ID   = D.REF_ID
+      AND    B.INV_USER = E.USER_ID
+      AND    B.REWARD_DIV = 'APP'
+      AND    A.PRICE > 50000
+      UNION ALL
+      -- 세금 - 주민세
+      SELECT C.SLIP_ID
+           , 'D' HEADER_DIV
+           , '1' LINE
+           , '0000.00.00' DOC_DATE
+           , '' DOC_TYPE
+           , '0000.00.00' POSTING_DATE
+           , '' CURRENCY
+           , '' REFERENCE
+           , '' HEADER_TEXT
+           , '50' POSTING_KEY
+           , '220250131' ACCOUNT
+           , '' SPECIAL_GL
+           , (TO_NUMBER(A.PRICE)/100*2) AMOUNT
+           , '' TAX_CODE
+           , 'P100' BUSINESS_PLACE
+           , FN_DEPT_NAME(E.DEPT_CODE)||' '||FN_USER_NAME(B.INV_USER) ASSIGNMENT
+           , SUBSTR(C.SLIP_SUBJECT, 1, 9)||(CASE B.REWARD_DIV WHEN 'APP' THEN ' 출원보상금 ' ELSE ' 등록보상금 ' END)||FN_USER_NAME(B.INV_USER)||' 주민세' TEXT
+      FROM   TB_COST_MST A
+           , TB_COST_MST_REWARD B
+           , TB_COST_SLIP C
+           , TB_APP_MST D
+           , TB_USR_PATENT E
+      WHERE  A.COST_SEQ = B.COST_SEQ
+      AND    A.SLIP_ID  = C.SLIP_ID
+      AND    A.REF_ID   = D.REF_ID
+      AND    B.INV_USER = E.USER_ID
+      AND    B.REWARD_DIV = 'APP'
+      AND    A.PRICE > 50000
+      UNION ALL
+      -- 총 보상금
+      SELECT C.SLIP_ID
+           , 'D' HEADER_DIV
+           , '1' LINE
+           , '0000.00.00' DOC_DATE
+           , '' DOC_TYPE
+           , '0000.00.00' POSTING_DATE
+           , '' CURRENCY
+           , '' REFERENCE
+           , '' HEADER_TEXT
+           , '40' POSTING_KEY
+           , '470140241' ACCOUNT
+           , '' SPECIAL_GL
+           , A.PRICE AMOUNT
+           , 'K7' TAX_CODE
+           , 'P100' BUSINESS_PLACE
+           , FN_DEPT_NAME(E.DEPT_CODE)||' '||FN_USER_NAME(B.INV_USER) ASSIGNMENT
+           , SUBSTR(C.SLIP_SUBJECT, 1, 9)||(CASE B.REWARD_DIV WHEN 'APP' THEN ' 출원보상금 ' ELSE ' 등록보상금 ' END)||FN_USER_NAME(B.INV_USER) TEXT
+      FROM   TB_COST_MST A
+           , TB_COST_MST_REWARD B
+           , TB_COST_SLIP C
+           , TB_APP_MST D
+           , TB_USR_PATENT E
+      WHERE  A.COST_SEQ = B.COST_SEQ
+      AND    A.SLIP_ID  = C.SLIP_ID
+      AND    A.REF_ID   = D.REF_ID
+      AND    B.INV_USER = E.USER_ID
+      )
+WHERE SLIP_ID = {@SLIP_ID}
+ORDER BY HEADER_DIV DESC, SPECIAL_GL ASC, POSTING_KEY DESC, ASSIGNMENT ASC
+]]></query>
+
+<!-- 국내 보상금 지급내역 Update -->
+<query name="/updateIntAppForSlipProc"><![CDATA[
+UPDATE TB_APP_REWARD A SET
+       REWARD_GIVEEND_YN  = '1'
+     , REWARD_GIVE_DATE   = TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , REWARD_GIVE_AMOUNT = (SELECT SUM(B1.PRICE)
+                             FROM   TB_COST_MST B1
+                                  , TB_COST_MST_REWARD B2
+                             WHERE  B1.REF_ID = A.REF_ID
+                             AND    B1.COST_SEQ = B2.COST_SEQ
+                             AND    B1.COST_KIND = '6'
+                             AND    B2.REWARD_DIV = {@REWARD_DIV}
+                            )
+WHERE  REF_ID IN (SELECT T1.REF_ID
+                  FROM   TB_COST_MST T1
+                       , TB_COST_MST_REWARD T2
+                  WHERE  T1.SLIP_ID = {@SLIP_ID}
+                  AND    T1.COST_SEQ = T2.COST_SEQ
+                  AND    T2.REWARD_DIV = {@REWARD_DIV}
+                 )
+AND    REWARD_DIV = {@REWARD_DIV}
+]]></query>
+
+<!-- 해외 보상금 지급내역 Update -->
+<query name="/updateExtAppForSlipProc"><![CDATA[
+UPDATE TB_APP_REWARD A SET
+       REWARD_GIVEEND_YN  = '1'
+     , REWARD_GIVE_DATE   = TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , REWARD_GIVE_AMOUNT = (SELECT SUM(B1.PRICE)
+                             FROM   TB_COST_MST B1
+                                  , TB_COST_MST_REWARD B2
+                             WHERE  B1.REF_ID IN (SELECT REF_ID
+                                                  FROM   TB_APP_MST_EXT
+                                                  WHERE  GRP_ID = (SELECT D.GRP_ID FROM TB_APP_MST_EXT D WHERE D.REF_ID = B1.REF_ID)
+                                                 )
+                             AND    B1.COST_SEQ = B2.COST_SEQ
+                             AND    B1.COST_KIND = '6'
+                             AND    B2.REWARD_DIV = {@REWARD_DIV}
+                            )
+WHERE  REF_ID IN (SELECT T3.GRP_ID
+                  FROM   TB_COST_MST T1
+                       , TB_COST_MST_REWARD T2
+                       , TB_APP_MST_EXT T3
+                  WHERE  T1.SLIP_ID = {@SLIP_ID}
+                  AND    T1.COST_SEQ = T2.COST_SEQ
+                  AND    T2.REWARD_DIV = {@REWARD_DIV}
+                  AND    T1.REF_ID = T3.REF_ID
+                 )
+]]></query>
+
+</root>

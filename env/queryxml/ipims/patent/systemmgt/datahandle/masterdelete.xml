@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 출원마스터 삭제 목록 조회 -->
+<query name="/retrieveMasterDeleteList"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , FN_COM_CODE_NAME('RIGHT_DIV', RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , A.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , FN_DEPT_NAME(A.DEPT_CODE) DEPT_NAME
+     , A.CRE_DATE
+FROM   TB_APP_MST A
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveMasterDeleteList/rightDiv"><![CDATA[
+AND    A.RIGHT_DIV = {@RIGHT_DIV}
+]]></query>
+<query name="/retrieveMasterDeleteList/refNo"><![CDATA[
+AND    UPPER(A.REF_NO) LIKE '%'||UPPER({@REF_NO})||'%'
+]]></query>
+<query name="/retrieveMasterDeleteList/appTitle"><![CDATA[
+AND    (UPPER(A.KO_APP_TITLE) LIKE '%'||UPPER({@APP_TITLE})||'%' OR
+        UPPER(A.EN_APP_TITLE) LIKE '%'||UPPER({@APP_TITLE})||'%'
+       )
+]]></query>
+
+<!-- 출원마스터 삭제 내역 조회 -->
+<query name="/retrieveMasterDelete"><![CDATA[
+SELECT REF_ID
+     , INOUT_DIV
+     , RIGHT_DIV
+     , FN_COM_CODE_NAME('RIGHT_DIV', RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , REF_NO
+     , KO_APP_TITLE
+     , FN_INVENTOR_NAMES(REF_ID) INVENTOR_NAMES
+FROM   TB_APP_MST
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 출원마스터 삭제 -->
+<query name="/deleteMaster"><![CDATA[
+{ CALL SP_MASTER_DELETE({@REF_ID}) }
+]]></query>
+
+</root>

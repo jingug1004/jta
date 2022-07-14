@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 업무프로세스 목록 조회 -->
+<query name="/retrieveWorkProcMgtList"><![CDATA[
+SELECT BIZ_STEP_ID
+     , BIZ_PROC_SEQ
+     , CURR_STATUS
+     , '[' || CURR_STATUS || '] ' || FN_BIZ_CODE_NAME(CURR_STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) CURR_STATUS_NAME
+     , BIZ_ACT
+     , '[' || BIZ_ACT || '] ' || FN_BIZ_CODE_NAME(BIZ_ACT, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) BIZ_ACT_NAME
+     , ACT_OWNER
+     , {#codeData:ACT_OWNER:/systemmgt/bizActOwner} ACT_OWNER_NAME
+     , ACT_COND_NO
+     , ACT_COND_QRY
+     , NEXT_STATUS
+     , NEXT_STEP_ID
+     , '[' || NEXT_STATUS || '] ' || FN_BIZ_CODE_NAME(NEXT_STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) NEXT_STATUS_NAME
+     , CASE WHEN NEXT_STEP_ID IS NOT NULL THEN '[' || NEXT_STEP_ID || '] ' || (SELECT BIZ_STEP_NAME FROM TB_BIZ_MGT_STEP S1 WHERE S1.BIZ_STEP_ID = A.NEXT_STEP_ID) END NEXT_STEP_NAME
+     , FN_COM_CODE_NAME('YES_NO', TODO_DISP_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) TODO_DISP_YN_NAME
+     , URGENT_DATE_QRY
+     , DUE_DATE_QRY
+     , (SELECT PAPER_NAME FROM TB_PAPER_MGT_MST S1 WHERE S1.PAPER_CODE = A.PAPER_CODE) PAPER_NAME
+     , (SELECT PAPER_SUBNAME FROM TB_PAPER_MGT_SUB S1 WHERE S1.PAPER_CODE = A.PAPER_CODE AND S1.PAPER_SUBCODE = A.PAPER_SUBCODE) PAPER_SUBNAME
+FROM   TB_BIZ_MGT_PROC A
+WHERE  BIZ_STEP_ID = {@BIZ_STEP_ID}
+ORDER BY DISP_ORD
+]]></query>
+
+<!-- 업무프로세스 조회 -->
+<query name="/retrieveWorkProcMgt"><![CDATA[
+SELECT BIZ_STEP_ID
+     , BIZ_PROC_SEQ
+     , CURR_STATUS
+     , FN_BIZ_CODE_NAME(CURR_STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) CURR_STATUS_NAME
+     , BIZ_ACT
+     , FN_BIZ_CODE_NAME(BIZ_ACT, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) BIZ_ACT_NAME
+     , ACT_OWNER
+     , ACT_COND_NO
+     , ACT_COND_QRY
+     , NEXT_STATUS
+     , FN_BIZ_CODE_NAME(NEXT_STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) NEXT_STATUS_NAME
+     , NEXT_STEP_ID
+     , URGENT_DATE_QRY
+     , DUE_DATE_QRY
+     , TODO_DISP_YN
+     , PAPER_CODE
+     , (SELECT PAPER_NAME FROM TB_PAPER_MGT_MST S1 WHERE S1.PAPER_CODE = A.PAPER_CODE) PAPER_NAME
+     , PAPER_SUBCODE
+FROM   TB_BIZ_MGT_PROC A
+WHERE  BIZ_STEP_ID = {@BIZ_STEP_ID}
+AND    BIZ_PROC_SEQ = {@BIZ_PROC_SEQ}
+]]></query>
+
+<!-- 업무프로세스 시퀀스 조회 -->
+<query name="/retrieveWorkProcMgtForCreate"><![CDATA[
+SELECT LPAD(NVL(TO_NUMBER(MAX(BIZ_PROC_SEQ)), 0) + 1, 3, '0') BIZ_PROC_SEQ
+     , NVL(MAX(DISP_ORD), 0) + 1 DISP_ORD
+FROM   TB_BIZ_MGT_PROC
+WHERE  BIZ_STEP_ID = {@BIZ_STEP_ID}
+]]></query>
+
+<!-- 업무프로세스 생성 -->
+<query name="/createWorkProcMgt"><![CDATA[
+INSERT INTO TB_BIZ_MGT_PROC (
+       BIZ_STEP_ID
+     , BIZ_PROC_SEQ
+     , CURR_STATUS
+     , BIZ_ACT
+     , ACT_OWNER
+     , ACT_COND_NO
+     , ACT_COND_QRY
+     , NEXT_STATUS
+     , NEXT_STEP_ID
+     , TODO_DISP_YN
+     , URGENT_DATE_QRY
+     , DUE_DATE_QRY
+     , PAPER_CODE
+     , PAPER_SUBCODE
+     , DISP_ORD
+) VALUES (
+       {@BIZ_STEP_ID}
+     , {@BIZ_PROC_SEQ}
+     , {@CURR_STATUS}
+     , {@BIZ_ACT}
+     , {@ACT_OWNER}
+     , {@ACT_COND_NO}
+     , {@ACT_COND_QRY}
+     , {@NEXT_STATUS}
+     , {@NEXT_STEP_ID}
+     , {@TODO_DISP_YN}
+     , {@URGENT_DATE_QRY}
+     , {@DUE_DATE_QRY}
+     , {@PAPER_CODE}
+     , {@PAPER_SUBCODE}
+     , {@DISP_ORD:NUMBER}
+)
+]]></query>
+
+<!-- 업무프로세스 수정 -->
+<query name="/updateWorkProcMgt"><![CDATA[
+UPDATE TB_BIZ_MGT_PROC SET
+       CURR_STATUS     = {@CURR_STATUS}
+     , BIZ_ACT         = {@BIZ_ACT}
+     , ACT_OWNER       = {@ACT_OWNER}
+     , ACT_COND_NO     = {@ACT_COND_NO}
+     , ACT_COND_QRY    = {@ACT_COND_QRY}
+     , NEXT_STATUS     = {@NEXT_STATUS}
+     , NEXT_STEP_ID    = {@NEXT_STEP_ID}
+     , TODO_DISP_YN    = {@TODO_DISP_YN}
+     , URGENT_DATE_QRY = {@URGENT_DATE_QRY}
+     , DUE_DATE_QRY    = {@DUE_DATE_QRY}
+     , PAPER_CODE      = {@PAPER_CODE}
+     , PAPER_SUBCODE   = {@PAPER_SUBCODE}
+WHERE  BIZ_STEP_ID = {@BIZ_STEP_ID}
+AND    BIZ_PROC_SEQ = {@BIZ_PROC_SEQ}
+]]></query>
+
+<!-- 업무프로세스 삭제 -->
+<query name="/deleteWorkProcMgt"><![CDATA[
+DELETE FROM TB_BIZ_MGT_PROC
+WHERE  BIZ_STEP_ID = {@BIZ_STEP_ID}
+AND    BIZ_PROC_SEQ = {@BIZ_PROC_SEQ}
+]]></query>
+
+<!-- 업무프로세스 표시순서 수정 -->
+<query name="/updateWorkProcMgtDispOrdList"><![CDATA[
+UPDATE TB_BIZ_MGT_PROC SET
+       DISP_ORD = {@DISP_ORD:NUMBER}
+WHERE  BIZ_STEP_ID = {@BIZ_STEP_ID}
+AND    BIZ_PROC_SEQ = {@BIZ_PROC_SEQ}
+]]></query>
+
+</root>

@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 스케줄러 사용 여부 -->
+<scheduler-enable>false</scheduler-enable>
+
+<!-- 인사정보(Temp) I/F -->
+<schedule name="insaTIF">
+    <path>anyfive.ipims.patent.schedule.insaif.act.ExecuteInsaTempIF</path>
+    <timer year="*" month="*" date="*" hour="06" minute="00"/>
+    <threads>1</threads>
+    <enable>true</enable>
+</schedule>
+
+<!-- 인사정보(Master) I/F -->
+<schedule name="insaMIF">
+    <path>anyfive.ipims.patent.schedule.insaif.act.ExecuteInsaMIF</path>
+    <timer year="*" month="*" date="*" hour="06" minute="15"/>
+    <threads>1</threads>
+    <enable>true</enable>
+</schedule>
+
+<!-- 인사정보(Patent) I/F -->
+<schedule name="insaPIF">
+    <path>anyfive.ipims.patent.schedule.insaif.act.ExecuteInsaPIF</path>
+    <timer year="*" month="*" date="*" hour="06" minute="30"/>
+    <threads>1</threads>
+    <enable>true</enable>
+</schedule>
+
+<!-- 조직 I/F -->
+<schedule name="deptIF">
+    <path>anyfive.ipims.patent.schedule.deptif.act.ExecuteDeptIF</path>
+    <timer year="*" month="*" date="*" hour="06" minute="45" />
+    <threads>1</threads>
+    <enable>true</enable>
+</schedule>
+
+<!-- 메일 발송 -->
+<schedule name="mailSend">
+    <path>anyfive.ipims.patent.schedule.sendmail.act.ExecuteSendMail</path>
+    <timer year="*" month="*" date="*" hour="*" minute="*" />
+    <threads>1</threads>
+    <enable>false</enable>
+</schedule>
+
+<!-- ERP 전표처리 I/F -->
+<schedule name="slipIF">
+    <path>anyfive.ipims.patent.schedule.slipif.act.ExecuteSlipIF</path>
+    <timer year="*" month="*" date="*" hour="03" minute="*" />
+    <threads>1</threads>
+    <enable>true</enable>
+</schedule>
+
+<!-- ERP 자산번호 생성 I/F -->
+<schedule name="slipIF">
+    <path>anyfive.ipims.patent.schedule.assetif.act.ExecuteAssetIF</path>
+    <timer year="*" month="*" date="*" hour="02" minute="*" />
+    <threads>1</threads>
+    <enable>true</enable>
+</schedule>
+
+</root>

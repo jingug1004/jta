@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 디자인국내출원품의 목록 조회 -->
+<query name="/retrieveDesignIntConsultList"><![CDATA[
+SELECT CONSULT.REF_ID
+     , CONSULT.REF_NO
+     , CONSULT.KO_APP_TITLE
+     , CONSULT.CRE_DATE
+     , FN_USER_NAME(CONSULT.CRE_USER) CRE_USER
+     , FN_BIZ_CODE_NAME(COMMST.STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) STATUS_NAME
+     , FN_INVENTOR_NAMES(CONSULT.REF_ID) INVENTOR_NAMES
+     , CONSULT.PATTEAM_RCPT_DATE
+     , CONSULT.DEPT_CODE
+     , FN_DEPT_NAME(CONSULT.DEPT_CODE) DEPT_NAME
+     , CONSULT.OFFICE_CODE
+     , CONSULT.OFFICE_SEND_DATE
+     , FN_OFFICE_NAME(CONSULT.OFFICE_CODE) OFFICE_CODE_NAME
+     , FN_COM_CODE_NAME('RIGHT_DIV', CONSULT.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , CONSULT.EXAM_RESULT
+     , FN_COM_CODE_NAME('EXAM_RESULT', CONSULT.EXAM_RESULT, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) EXAM_RESULT_NAME
+     , OFFICE.FIRM_HNAME
+     , MST.JOB_MAN
+     , FN_USER_NAME(MST.JOB_MAN) JOB_MAN_NAME
+     , LAB.LAB_NAME
+FROM   TB_APP_INT_CONSULT CONSULT
+     , TB_BIZ_COM_MST COMMST
+     , TB_ORG_OFFICE OFFICE
+     , TB_APP_MST MST
+     , TB_ORG_LAB LAB
+WHERE  CONSULT.REF_ID = COMMST.REF_ID(+)
+  AND  CONSULT.REF_ID = MST.REF_ID
+  AND  CONSULT.LAB_CODE = LAB.LAB_CODE(+)
+  AND  CONSULT.OFFICE_CODE = OFFICE.OFFICE_CODE(+)
+  AND  CONSULT.RIGHT_DIV = '30'
+]]></query>
+<query name="/retrieveDesignIntConsultList/refNo"><![CDATA[
+AND    CONSULT.REF_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveDesignIntConsultList/patNo"><![CDATA[
+AND    MST.APP_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveDesignIntConsultList/regNO"><![CDATA[
+AND    MST.REG_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveDesignIntConsultList/jobMan"><![CDATA[
+AND    MST.JOB_MAN = {@SR_JOB_MAN}
+]]></query>
+<query name="/retrieveDesignIntConsultList/empName"><![CDATA[
+AND    CONSULT.REF_ID IN (SELECT F.REF_ID
+                        FROM   TB_MAPP_INVENTOR F
+                             , V_USER_ALL G
+                        WHERE  F.INV_USER = G.USER_ID
+                        AND    G.EMP_HNAME LIKE '%' || {@SR_INV_TEXT} || '%')
+]]></query>
+<query name="/retrieveDesignIntConsultList/empNO"><![CDATA[
+AND    CONSULT.REF_ID IN (SELECT F.REF_ID
+                        FROM   TB_MAPP_INVENTOR F
+                             , V_USER_ALL G
+                        WHERE  F.INV_USER = G.USER_ID
+                        AND    G.EMP_NO LIKE '%' || {@SR_INV_TEXT} || '%')
+]]></query>
+<query name="/retrieveDesignIntConsultList/firmCode"><![CDATA[
+AND    CONSULT.OFFICE_CODE LIKE '%'||{@SR_FIRM_CODE}||'%'
+]]></query>
+<query name="/retrieveDesignIntConsultList/srStatus"><![CDATA[
+AND    COMMST.STATUS = {@SR_STATUS}
+]]></query>
+<query name="/retrieveDesignIntConsultList/dateStart"><![CDATA[
+AND    {#SR_DATE_CODE} >= {@SR_SDATE}
+]]></query>
+<query name="/retrieveDesignIntConsultList/dateEnd"><![CDATA[
+AND    {#SR_DATE_CODE} <= {@SR_EDATE}
+]]></query>
+
+<!-- 디자인국내출원품의 상세 조회 -->
+<query name="/retrieveDesignIntConsult"><![CDATA[
+SELECT CONSULT.REF_ID
+     , CONSULT.REF_NO
+     , CONSULT.CRE_USER USER_NAME
+     , CONSULT.CRE_USER
+     , CONSULT.CRE_DATE
+     , CONSULT.KO_APP_TITLE
+     , CONSULT.EN_APP_TITLE
+     , CONSULT.APP_IMMED_YN
+     , CONSULT.APP_IMMED_REASON
+     , LAB.LAB_NAME
+     , FN_DEPT_NAME(CONSULT.DEPT_CODE) DEPT_NAME
+     , RDESIGN.DESIGN_IMG_FILE
+     , RDESIGN.ETC_FILE
+     , RDESIGN.OUT_MODEL_NAME OUT_MODEL_NAME1
+     , RDESIGN.OUT_MODEL_NAME OUT_MODEL_NAME2
+     , RDESIGN.PROD_PLAN_DATE PROD_PLAN_DATE1
+     , RDESIGN.PROD_PLAN_DATE PROD_PLAN_DATE2
+     , RDESIGN.DESIGN_DESC
+     , RDESIGN.DESIGN_CREATE_CONTENTS
+     , CONSULT.EXAM_RESULT
+     , CONSULT.PATTEAM_RCPT_DATE
+     , CDESIGN.DESIGN_DIV DESIGN_DIV
+     , FN_COM_CODE_NAME('DESIGN_DIV', CDESIGN.DESIGN_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) DESIGN_DIV_NAME
+     , CDESIGN.DESIGN_FEATURE
+     , FN_COM_CODE_NAME('DESIGN_FEATURE', CDESIGN.DESIGN_FEATURE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) DESIGN_FEATURE_NAME
+     , CONSULT.EXAM_RESULT_OPINION
+     , CONSULT.OFFICE_CODE
+     , FN_OFFICE_NAME(CONSULT.OFFICE_CODE) OFFICE_NAME
+     , CONSULT.OFFICE_CONTACT_YN
+     , CONSULT.OFFICE_TRANS_CONTENTS
+     , MST.JOB_MAN
+     , FN_USER_NAME(MST.JOB_MAN) JOB_MAN_NAME
+     , CDESIGN.COSTSHARE_OWNER
+     , FN_APP_MAN_NAME(CDESIGN.COSTSHARE_OWNER) COSTSHARE_OWNER_NAME
+FROM   TB_APP_INT_REQ REQ
+     , TB_APP_INT_REQ_DESIGN RDESIGN
+     , TB_BIZ_COM_MST COMMST
+     , TB_APP_INT_CONSULT_DESIGN CDESIGN
+     , TB_APP_INT_CONSULT CONSULT
+     , TB_APP_MST MST
+     , TB_ORG_LAB LAB
+WHERE  REQ.REF_ID = RDESIGN.REF_ID(+)
+  AND  REQ.REF_ID = COMMST.REF_ID(+)
+  AND  CONSULT.REF_ID = REQ.REF_ID(+)
+  AND  CONSULT.REF_ID = CDESIGN.REF_ID(+)
+  AND  CONSULT.REF_ID = MST.REF_ID
+  AND  CONSULT.LAB_CODE = LAB.LAB_CODE(+)
+  AND  REQ.REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 디자인국내출원품의 수정1 -->
+<query name="/updateDesignIntConsult"><![CDATA[
+UPDATE TB_APP_INT_CONSULT SET
+       EXAM_RESULT           = {@EXAM_RESULT}
+     , EXAM_RESULT_OPINION   = {@EXAM_RESULT_OPINION}
+     , OFFICE_CODE           = {@OFFICE_CODE}
+     , OFFICE_CONTACT_YN     = {@OFFICE_CONTACT_YN}
+     , OFFICE_TRANS_CONTENTS = {@OFFICE_TRANS_CONTENTS}
+     , UPD_USER              = {@$USER_ID}
+     , UPD_DATE              = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 디자인국내출원품의 수정2  -->
+<query name="/updateDesignIntConsultDesign"><![CDATA[
+UPDATE TB_APP_INT_CONSULT_DESIGN SET
+       DESIGN_FEATURE   = {@DESIGN_FEATURE}
+     , DESIGN_DIV       = {@DESIGN_DIV}
+     , COSTSHARE_OWNER  = {@COSTSHARE_OWNER}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 디자인국내출원품의 수정3  -->
+<query name="/updateDesignIntReqDesign"><![CDATA[
+UPDATE TB_APP_INT_REQ_DESIGN SET
+       OUT_MODEL_NAME    = {@OUT_MODEL_NAME2}
+     , PROD_PLAN_DATE    = {@PROD_PLAN_DATE2}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

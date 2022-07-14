@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 심의현황 조회 -->
+<query name="/retrieveCouncilRequestListR"><![CDATA[
+SELECT MGT_ID
+     , MGT_NO
+     , REQ_SUBJECT
+     , DECODE(STATUS, '0', '작성중', '심의요청완료') STATUS
+     , START_DATE
+     , END_DATE
+     , START_DATE ||' ~ '|| END_DATE AS SE_DATE
+     , FN_REVIEW_NAMES(MGT_ID) REVIEW_NAMES
+     , CRE_DATE
+     , FN_USER_NAME(CRE_USER) CRE_USER
+FROM TB_REVIEW_REQ
+WHERE 1=1
+]]></query>
+<query name="/retrieveCouncilRequestListR/mgtId"><![CDATA[
+AND   MGT_ID = {@MGT_ID}
+]]></query>
+<query name="/retrieveCouncilRequestListR/reqSubJdect"><![CDATA[
+AND    UPPER(REQ_SUBJECT) LIKE '%'||UPPER({@REQ_SUBJECT})||'%'
+]]></query>
+<query name="/retrieveCouncilRequestListR/startDate"><![CDATA[
+AND    {#DATE_GUBUN} >= {@START_DATE}
+]]></query>
+<query name="/retrieveCouncilRequestListR/endDate"><![CDATA[
+AND    {#DATE_GUBUN} <= {@END_DATE}
+]]></query>
+<query name="/retrieveCouncilRequestListR/reviewMember"><![CDATA[
+AND   MGT_ID IN (SELECT F.MGT_ID
+                   FROM   TB_MAPP_REVIEW_MEMBER F
+                        , V_USER_ALL G
+                  WHERE  F.REVIEW_MEMBER = G.USER_ID
+                    AND  G.EMP_HNAME LIKE '%' || {@REVIEW_MEMBER} ||'%')
+]]></query>
+
+
+
+<!-- 심의요청서 저장 -->
+<query name="/createCouncilRequest"><![CDATA[
+INSERT INTO TB_REVIEW_REQ(
+       MGT_ID
+     , MGT_NO
+     , REQ_SUBJECT
+     , START_DATE
+     , END_DATE
+     , ATTACH_FILE
+     , CRE_USER
+     , CRE_DATE
+     , STATUS
+)VALUES(
+       {@MGT_ID}
+     , {@MGT_NO}
+     , {@REQ_SUBJECT}
+     , {@START_DATE}
+     , {@END_DATE}
+     , {@ATTACH_FILE}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , '0'
+)
+]]></query>
+
+<!-- 심의요청서 조회 -->
+<query name="/retrieveCouncilRequestRD"><![CDATA[
+SELECT A.MGT_ID
+     , A.MGT_NO
+     , A.REQ_SUBJECT
+     , A.START_DATE
+     , A.END_DATE
+     , A.ATTACH_FILE
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , A.CRE_DATE
+     , A.CRE_USER
+     , A.STATUS
+     , B.STATUS AS MEMBERSTATUS
+FROM TB_REVIEW_REQ A
+   , TB_MAPP_REVIEW_MEMBER B
+WHERE A.MGT_ID = B.MGT_ID
+AND A.MGT_ID = {@MGT_ID}
+]]></query>
+
+<!-- 심의요청서 수정 -->
+<query name="/updateCouncilRequestRD"><![CDATA[
+UPDATE TB_REVIEW_REQ
+SET REQ_SUBJECT = {@REQ_SUBJECT}
+  , START_DATE  = {@START_DATE}
+  , END_DATE    = {@END_DATE}
+  , UPD_USER    = {@$USER_ID}
+  , UPD_DATE    = TO_CHAR(SYSDATE, 'YYYYMMDD')
+  , ATTACH_FILE = {@ATTACH_FILE}
+WHERE MGT_ID = {@MGT_ID}
+]]></query>
+
+<!-- 심의요청서 삭제 -->
+<query name="/deleteCouncilRequest"><![CDATA[
+DELETE TB_REVIEW_REQ
+WHERE MGT_ID = {@MGT_ID}
+]]></query>
+
+<!-- 심의요청EMAIL 제목 조회 -->
+<query name="/retrieveCouncilRequest"><![CDATA[
+SELECT REQ_SUBJECT
+     , START_DATE
+     , END_DATE
+FROM TB_REVIEW_REQ
+WHERE MGT_ID = {@MGT_ID}
+]]></query>
+
+<!-- 심의요청 EMAIL 주소조회 -->
+<query name="/retrieveCouncilRequestList"><![CDATA[
+SELECT M.EMP_HNAME
+     , M.MAIL_ADDR
+FROM   TB_MAPP_REVIEW_MEMBER S
+     , TB_USR_MST M
+WHERE S.MGT_ID = {@MGT_ID}
+  AND S.REVIEW_MEMBER = M.USER_ID
+]]></query>
+
+<!-- 심의요청 완료 상태 수정 -->
+<query name="/updateCouncilRequestST"><![CDATA[
+UPDATE TB_MAPP_REVIEW_MEMBER
+SET STATUS = '1'
+WHERE MGT_ID = {@MGT_ID}
+]]></query>
+
+
+
+
+</root>

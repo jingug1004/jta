@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 분석자료현황 목록 조회 -->
+<query name="/retrieveRivalPatAnalysisDocList"><![CDATA[
+SELECT    A.ANALY_ID
+        , A.MNG_NO
+        , A.AN_TITLE
+        , A.THEM_NAME
+        , A.OUR_RIGHT
+        , FN_COM_CODE_NAME('RIGHT_DIV', A.OUR_RIGHT, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+        , A.OUR_APPNO
+        , A.OUR_APPDATE
+        , A.OUR_PUBNO
+        , A.OUR_PUBDATE
+        , A.OUR_REGNO
+        , A.OUR_REGDATE
+        , A.OUR_ITEM
+        , A.THEM_RIGHT
+        , A.THEM_APPNO
+        , A.THEM_APPDATE
+        , A.THEM_PUBNO
+        , A.THEM_PUBDATE
+        , A.THEM_REGNO
+        , A.THEM_REGDATE
+        , A.THEM_ITEM
+        , A.AN_OPINION
+        , A.AN_BIGO
+        , A.ATTACH_FILE
+        , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+        , A.CRE_DATE
+FROM   TB_IPB_ANALY_DATA A
+WHERE  1=1
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/mgtNo"><![CDATA[
+AND    UPPER(A.MNG_NO) LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/appNo"><![CDATA[
+AND    UPPER(A.OUR_APPNO) LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/regNo"><![CDATA[
+AND    UPPER(A.OUR_REGNO) LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/pubNo"><![CDATA[
+AND    UPPER(A.OUR_PUBNO) LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/ourRight"><![CDATA[
+AND    A.OUR_RIGHT = {@OUR_RIGHT}
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/anTitle"><![CDATA[
+AND    UPPER(A.AN_TITLE) LIKE '%'||{@AN_TITLE}||'%'
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/themNm"><![CDATA[
+AND    UPPER(A.THEM_NAME) LIKE '%'||{@THEM_NAME}||'%'
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/appDt"><![CDATA[
+AND    A.OUR_APPDATE >= {@DATE_START}
+AND    A.OUR_APPDATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/regDt"><![CDATA[
+AND    A.OUR_REGDATE >= {@DATE_START}
+AND    A.OUR_REGDATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/pubDt"><![CDATA[
+AND    A.OUR_PUBDATE >= {@DATE_START}
+AND    A.OUR_PUBDATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/creDt"><![CDATA[
+AND    A.CRE_DATE >= {@DATE_START}
+AND    A.CRE_DATE <= {@DATE_END}
+]]></query>
+
+<query name="/retrieveRivalPatAnalysisDocList/mgtNo2"><![CDATA[
+AND    UPPER(A.MNG_NO) LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/appNo2"><![CDATA[
+AND    UPPER(A.OUR_APPNO) LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/regNo2"><![CDATA[
+AND    UPPER(A.OUR_REGNO) LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/pubNo2"><![CDATA[
+AND    UPPER(A.OUR_PUBNO) LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/ourRight2"><![CDATA[
+AND    A.OUR_RIGHT = {@OUR_RIGHT}
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/anTitle2"><![CDATA[
+AND    UPPER(A.AN_TITLE) LIKE '%'||{@AN_TITLE}||'%'
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/themNm2"><![CDATA[
+AND    UPPER(A.THEM_NAME) LIKE '%'||{@THEM_NAME}||'%'
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/appDt2"><![CDATA[
+AND    A.OUR_APPDATE >= {@DATE_START}
+AND    A.OUR_APPDATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/regDt2"><![CDATA[
+AND    A.OUR_REGDATE >= {@DATE_START}
+AND    A.OUR_REGDATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/pubDt2"><![CDATA[
+AND    A.OUR_PUBDATE >= {@DATE_START}
+AND    A.OUR_PUBDATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveRivalPatAnalysisDocList/creDt2"><![CDATA[
+AND    A.CRE_DATE >= {@DATE_START}
+AND    A.CRE_DATE <= {@DATE_END}
+]]></query>
+
+
+
+<!-- 분석자료현황 생성 -->
+<query name="/createAnalysisDoc"><![CDATA[
+INSERT INTO TB_IPB_ANALY_DATA (
+          ANALY_ID
+        , MNG_NO
+        , AN_TITLE
+        , THEM_NAME
+        , OUR_RIGHT
+        , OUR_APPNO
+        , OUR_APPDATE
+        , OUR_PUBNO
+        , OUR_PUBDATE
+        , OUR_REGNO
+        , OUR_REGDATE
+        , OUR_ITEM
+        , OUR_ATTACH1
+        , OUR_ATTACH2
+        , OUR_ATTACH3
+        , OUR_ATTACH4
+        , OUR_ATTACH5
+        , OUR_ATTACH6
+        , OUR_ATTACH7
+        , THEM_RIGHT
+        , THEM_APPNO
+        , THEM_APPDATE
+        , THEM_PUBNO
+        , THEM_PUBDATE
+        , THEM_REGNO
+        , THEM_REGDATE
+        , THEM_ITEM
+        , THEM_ATTACH1
+        , THEM_ATTACH2
+        , THEM_ATTACH3
+        , THEM_ATTACH4
+        , THEM_ATTACH5
+        , THEM_ATTACH6
+        , THEM_ATTACH7
+        , AN_OPINION
+        , AN_BIGO
+        , ATTACH_FILE
+        , CRE_USER
+        , CRE_DATE
+        , PUB_YN
+) VALUES (
+          {@ANALY_ID}
+        , {@MNG_NO}
+        , {@AN_TITLE}
+        , {@THEM_NAME}
+        , {@OUR_RIGHT}
+        , {@OUR_APPNO}
+        , {@OUR_APPDATE}
+        , {@OUR_PUBNO}
+        , {@OUR_PUBDATE}
+        , {@OUR_REGNO}
+        , {@OUR_REGDATE}
+        , {@OUR_ITEM}
+        , {@OUR_ATTACH1}
+        , {@OUR_ATTACH2}
+        , {@OUR_ATTACH3}
+        , {@OUR_ATTACH4}
+        , {@OUR_ATTACH5}
+        , {@OUR_ATTACH6}
+        , {@OUR_ATTACH7}
+        , {@THEM_RIGHT}
+        , {@THEM_APPNO}
+        , {@THEM_APPDATE}
+        , {@THEM_PUBNO}
+        , {@THEM_PUBDATE}
+        , {@THEM_REGNO}
+        , {@THEM_REGDATE}
+        , {@THEM_ITEM}
+        , {@THEM_ATTACH1}
+        , {@THEM_ATTACH2}
+        , {@THEM_ATTACH3}
+        , {@THEM_ATTACH4}
+        , {@THEM_ATTACH5}
+        , {@THEM_ATTACH6}
+        , {@THEM_ATTACH7}
+        , {@AN_OPINION}
+        , {@AN_BIGO}
+        , {@ATTACH_FILE}
+        , {@$USER_ID}
+        , TO_CHAR(SYSDATE, 'YYYYMMDD')
+        , {@PUB_YN}
+)
+]]></query>
+
+<!-- 분석자료현황 상세화면 -->
+<query name="/retriveAnalysisDocR"><![CDATA[
+SELECT    ANALY_ID
+        , MNG_NO
+        , AN_TITLE
+        , THEM_NAME
+        , OUR_RIGHT
+        , OUR_APPNO
+        , TO_CHAR(TO_DATE(OUR_APPDATE),'YYYY/MM/DD') OUR_APPDATE
+        , OUR_PUBNO
+        , TO_CHAR(TO_DATE(OUR_PUBDATE),'YYYY/MM/DD') OUR_PUBDATE
+        , OUR_REGNO
+        , TO_CHAR(TO_DATE(OUR_REGDATE),'YYYY/MM/DD') OUR_REGDATE
+        , OUR_ITEM
+        , OUR_ATTACH1
+        , OUR_ATTACH2
+        , OUR_ATTACH3
+        , OUR_ATTACH4
+        , OUR_ATTACH5
+        , OUR_ATTACH6
+        , OUR_ATTACH7
+        , THEM_RIGHT
+        , THEM_APPNO
+        , TO_CHAR(TO_DATE(THEM_APPDATE),'YYYY/MM/DD') THEM_APPDATE
+        , THEM_PUBNO
+        , TO_CHAR(TO_DATE(THEM_PUBDATE),'YYYY/MM/DD') THEM_PUBDATE
+        , THEM_REGNO
+        , TO_CHAR(TO_DATE(THEM_REGDATE),'YYYY/MM/DD') THEM_REGDATE
+        , THEM_ITEM
+        , THEM_ATTACH1
+        , THEM_ATTACH2
+        , THEM_ATTACH3
+        , THEM_ATTACH4
+        , THEM_ATTACH5
+        , THEM_ATTACH6
+        , THEM_ATTACH7
+        , AN_OPINION
+        , AN_BIGO
+        , ATTACH_FILE
+        , FN_USER_NAME(CRE_USER) CRE_USER_NAME
+        , TO_CHAR(TO_DATE(CRE_DATE),'YYYY/MM/DD') CRE_DATE
+        , UPD_USER
+        , TO_CHAR(TO_DATE(UPD_DATE),'YYYY/MM/DD') UPD_DATE
+        , PUB_YN
+FROM TB_IPB_ANALY_DATA
+WHERE ANALY_ID = {@ANALY_ID}
+]]></query>
+
+<!-- 분석자요현황  삭제 -->
+<query name="/deleteAnalysisDoc"><![CDATA[
+DELETE FROM TB_IPB_ANALY_DATA
+WHERE ANALY_ID = {@ANALY_ID}
+]]></query>
+
+<!-- 분석자요현황  수정 -->
+<query name="/updateAnalysisDoc"><![CDATA[
+UPDATE TB_IPB_ANALY_DATA SET
+          AN_TITLE          ={@AN_TITLE}
+        , THEM_NAME         ={@THEM_NAME}
+        , OUR_APPNO         ={@OUR_APPNO}
+        , OUR_APPDATE       ={@OUR_APPDATE}
+        , OUR_PUBNO         ={@OUR_PUBNO}
+        , OUR_PUBDATE       ={@OUR_PUBDATE}
+        , OUR_REGNO         ={@OUR_REGNO}
+        , OUR_REGDATE       ={@OUR_REGDATE}
+        , THEM_APPNO        ={@THEM_APPNO}
+        , THEM_APPDATE      ={@THEM_APPDATE}
+        , THEM_PUBNO        ={@THEM_PUBNO}
+        , THEM_PUBDATE      ={@THEM_PUBDATE}
+        , THEM_REGNO        ={@THEM_REGNO}
+        , THEM_REGDATE      ={@THEM_REGDATE}
+        , OUR_RIGHT         ={@OUR_RIGHT}
+        , OUR_ITEM          ={@OUR_ITEM}
+        , OUR_ATTACH1       ={@OUR_ATTACH1}
+        , OUR_ATTACH2       ={@OUR_ATTACH2}
+        , OUR_ATTACH3       ={@OUR_ATTACH3}
+        , OUR_ATTACH4       ={@OUR_ATTACH4}
+        , OUR_ATTACH5       ={@OUR_ATTACH5}
+        , OUR_ATTACH6       ={@OUR_ATTACH6}
+        , OUR_ATTACH7       ={@OUR_ATTACH7}
+        , THEM_RIGHT        ={@THEM_RIGHT}
+        , THEM_ITEM         ={@THEM_ITEM}
+        , THEM_ATTACH1      ={@THEM_ATTACH1}
+        , THEM_ATTACH2      ={@THEM_ATTACH2}
+        , THEM_ATTACH3      ={@THEM_ATTACH3}
+        , THEM_ATTACH4      ={@THEM_ATTACH4}
+        , THEM_ATTACH5      ={@THEM_ATTACH5}
+        , THEM_ATTACH6      ={@THEM_ATTACH6}
+        , THEM_ATTACH7      ={@THEM_ATTACH7}
+        , AN_OPINION        ={@AN_OPINION}
+        , AN_BIGO           ={@AN_BIGO}
+        , ATTACH_FILE       ={@ATTACH_FILE}
+        , UPD_USER          ={@$USER_ID}
+        , UPD_DATE          = TO_CHAR(SYSDATE, 'YYYYMMDD')
+        , PUB_YN            ={@PUB_YN}
+WHERE ANALY_ID              ={@ANALY_ID}
+]]></query>
+
+<!-- 기술분류코드 목록 조회 -->
+<query name="/retrieveRivalPatTechCodeList"><![CDATA[
+SELECT A.TECH_CODE
+     , B.TECH_HNAME
+     , FN_TECH_PATHNAME(A.TECH_CODE, ' > ') TECH_PATHNAME
+FROM   TB_MAPP_TECH_CLS A
+     , TB_COM_TECH_CLS B
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.TECH_CODE = B.TECH_CODE
+]]></query>
+
+<!-- IPC분류코드 목록 조회 -->
+<query name="/retrieveRivalPatIpcCodeList"><![CDATA[
+SELECT A.IPC_CODE
+     , B.IPC_HNAME
+     , FN_IPC_PATHNAME(A.IPC_CODE, ' > ') IPC_PATHNAME
+FROM   TB_MAPP_IPC_CLS A
+     , TB_COM_IPC_CLS B
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.IPC_CODE = B.IPC_CODE
+]]></query>
+
+
+<!-- 기술분류코드 생성 -->
+<query name="/createRivalPatTechCode"><![CDATA[
+INSERT INTO TB_MAPP_TECH_CLS (
+       REF_ID
+     , TECH_CODE
+     , MAPP_DIV
+) VALUES (
+       {@REF_ID}
+     , {@TECH_CODE}
+     , 'N'
+)
+]]></query>
+
+<!-- IPC분류코드 생성 -->
+<query name="/createRivalPatIpcCode"><![CDATA[
+INSERT INTO TB_MAPP_IPC_CLS (
+       REF_ID
+     , IPC_CODE
+     , MAPP_DIV
+) VALUES (
+       {@REF_ID}
+     , {@IPC_CODE}
+     , 'N'
+)
+]]></query>
+
+<!-- 기술분류코드 주분류 설정 -->
+<query name="/updateRivalPatTechCode"><![CDATA[
+UPDATE TB_MAPP_TECH_CLS SET
+       MAPP_DIV = 'N'
+WHERE  REF_ID = {@REF_ID}
+AND    ROWNUM = 1
+]]></query>
+
+<!-- IPC분류코드 주분류 설정 -->
+<query name="/updateRivalPatIpcCode"><![CDATA[
+UPDATE TB_MAPP_IPC_CLS SET
+       MAPP_DIV = 'N'
+WHERE  REF_ID = {@REF_ID}
+AND    ROWNUM = 1
+]]></query>
+
+<!-- 기술분류코드 삭제 -->
+<query name="/deleteRivalPatTechCode"><![CDATA[
+DELETE FROM TB_MAPP_TECH_CLS
+WHERE  REF_ID = {@REF_ID}
+AND    TECH_CODE = {@TECH_CODE}
+]]></query>
+
+<!-- 기술분류코드 전체 삭제 -->
+<query name="/deleteRivalPatTechCodeAll"><![CDATA[
+DELETE FROM TB_MAPP_TECH_CLS
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- IPC분류코드 전체 삭제 -->
+<query name="/deleteRivalPatIpcCodeAll"><![CDATA[
+DELETE FROM TB_MAPP_IPC_CLS
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

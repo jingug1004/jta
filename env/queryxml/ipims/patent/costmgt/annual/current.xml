@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 연차료 현황 목록 -->
+<query name="/retrieveAnnualCurrentList"><![CDATA[
+SELECT A.*
+     , {#codeData:A.STATUS:/costmgt/annualStatus:A.STATUS} STATUS_NAME
+FROM   (
+SELECT A.REF_ID
+     , A.REF_NO
+     , A.KO_APP_TITLE
+     , A.RIGHT_DIV
+     , FN_COM_CODE_NAME('RIGHT_DIV', A.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , NVL(C.PAY_YEARDEG,0) PAY_YEARDEG
+     , NVL(C.PAY_LIMIT, '-') PAY_LIMIT
+     , C.NEXT_PAY_YEARDEG
+     , C.NEXT_PAY_LIMIT
+     , TO_CHAR(ADD_MONTHS(TO_DATE(A.APP_DATE, 'YYYYMMDD'), 12 * 20), 'YYYYMMDD') RIGHT_EXPIRE_DATE
+     , A.APP_NO
+     , A.APP_DATE
+     , A.REG_NO
+     , A.REG_DATE
+     , A.INOUT_DIV
+     , CASE WHEN A.ABD_YN = '1' THEN '2' /*포기*/
+            WHEN C.REF_ID IS NOT NULL AND C.NEXT_PAY_YEARDEG IS NULL THEN '1' /*완납*/
+            ELSE '0' /*진행중*/
+       END STATUS
+     , FN_APP_MAN_NAME(A.COSTSHARE_OWNER) COSTSHARE_OWNER_NAME
+FROM   TB_APP_MST A
+     , (SELECT T1.REF_ID
+             , MAX(T1.PAY_YEARDEG) PAY_YEARDEG
+        FROM   TB_COST_REMINDER T1
+             , TB_COST_MST_ANNUAL T2
+             , TB_COST_MST T3
+             , TB_COST_SLIP T4
+        WHERE  T1.REF_ID = T2.REF_ID
+        AND    T1.PAY_YEARDEG = T2.PAY_YEARDEG
+        AND    T2.COST_SEQ = T3.COST_SEQ
+        AND    T3.SLIP_ID = T4.SLIP_ID
+        AND    T4.ACCOUNT_PROC_YN = '1'
+        GROUP BY T1.REF_ID
+       ) B
+     , TB_COST_REMINDER C
+WHERE  A.REF_ID = B.REF_ID(+)
+AND    B.REF_ID = C.REF_ID(+)
+AND    B.PAY_YEARDEG = C.PAY_YEARDEG(+)
+AND    A.REG_NO IS NOT NULL
+AND    A.REG_DATE IS NOT NULL
+AND    TO_NUMBER(A.APP_DATE) + 200000 >= TO_NUMBER(TO_CHAR(SYSDATE,'YYYYMMDD'))
+) A
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveAnnualCurrentList/rightDiv"><![CDATA[
+AND    A.RIGHT_DIV = {@RIGHT_DIV}
+]]></query>
+<query name="/retrieveAnnualCurrentList/annualDiv"><![CDATA[
+AND    A.INOUT_DIV = {@ANNUAL_DIV}
+]]></query>
+<query name="/retrieveAnnualCurrentList/searchText"><![CDATA[
+AND    UPPER(A.{#SEARCH_TYPE}) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+<query name="/retrieveAnnualCurrentList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveAnnualCurrentList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+<query name="/retrieveAnnualCurrentList/koAppTitle"><![CDATA[
+AND    UPPER(A.KO_APP_TITLE) LIKE '%'||UPPER({@KO_APP_TITLE})||'%'
+]]></query>
+<query name="/retrieveAnnualCurrentList/status"><![CDATA[
+AND    A.STATUS = {@STATUS}
+]]></query>
+
+</root>

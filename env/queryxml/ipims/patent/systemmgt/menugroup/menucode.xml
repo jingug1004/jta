@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 메뉴관리 트리 조회 -->
+<query name="/retrieveMenuCodeTree"><![CDATA[
+SELECT A.MENU_CODE_PRIOR
+     , A.MENU_CODE
+     , A.MENU_LEVEL
+     , B.MENU_NAME
+     , A.MENU_PATH
+     , A.MENU_ORD
+FROM   TB_MNU_MENU A
+     , (SELECT MENU_CODE
+             , MENU_NAME
+        FROM   TB_MNU_MENU_NAME
+        WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+        AND    LANG_CODE = {@LANG_CODE}
+       ) B
+WHERE  A.SYSTEM_TYPE = {@SYSTEM_TYPE}
+AND    A.MENU_CODE = B.MENU_CODE(+)
+ORDER BY MENU_LEVEL, MENU_ORD
+]]></query>
+
+<!-- 메뉴관리 목록 조회 -->
+<query name="/retrieveMenuCodeList"><![CDATA[
+SELECT A.SYSTEM_TYPE
+     , A.MENU_CODE
+     , A.MENU_LEVEL
+     , B.MENU_NAME
+     , A.MENU_PATH
+     , A.MENU_ORD
+     , FN_COM_CODE_NAME('USE_YN', A.USE_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) USE_YN_NAME
+FROM   TB_MNU_MENU A
+     , (SELECT MENU_CODE
+             , MENU_NAME
+        FROM   TB_MNU_MENU_NAME
+        WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+        AND    LANG_CODE = {@LANG_CODE}
+       ) B
+WHERE  A.SYSTEM_TYPE = {@SYSTEM_TYPE}
+AND    A.MENU_CODE_PRIOR = {@MENU_CODE_PRIOR}
+AND    A.MENU_CODE = B.MENU_CODE(+)
+ORDER BY MENU_ORD
+]]></query>
+
+<!-- 메뉴관리 조회 -->
+<query name="/retrieveMenuCode"><![CDATA[
+SELECT MENU_CODE
+     , MENU_CODE_PRIOR
+     , MENU_CODE_PRIOR || ' [' ||
+       CASE WHEN MENU_CODE_PRIOR = 'ROOT' THEN 'iPIMS'
+            ELSE (SELECT MENU_NAME FROM TB_MNU_MENU_NAME WHERE SYSTEM_TYPE = {@SYSTEM_TYPE} AND MENU_CODE = A.MENU_CODE_PRIOR AND LANG_CODE = {@$DEFAULT_LANG_CODE})
+       END || ']' MENU_CODE_PRIOR_NAME
+     , MENU_LEVEL
+     , MENU_PATH
+     , MENU_ORD
+     , USE_YN
+FROM   TB_MNU_MENU A
+WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+AND    MENU_CODE = {@MENU_CODE}
+]]></query>
+
+<!-- 메뉴관리 언어별 메뉴명 목록 조회 -->
+<query name="/retrieveMenuNameList"><![CDATA[
+SELECT MENU_CODE
+     , LANG_CODE
+     , MENU_NAME
+FROM   TB_MNU_MENU_NAME A
+WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+AND    MENU_CODE = {@MENU_CODE}
+]]></query>
+
+<!-- 메뉴관리 생성 -->
+<query name="/createMenuCode"><![CDATA[
+INSERT INTO TB_MNU_MENU (
+       SYSTEM_TYPE
+     , MENU_CODE
+     , MENU_CODE_PRIOR
+     , MENU_LEVEL
+     , MENU_PATH
+     , MENU_ORD
+     , USE_YN
+)
+SELECT {@SYSTEM_TYPE}
+     , {@MENU_CODE}
+     , {@MENU_CODE_PRIOR}
+     , CASE WHEN {@MENU_CODE_PRIOR} = 'ROOT' THEN 1 ELSE (SELECT MENU_LEVEL + 1 FROM TB_MNU_MENU WHERE SYSTEM_TYPE = {@SYSTEM_TYPE} AND MENU_CODE = {@MENU_CODE_PRIOR}) END
+     , {@MENU_PATH}
+     , (SELECT NVL(MAX(MENU_ORD), 0) + 1 FROM TB_MNU_MENU WHERE SYSTEM_TYPE = {@SYSTEM_TYPE} AND MENU_CODE_PRIOR = {@MENU_CODE_PRIOR})
+     , {@USE_YN}
+FROM   DUAL
+]]></query>
+
+<!-- 메뉴관리 언어별 메뉴명 목록 생성 -->
+<query name="/createMenuNameList"><![CDATA[
+INSERT INTO TB_MNU_MENU_NAME (
+       SYSTEM_TYPE
+     , MENU_CODE
+     , LANG_CODE
+     , MENU_NAME
+)
+SELECT {@SYSTEM_TYPE}
+     , {@MENU_CODE}
+     , {@LANG_CODE}
+     , {@MENU_NAME}
+FROM   DUAL
+WHERE  {@MENU_NAME} IS NOT NULL
+]]></query>
+
+<!-- 메뉴관리 수정 -->
+<query name="/updateMenuCode"><![CDATA[
+UPDATE TB_MNU_MENU SET
+       MENU_CODE_PRIOR = {@MENU_CODE_PRIOR}
+     , MENU_LEVEL = CASE WHEN {@MENU_CODE_PRIOR} = 'ROOT' THEN 1 ELSE (SELECT MENU_LEVEL + 1 FROM TB_MNU_MENU WHERE SYSTEM_TYPE = {@SYSTEM_TYPE} AND MENU_CODE = {@MENU_CODE_PRIOR}) END
+     , MENU_PATH = {@MENU_PATH}
+     , USE_YN = {@USE_YN}
+WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+AND    MENU_CODE = {@MENU_CODE}
+]]></query>
+
+<!-- 메뉴관리 삭제 -->
+<query name="/deleteMenuCode"><![CDATA[
+DELETE TB_MNU_MENU A
+WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+AND    MENU_CODE = {@MENU_CODE}
+AND    NOT EXISTS (SELECT 1
+                   FROM   TB_MNU_MENU
+                   WHERE  SYSTEM_TYPE = A.SYSTEM_TYPE
+                   AND    MENU_CODE_PRIOR = A.MENU_CODE
+                  )
+]]></query>
+
+<!-- 메뉴관리 언어별 메뉴명 목록 삭제 -->
+<query name="/deleteMenuNameList"><![CDATA[
+DELETE TB_MNU_MENU_NAME A
+WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+AND    MENU_CODE = {@MENU_CODE}
+]]></query>
+
+<!-- 그룹별 메뉴 목록 삭제 -->
+<query name="/deleteGroupMenuList"><![CDATA[
+DELETE TB_MNU_GROUP_MENU
+WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+AND    MENU_CODE = {@MENU_CODE}
+]]></query>
+
+<!-- 메뉴순서 변경 -->
+<query name="/updateMenuOrd"><![CDATA[
+UPDATE TB_MNU_MENU SET
+       MENU_ORD  = {@MENU_ORD}
+WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+AND    MENU_CODE = {@MENU_CODE}
+]]></query>
+
+</root>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Cache-Control" content="no-cache; no-store; no-save">
+<meta http-equiv="Expires" content="0">
+<meta http-equiv="Pragma" content="no-cache">
+<script type="text/javascript">
+window.onload = function()
+{
+    if (window.frameElement["any-url"] != null) {
+        document.title = parent.document.title;
+        window.setTimeout(function() {
+            window.location.href = window.frameElement["any-url"];
+            window.frameElement["any-url"] = null;
+        }, 0);
+    } else {
+        try {
+            parent.document.body.focus();
+        } catch(e) {
+        }
+        if (window.frameElement["any-unloadPage"] != null) {
+            window.frameElement["any-unloadPage"]();
+        }
+    }
+};
+</script>
+</head>
+<body>
+</body>
+</html>

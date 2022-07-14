@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 선행기술조사 품의서 선행기술조사형태 조회 -->
+<query name="/retrievePriorSearchConsultPrschType"><![CDATA[
+SELECT PRSCH_TYPE
+FROM   TB_APP_PRSCH_CONSULT
+WHERE  PRSCH_ID = {@PRSCH_ID}
+]]></query>
+
+<!-- 선행기술조사 품의서 사무소송부일 업데이트 -->
+<query name="/updatePriorSearchConsultOfficeSendDate"><![CDATA[
+UPDATE TB_APP_PRSCH_CONSULT SET
+       OFFICE_SEND_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  PRSCH_ID = {@PRSCH_ID}
+AND    PRSCH_TYPE = '2'
+]]></query>
+
+<!-- 선행기술조사 사무소 조회 -->
+<query name="/retrievePriorSearchOffice"><![CDATA[
+SELECT  A.OFFICE_CODE
+      , B.FIRM_HNAME OFFICE_NAME
+      , B.MAILID MAIL_ADDR
+      , C.PRSCH_NO
+      , C.PRSCH_SUBJECT
+      , C.PRSCH_GOAL
+      , FN_COM_CODE_NAME('PRSCH_DIV', C.PRSCH_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) PRSCH_DIV_NAME
+FROM    TB_APP_PRSCH_REQ C
+      , TB_APP_PRSCH_CONSULT A
+      , TB_ORG_OFFICE B
+WHERE A.OFFICE_CODE = B.OFFICE_CODE
+AND   A.PRSCH_ID = C.PRSCH_ID
+AND   A.PRSCH_ID = {@PRSCH_ID}
+]]></query>
+
+</root>

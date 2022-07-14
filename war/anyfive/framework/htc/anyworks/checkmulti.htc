@@ -1,0 +1,311 @@
+<PUBLIC:COMPONENT tagName="CHECKMULTI" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="readOnly" get="getReadOnly" put="setReadOnly">
+    <PUBLIC:PROPERTY name="checked" get="getChecked" put="setChecked">
+    <PUBLIC:PROPERTY name="value" get="getValue" put="setValue">
+    <PUBLIC:PROPERTY name="codeData" get="getCodeData" put="setCodeData">
+    <PUBLIC:PROPERTY name="codeData2" get="getCodeData" put="setCodeData2">
+    <PUBLIC:PROPERTY name="firstName">
+    <PUBLIC:PROPERTY name="cols">
+    <PUBLIC:PROPERTY name="valueDelimiter" value=",">
+    <PUBLIC:METHOD name="reload">
+    <PUBLIC:METHOD name="setCodeDataObject">
+    <PUBLIC:METHOD name="addItem">
+    <PUBLIC:METHOD name="delItem">
+    <PUBLIC:METHOD name="clearAll">
+    <PUBLIC:METHOD name="checkAll">
+    <PUBLIC:EVENT name="OnReady" id="OnReadyEvent">
+    <PUBLIC:EVENT name="OnClick2" id="OnClick2Event">
+    <PUBLIC:EVENT name="OnChange" id="OnChangeEvent">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var tbd_main;
+var tbd_main_id = "tr_" + element.id + "_" + element.sourceIndex;
+
+var chk_main;
+var chk_main_id = "chk_" + element.id + "_" + element.sourceIndex;
+
+var myDiv;
+var myCodeData;
+var myValue;
+var myReadOnly = false;
+
+eval(function()
+{
+    if (element.document.media == "print") return;
+
+    if (element.style.width == "") {
+        element.style.width = "100%";
+    }
+
+    myDiv = element.document.createElement('<DIV>');
+    element.appendChild(myDiv);
+
+    myDiv.innerHTML = '<TABLE border="0" cellspacing="0" cellpadding="0" width="100%" height="100%"><TBODY id="' + tbd_main_id + '"></TBODY></TABLE>';
+
+    tbd_main = element.document.getElementById(tbd_main_id);
+})();
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    for (var i = 0, elements = element.getElementsByTagName("*"); i < elements.length; i++) {
+        if (elements[i].tagName == "SCRIPT" || elements[i].tagName == "COMMENT") eval(elements[i].text);
+    }
+
+    try {
+        OnReadyEvent.fire(element.document.createEventObject());
+    } catch(ex) {
+    }
+
+    element.isReady = true;
+}
+
+function getCodeData()
+{
+    return myCodeData;
+}
+
+function setCodeData(val)
+{
+    clearAll();
+
+    myCodeData = val;
+
+    if (element.document.media == "print") return;
+    if (element.document.readyState != "complete") return;
+
+    setCodeDataObject(any.getCodeData(myCodeData));
+}
+
+function setCodeData2(val)
+{
+    myCodeData = val;
+}
+
+function reload()
+{
+    if (myCodeData != null) setCodeData(myCodeData);
+}
+
+function setCodeDataObject(codeDatas)
+{
+    clearAll();
+
+    if (codeDatas == null) return;
+
+    var firstNode = any.getFirstNode(element.firstName);
+
+    if (firstNode != null) {
+        addItem(firstNode.CODE, firstNode.NAME, firstNode);
+    }
+
+    for (var i = 0; i < codeDatas.length; i++) {
+        addItem(codeDatas[i].data.CODE, any.getCodeName(codeDatas[i].data), codeDatas[i].data);
+    }
+
+    chk_main = element.document.getElementsByName(chk_main_id);
+
+    if (myValue != null) {
+        setValue(myValue);
+        myValue = null;
+    }
+}
+
+function getCheckHTML(code, text, idx)
+{
+    var html = new Array();
+    var chk_id = chk_main_id + "_" + String(idx == null ? (chk_main == null ? 0 : chk_main.length) : idx);
+
+    var cursor = (myReadOnly == true ? "default" : "hand");
+
+    html.push('<LABEL for="' + chk_id + '" style="cursor:' + cursor + ';">');
+    html.push('<INPUT type="checkbox" id="' + chk_id + '" name="' + chk_main_id + '" value="' + code + '" onFocus="javascript:this.blur();">' + text);
+    html.push('</LABEL>');
+
+    return html.join("");
+}
+
+function getChecked(val)
+{
+    for (var i = 0; i < chk_main.length; i++) {
+        if (chk_main[i].value == val) return chk_main[i].checked;
+    }
+}
+
+function setChecked(val, chk)
+{
+    for (var i = 0; i < chk_main.length; i++) {
+        if (chk_main[i].value != val) continue;
+        chk_main[i].checked = chk;
+        break;
+    }
+}
+
+function getValue()
+{
+    if (chk_main == null) return "";
+
+    var values = [];
+
+    for (var i = 0; i < chk_main.length; i++) {
+        if (chk_main[i].checked) values.push(chk_main[i].value);
+    }
+
+    return values.join(element.valueDelimiter);
+}
+
+function setValue(val)
+{
+    myValue = val;
+
+    if (chk_main == null) return;
+    if (val == null) return;
+
+    var values = val.split(element.valueDelimiter);
+    var valueObj = {};
+
+    for (var i = 0; i < values.length; i++) {
+        valueObj[values[i]] = true;
+    }
+
+    for (var i = 0; i < chk_main.length; i++) {
+        chk_main[i].checked = valueObj[chk_main[i].value];
+    }
+
+    setReadOnly(myReadOnly);
+
+    if (element.readyState == "complete" && element.document.readyState == "complete") {
+        OnChangeEvent.fire(element.document.createEventObject());
+    }
+}
+
+function getReadOnly()
+{
+    return myReadOnly;
+}
+
+function setReadOnly(val)
+{
+    myReadOnly = (String(val) == "" || String(val) == "true");
+
+    if (chk_main == null) return;
+
+    var cursor = (myReadOnly == true ? "default" : "hand");
+
+    for (var i = 0; i < chk_main.length; i++) {
+        chk_main[i].parentElement.style.cursor = cursor;
+        chk_main[i].parentElement.disabled = (myReadOnly == true && !chk_main[i].checked);
+    }
+}
+
+function addItem(code, text, data)
+{
+    if (tbd_main == null) return;
+
+    var tr, td;
+
+    if (tbd_main.rows.length > 0) {
+        tr = tbd_main.rows[tbd_main.rows.length - 1];
+        for (var i = 0; i < tr.cells.length; i++) {
+            if (tr.cells[i].innerHTML != "&nbsp;") continue;
+            td = tr.cells[i];
+            break;
+        }
+    }
+
+    if (td == null) {
+        if (element.cols == null || element.cols == "" || isNaN(element.cols) || parseInt(element.cols, 10) <= 0) {
+            if (tbd_main.rows.length == 0) {
+                tr = element.document.createElement('<TR>');
+                tbd_main.appendChild(tr);
+            }
+            td = element.document.createElement('<TD>');
+            tr.appendChild(td);
+            for (var i = 0; i < tr.cells.length; i++) {
+                tr.cells[i].width = String(100 / tr.cells.length) + "%";
+            }
+        } else {
+            tr = element.document.createElement('<TR>');
+            tbd_main.appendChild(tr);
+            for (var i = 0; i < element.cols; i++) {
+                td = element.document.createElement('<TD>');
+                td.innerHTML = "&nbsp;";
+                td.width = String(100 / element.cols) + "%";
+                tr.appendChild(td);
+            }
+            td = tr.cells[0];
+        }
+    }
+
+    td.noWrap = true;
+    td.innerHTML = getCheckHTML(code, text);
+
+    chk_main = element.document.getElementsByName(chk_main_id);
+
+    chk_main[chk_main.length - 1].data = data;
+
+    for (var i = 0; i < chk_main.length; i++) {
+        chk_main[i].onclick = function()
+        {
+            if (myReadOnly == true) {
+                if (this.parentElement.disabled != true) {
+                    this.checked = true;
+                }
+                return;
+            }
+
+            OnClick2Event.fire(element.document.createEventObject());
+            OnChangeEvent.fire(element.document.createEventObject());
+        }
+    }
+
+    setReadOnly(myReadOnly);
+}
+
+function delItem(val)
+{
+    if (tbd_main == null) return;
+    if (tbd_main.rows.length == 0) return;
+
+    var tr, td;
+
+    tr = tbd_main.rows[tbd_main.rows.length - 1];
+
+    for (var i = tr.cells.length - 1; i >= 0; i--) {
+        if (tr.cells[i].innerHTML == "&nbsp;") continue;
+        td = tr.cells[i];
+        break;
+    }
+
+    td.innerHTML = "&nbsp;";
+
+    if (td == tr.cells[0]) {
+        tbd_main.deleteRow(tbd_main.rows.length - 1);
+    }
+}
+
+function clearAll()
+{
+    if (tbd_main == null) return;
+
+    for (var i = tbd_main.rows.length - 1; i >= 0; i--) {
+        tbd_main.deleteRow(i);
+    }
+}
+
+function checkAll(val)
+{
+    if (chk_main == null) return;
+
+    for (var i = 0; i < chk_main.length; i++) {
+        chk_main[i].checked = val;
+    }
+
+    OnChangeEvent.fire(element.document.createEventObject());
+}
+</SCRIPT>

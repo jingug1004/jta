@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 사용자정보 조회 -->
+<query name="/retrieveUserInfo"><![CDATA[
+SELECT A.USER_ID
+     , B.OFFICE_CODE
+     , FN_OFFICE_NAME(B.OFFICE_CODE) AS OFFICE_CODE_NAME
+     , A.JUMIN_NO1 || ' - ' || '*******' AS JUMIN_NO
+     , A.LOGIN_PW
+     , A.EMP_HNAME
+     , A.EMP_ENAME
+     , A.EMP_CNAME
+     , A.MAIL_ADDR
+     , B.OFFICE_TEL
+     , B.OFFICE_FAX
+     , B.MOBILE_TEL
+     , C.DEPT_CODE
+     , FN_DEPT_NAME(C.DEPT_CODE) AS DEPT_CODE_NAME
+     , B.POSITION_NAME
+     , B.INPUT_DATE
+FROM   TB_USR_MST A
+     , TB_USR_OFFICE B
+     , TB_USR_PATENT C
+WHERE  A.USER_ID = B.USER_ID(+)
+AND    A.USER_ID = C.USER_ID(+)
+AND    A.USER_ID = {@$USER_ID}
+]]></query>
+
+<!-- 사용자정보 수정 --> -->
+<query name="/updateUserInfo"><![CDATA[
+UPDATE TB_USR_MST SET
+       LOGIN_PW = {@LOGIN_PW}
+WHERE  USER_ID = {@$USER_ID}
+]]></query>
+
+</root>

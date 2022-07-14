@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 출원비용 품의서 목록 조회 -->
+<query name="/retrieveCostConsultList"><![CDATA[
+SELECT A.CONSULT_ID
+     , A.CONSULT_SUBJECT
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , A.CRE_DATE
+     , {#codeData:NVL(B.APPR_STATUS,'0'):/common/apprStatus} APPR_STATUS_NAME
+FROM   TB_COST_CONSULT A
+     , TB_APPR_MST B
+WHERE  A.APPR_NO = B.APPR_NO(+)
+AND    CONSULT_KIND = 'C'
+]]></query>
+<query name="/retrieveCostConsultList/consultSubject"><![CDATA[
+AND    A.CONSULT_SUBJECT LIKE '%'||{@CONSULT_SUBJECT}||'%'
+]]></query>
+<query name="/retrieveCostConsultList/consultStatus"><![CDATA[
+AND    B.APPR_STATUS = {@CONSULT_STATUS}
+]]></query>
+<query name="/retrieveCostConsultList/consultStatusDefault"><![CDATA[
+AND    B.APPR_STATUS IS NULL
+]]></query>
+<query name="/retrieveCostConsultList/creUser"><![CDATA[
+AND    FN_USER_NAME(A.CRE_USER) LIKE '%'||{@CRE_USER}||'%'
+]]></query>
+<query name="/retrieveCostConsultList/dateStart"><![CDATA[
+AND    A.CRE_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveCostConsultList/dateEnd"><![CDATA[
+AND    A.CRE_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 출원비용 품의서 생성 -->
+<query name="/createCostConsult"><![CDATA[
+INSERT INTO TB_COST_CONSULT (
+       CONSULT_ID
+     , CONSULT_KIND
+     , CONSULT_SUBJECT
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@CONSULT_ID}
+     , 'C'
+     , '출원비용 품의서 (' || TO_CHAR(SYSDATE, 'YYYY/MM/DD') || ')'
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 비용청구서 수정(품의서ID 설정) -->
+<query name="/updateCostRequestToConsult"><![CDATA[
+UPDATE TB_COST_REQ_MST SET
+       CONSULT_ID = {@CONSULT_ID}
+WHERE  REQ_ID = {@REQ_ID}
+AND    CONSULT_ID IS NULL
+]]></query>
+
+<!-- 비용마스터 수정(품의서ID 설정) -->
+<query name="/updateCostMasterToConsult"><![CDATA[
+UPDATE TB_COST_MST SET
+       CONSULT_ID = {@CONSULT_ID}
+WHERE  REQ_ID = {@REQ_ID}
+AND    CONSULT_ID IS NULL
+AND    CONFIRM_YN = '1'
+]]></query>
+
+<!-- 출원비용 품의서 조회 -->
+<query name="/retrieveCostConsult"><![CDATA[
+SELECT A.CONSULT_SUBJECT
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , A.CRE_USER
+     , A.CRE_DATE
+     , B.TOTAL_PRICE
+     , B.TOTAL_WON_PRICE
+     , C.TAX
+FROM   TB_COST_CONSULT A
+     , (SELECT SUM(PRICE)  TOTAL_PRICE
+             , SUM(WON_PRICE) TOTAL_WON_PRICE
+        FROM   TB_COST_MST
+        WHERE  CONSULT_ID = {@CONSULT_ID}) B
+         ,(SELECT SUM(DECODE(DETAILCODE.TAX_YN,'1',MST.WON_PRICE*0.1,'0'))TAX,CONSULT_ID
+        FROM TB_COST_MST MST,TB_COST_MGT_DETAILCODE DETAILCODE
+        WHERE MST.GRAND_CODE = DETAILCODE.GRAND_CODE
+        AND   MST.DETAIL_CODE= DETAILCODE.DETAIL_CODE
+        AND MST.CONSULT_ID = {@CONSULT_ID}
+        GROUP BY CONSULT_ID)C
+WHERE  A.CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 출원비용 품의서 비용 목록 조회 -->
+<query name="/retrieveCostConsultInputList"><![CDATA[
+SELECT A.REF_ID
+     , A.APP_NO
+     , B.REQ_ID
+     , C.REQ_SUBJECT
+     , A.REF_NO
+     , B.LETTER_SEQ
+     , FN_COM_CODE_NAME('APP_COST_KIND', B.COST_KIND, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) COST_KIND_NAME
+     , A.INOUT_DIV
+     , FN_COM_CODE_NAME('INOUT_DIV', A.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , D.GRAND_NAME
+     , E.DETAIL_NAME
+     , FN_COM_CODE_NAME('RIGHT_DIV_ALL', A.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , B.WON_PRICE
+     , B.PRICE
+     , C.REQ_DATE
+     , FN_USER_NAME(C.REQ_USER) REQ_USER_NAME
+     , DECODE(E.TAX_YN,'1',B.WON_PRICE*0.1,'0')TAX
+     , FN_OFFICE_NAME(B.OFFICE_CODE) OFFICE_NAME
+FROM   V_MASTER_ALL A
+     , TB_COST_MST B
+     , TB_COST_REQ_MST C
+     , TB_COST_MGT_GRANDCODE D
+     , TB_COST_MGT_DETAILCODE E
+WHERE  A.REF_ID = B.REF_ID
+AND    B.REQ_ID = C.REQ_ID
+AND    B.GRAND_CODE = D.GRAND_CODE
+AND    B.DETAIL_CODE = E.DETAIL_CODE
+AND    D.GRAND_CODE = E.GRAND_CODE
+AND    C.REQ_YN = '1'
+AND    B.CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 출원비용 품의서 수정 -->
+<query name="/updateCostConsult"><![CDATA[
+UPDATE TB_COST_CONSULT SET
+       CONSULT_SUBJECT = {@CONSULT_SUBJECT}
+WHERE  CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 출원비용 품의서 삭제 -->
+<query name="/deleteCostConsult"><![CDATA[
+DELETE FROM TB_COST_CONSULT
+WHERE CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 비용청구서 수정(품의서ID 삭제) -->
+<query name="/updateCostRequestConsultId"><![CDATA[
+UPDATE TB_COST_REQ_MST SET
+       CONSULT_ID = NULL
+WHERE  CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 비용마스터 수정(품의서ID 삭제) -->
+<query name="/updateCostMasterConsultId"><![CDATA[
+UPDATE TB_COST_MST SET
+       CONSULT_ID = NULL
+WHERE  CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+</root>

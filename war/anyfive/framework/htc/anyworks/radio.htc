@@ -1,0 +1,341 @@
+<PUBLIC:COMPONENT tagName="RADIO" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="codeData" get="getCodeData" put="setCodeData">
+    <PUBLIC:PROPERTY name="codeData2" get="getCodeData" put="setCodeData2">
+    <PUBLIC:PROPERTY name="index" get="getIndex" put="setIndex">
+    <PUBLIC:PROPERTY name="value" get="getValue" put="setValue">
+    <PUBLIC:PROPERTY name="valueRow" get="getValueRow">
+    <PUBLIC:PROPERTY name="group">
+    <PUBLIC:PROPERTY name="firstName">
+    <PUBLIC:PROPERTY name="cols">
+    <PUBLIC:PROPERTY name="readOnly" get="getReadOnly" put="setReadOnly">
+    <PUBLIC:METHOD name="reload">
+    <PUBLIC:METHOD name="setCodeDataObject">
+    <PUBLIC:METHOD name="addItem">
+    <PUBLIC:METHOD name="delItem">
+    <PUBLIC:METHOD name="clearAll">
+    <PUBLIC:EVENT name="OnReady" id="OnReadyEvent">
+    <PUBLIC:EVENT name="OnClick2" id="OnClick2Event">
+    <PUBLIC:EVENT name="OnChange" id="OnChangeEvent">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var tbd_main;
+var tbd_main_id = "tbd_" + element.id + "_" + element.sourceIndex;
+
+var rdo_main;
+var rdo_main_id;
+
+if (element.group == null || element.group == "") {
+    rdo_main_id = "rdo_" + element.id + "_" + element.sourceIndex;
+} else {
+    rdo_main_id = "rdo_" + element.group;
+}
+
+var myDiv;
+var myCodeData;
+var myIndex;
+var myValue;
+var myReadOnly = false;
+var myCheckedObject;
+
+eval(function()
+{
+    if (element.document.media == "print") return;
+
+    if (element.style.width == "") {
+        element.style.width = "100%";
+    }
+
+    myDiv = element.document.createElement('<DIV>');
+    element.appendChild(myDiv);
+
+    myDiv.innerHTML = '<TABLE border="0" cellspacing="0" cellpadding="0" width="100%" height="100%"><TBODY id="' + tbd_main_id + '"></TBODY></TABLE>';
+
+    tbd_main = element.document.getElementById(tbd_main_id);
+})();
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    for (var i = 0, elements = element.getElementsByTagName("*"); i < elements.length; i++) {
+        if (elements[i].tagName == "SCRIPT" || elements[i].tagName == "COMMENT") eval(elements[i].text);
+    }
+
+    try {
+        any.event.call(element, "OnReady");
+        //OnReadyEvent.fire(element.document.createEventObject());
+    } catch(ex) {
+    }
+
+    element.isReady = true;
+}
+
+function getCodeData()
+{
+    return myCodeData;
+}
+
+function setCodeData(val)
+{
+    clearAll();
+
+    myCodeData = val;
+
+    if (element.document.media == "print") return;
+    if (element.document.readyState != "complete") return;
+
+    setCodeDataObject(any.getCodeData(myCodeData));
+}
+
+function setCodeData2(val)
+{
+    myCodeData = val;
+}
+
+function reload()
+{
+    if (myCodeData != null) setCodeData(myCodeData);
+}
+
+function setCodeDataObject(codeDatas)
+{
+    clearAll();
+
+    if (codeDatas == null) return;
+
+    var firstNode = any.getFirstNode(element.firstName);
+
+    if (firstNode != null) {
+        addItem(firstNode.CODE, firstNode.NAME, firstNode);
+    }
+
+    for (var i = 0; i < codeDatas.length; i++) {
+        addItem(codeDatas[i].data.CODE, any.getCodeName(codeDatas[i].data), codeDatas[i].data);
+    }
+
+    rdo_main = element.document.getElementsByName(rdo_main_id);
+
+    if (myValue == null) {
+        setIndex(myIndex);
+    } else {
+        setValue(myValue);
+        myValue = null;
+    }
+
+    if (element.readyState == "complete" && element.document.readyState == "complete") {
+        try {
+            OnChangeEvent.fire(element.document.createEventObject());
+        } catch(ex) {
+        }
+    }
+}
+
+function getRadioHTML(code, text, idx)
+{
+    var html = new Array();
+    var rdo_id = "rdo_" + element.id + "_" + element.sourceIndex + "_" + String(idx == null ? (rdo_main == null ? 0 : rdo_main.length) : idx);
+    var cursor = (myReadOnly == true ? "default" : "hand");
+
+    html.push('<LABEL for="' + rdo_id + '" style="cursor:' + cursor + ';">');
+    html.push('<INPUT type="radio" id="' + rdo_id + '" name="' + rdo_main_id + '" value="' + code + '" onFocus="javascript:this.blur();">' + text);
+    html.push('</LABEL>');
+
+    return html.join("");
+}
+
+function getIndex()
+{
+    if (rdo_main == null) return -1;
+
+    for (var i = 0; i < rdo_main.length; i++) {
+        if (rdo_main[i].checked == true) return i;
+    }
+
+    return -1;
+}
+
+function setIndex(val)
+{
+    if (val == null) return;
+
+    myIndex = val;
+
+    if (rdo_main == null) return;
+
+    for (var i = 0; i < rdo_main.length; i++) {
+        rdo_main[i].checked = (myIndex == i);
+    }
+
+    myCheckedObject = rdo_main[myIndex];
+
+    if (element.readyState == "complete" && element.document.readyState == "complete") {
+        OnChangeEvent.fire(element.document.createEventObject());
+    }
+}
+
+function getValue(rowIdx, colId)
+{
+    if (rdo_main == null) return "";
+
+    if (rowIdx == null) {
+        rowIdx = -1;
+        for (var i = 0; i < rdo_main.length; i++) {
+            if (rdo_main[i].checked != true) continue;
+            rowIdx = i;
+            break;
+        }
+    }
+
+    if (rowIdx == -1) return "";
+
+    if (colId == null) {
+        return rdo_main[rowIdx].value;
+    }
+
+    return rdo_main[rowIdx].data[colId];
+}
+
+function setValue(val)
+{
+    myValue = val;
+
+    if (rdo_main == null) return;
+
+    for (var i = 0; i < rdo_main.length; i++) {
+        rdo_main[i].checked = (rdo_main[i].value == myValue);
+        rdo_main[i].parentElement.disabled = (myReadOnly == true && !rdo_main[i].checked);
+        if (rdo_main[i].checked == true) myCheckedObject = rdo_main[i];
+    }
+
+    if (element.readyState == "complete" && element.document.readyState == "complete") {
+        OnChangeEvent.fire(element.document.createEventObject());
+    }
+}
+
+function getValueRow(val)
+{
+    for (var i = 0; i < rdo_main.length; i++) {
+        if (rdo_main[i].value == val) return i;
+    }
+
+    return -1;
+}
+
+function getReadOnly()
+{
+    return myReadOnly;
+}
+
+function setReadOnly(val)
+{
+    myReadOnly = (String(val) == "" || String(val) == "true");
+
+    if (rdo_main == null) return;
+
+    var cursor = (myReadOnly == true ? "default" : "hand");
+
+    for (var i = 0; i < rdo_main.length; i++) {
+        rdo_main[i].parentElement.style.cursor = cursor;
+        rdo_main[i].parentElement.disabled = (myReadOnly == true && !rdo_main[i].checked);
+    }
+}
+
+function addItem(code, text, data)
+{
+    if (tbd_main == null) return;
+
+    var tr, td;
+
+    if (tbd_main.rows.length > 0) {
+        tr = tbd_main.rows[tbd_main.rows.length - 1];
+        for (var i = 0; i < tr.cells.length; i++) {
+            if (tr.cells[i].innerHTML != "&nbsp;") continue;
+            td = tr.cells[i];
+            break;
+        }
+    }
+
+    if (td == null) {
+        if (element.cols == null || element.cols == "" || isNaN(element.cols) || parseInt(element.cols, 10) <= 0) {
+            if (tbd_main.rows.length == 0) {
+                tr = element.document.createElement('<TR>');
+                tbd_main.appendChild(tr);
+            }
+            td = element.document.createElement('<TD>');
+            tr.appendChild(td);
+            for (var i = 0; i < tr.cells.length; i++) {
+                tr.cells[i].width = String(100 / tr.cells.length) + "%";
+            }
+        } else {
+            tr = element.document.createElement('<TR>');
+            tbd_main.appendChild(tr);
+            for (var i = 0; i < element.cols; i++) {
+                td = element.document.createElement('<TD>');
+                td.innerHTML = "&nbsp;";
+                td.width = String(100 / element.cols) + "%";
+                tr.appendChild(td);
+            }
+            td = tr.cells[0];
+        }
+    }
+
+    td.noWrap = true;
+    td.innerHTML = getRadioHTML(code, text);
+
+    rdo_main = element.document.getElementsByName(rdo_main_id);
+
+    rdo_main[rdo_main.length - 1].data = data;
+
+    for (var i = 0; i < rdo_main.length; i++) {
+        rdo_main[i].onclick = function()
+        {
+            if (myReadOnly == true) return;
+
+            OnClick2Event.fire(element.document.createEventObject());
+
+            if (myCheckedObject != this) {
+                OnChangeEvent.fire(element.document.createEventObject());
+            }
+
+            myCheckedObject = this;
+        }
+    }
+
+    setReadOnly(myReadOnly);
+}
+
+function delItem()
+{
+    if (tbd_main == null) return;
+    if (tbd_main.rows.length == 0) return;
+
+    var tr, td;
+
+    tr = tbd_main.rows[tbd_main.rows.length - 1];
+
+    for (var i = tr.cells.length - 1; i >= 0; i--) {
+        if (tr.cells[i].innerHTML == "&nbsp;") continue;
+        td = tr.cells[i];
+        break;
+    }
+
+    td.innerHTML = "&nbsp;";
+
+    if (td == tr.cells[0]) {
+        tbd_main.deleteRow(tbd_main.rows.length - 1);
+    }
+}
+
+function clearAll()
+{
+    if (tbd_main == null) return;
+
+    for (var i = tbd_main.rows.length - 1; i >= 0; i--) {
+        tbd_main.deleteRow(i);
+    }
+}
+</SCRIPT>

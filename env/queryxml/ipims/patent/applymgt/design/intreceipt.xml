@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 디자인국내의뢰접수 목록 조회 -->
+<query name="/retrieveDesignIntReceiptList"><![CDATA[
+SELECT A.REF_ID
+     , FN_LAB_NAME(A.LAB_CODE) || ' - ' || FN_DEPT_NAME(A.DEPT_CODE) LAB_DEPT_NAME
+     , A.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.REF_NO
+     , A.PATTEAM_REQ_DATE
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+FROM   TB_APP_INT_REQ A
+     , TB_BIZ_COM_MST Z
+WHERE  A.REF_ID = Z.REF_ID
+AND    Z.STATUS IN (SELECT T1.CURR_STATUS FROM TB_BIZ_MGT_PROC T1 WHERE T1.BIZ_ACT = 'A00009')
+AND    A.RIGHT_DIV IN ('30')
+AND    NOT EXISTS (SELECT 1 FROM TB_APP_INT_CONSULT T WHERE T.REF_ID = A.REF_ID)
+ORDER BY REF_NO DESC
+]]></query>
+
+<!-- 디자인국내의뢰접수 상세 조회 -->
+<query name="/retrieveDesignIntReceipt"><![CDATA[
+SELECT REQ.REF_ID
+     , REQ.REF_NO
+     , REQ.KO_APP_TITLE
+     , REQ.EN_APP_TITLE
+     , REQ.PATTEAM_REQ_DATE
+     , REQ.CRE_DATE
+     , REQ.LAB_CODE
+     , REQ.APP_IMMED_YN
+     , REQ.APP_IMMED_REASON
+     , LAB.LAB_NAME
+     , DESIGN.DESIGN_IMG_FILE
+     , DESIGN.OUT_MODEL_NAME
+     , DESIGN.PROD_PLAN_DATE
+     , DESIGN.ETC_FILE
+     , DESIGN.DESIGN_DESC
+     , DESIGN.DESIGN_CREATE_CONTENTS
+     , FN_USER_NAME(REQ.CRE_USER) USER_NAME
+     , FN_DIVISN_NAME(REQ.DIVISN_CODE) DIVISN_NAME
+     , FN_DEPT_NAME(REQ.DEPT_CODE)DEPT_NAME
+     , COMMST.STATUS STATUS
+     , FN_INVENTOR_NAMES(REQ.REF_ID) INVENTOR_NAMES
+FROM   TB_APP_INT_REQ REQ
+     , TB_APP_INT_REQ_DESIGN DESIGN
+     , TB_APP_INT_CONSULT CONSULT
+     , TB_BIZ_COM_MST COMMST
+     , TB_ORG_LAB LAB
+WHERE  REQ.REF_ID = CONSULT.REF_ID(+)
+  AND  REQ.REF_ID = COMMST.REF_ID(+)
+  AND  REQ.REF_ID = DESIGN.REF_ID(+)
+  AND  REQ.LAB_CODE = LAB.LAB_CODE(+)
+  AND  REQ.RIGHT_DIV ='30'
+  AND  REQ.REF_ID = {@REF_ID}
+]]></query>
+<query name="/retrieveDesignIntRequestList/refNo"><![CDATA[
+AND    REQ.REF_NO LIKE '%'||{@REF_NO}||'%'
+]]></query>
+
+<!-- 디자인출원품의 생성 -->
+<query name="/createDesignIntConsult"><![CDATA[
+INSERT INTO TB_APP_INT_CONSULT (
+       REF_ID
+     , REF_NO
+     , RIGHT_DIV
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , DIVISN_CODE
+     , DEPT_CODE
+     , LAB_CODE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+     , PATTEAM_RCPT_DATE
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT REF_ID
+     , REF_NO
+     , RIGHT_DIV
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , DIVISN_CODE
+     , DEPT_CODE
+     , LAB_CODE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_INT_REQ
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 디자인국내출원품의 생성 - 디자인 -->
+<query name="/createDesignIntConsultDesign"><![CDATA[
+INSERT INTO TB_APP_INT_CONSULT_DESIGN (
+       REF_ID
+) VALUES (
+       {@REF_ID}
+)
+]]></query>
+
+<!-- 디자인국내출원마스터 생성 -->
+<query name="/createDesignIntMaster"><![CDATA[
+INSERT INTO TB_APP_MST (
+       REF_ID
+     , REF_NO
+     , RIGHT_DIV
+     , INOUT_DIV
+     , COUNTRY_CODE
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , DIVISN_CODE
+     , DEPT_CODE
+     , LAB_CODE
+     , JOB_MAN
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT REQ.REF_ID
+     , REQ.REF_NO
+     , '30'
+     , 'INT'
+     , 'KR'
+     , REQ.KO_APP_TITLE
+     , REQ.EN_APP_TITLE
+     , REQ.DIVISN_CODE
+     , REQ.DEPT_CODE
+     , REQ.LAB_CODE
+     , {@JOB_MAN}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_INT_REQ REQ
+WHERE  REQ.REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 디자인국내출원마스터 생성 - 국내 -->
+<query name="/createDesignIntMasterInt"><![CDATA[
+INSERT INTO TB_APP_MST_INT (
+       REF_ID
+     , PATTEAM_RCPT_DATE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+)
+SELECT REF_ID
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+FROM   TB_APP_INT_REQ
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+</root>

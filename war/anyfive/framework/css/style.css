@@ -1,0 +1,120 @@
+HTML, BODY {
+    height: 100%;
+}
+
+BODY, FORM {
+    margin: 0px;
+}
+
+BODY, TH, TD, A, DIV, SPAN, PRE, XMP, INPUT, TEXTAREA, SELECT, BUTTON {
+    font-family: "Tahoma";
+    font-size: 12px;
+}
+
+BODY, INPUT, TEXTAREA, SELECT {
+    color: #575757;
+}
+
+TD, SPAN {
+    word-break: break-all;
+}
+
+INPUT, TEXTAREA {
+    padding: 2px 2px 0px 2px;
+}
+
+INPUT {
+    height: 20px;
+}
+
+BUTTON {
+    background-color: #EEEEEE;
+    border-color: #CCCCCC #666666 #666666 #CCCCCC;
+    border-width: 1px;
+    border-style: solid;
+    cursor: default;
+    height: 20px;
+}
+
+SPAN.link {
+    color: #457A9F;
+    cursor: hand;
+    text-decoration: underline;
+}
+
+.button_area {
+    margin-top: 5px;
+    text-align: right;
+    width: 100%;
+}
+
+.title_main {
+    font-family:"돋움";
+    font-size:14px;
+    font-weight: bold;
+    color: #6C1D39;
+}
+
+.title_sub {
+    color: #50A8C9;
+    font-weight: bold;
+    margin: 10px 0px 4px 0px;
+}
+
+.title_table {
+    background-color: #F0F0F0;
+    font-weight: bold;
+    padding: 6px 0px 6px 0px;
+    text-align: center;
+    letter-spacing: 6px;
+    border-top: #CAC8C0 2px solid;
+}
+
+.main {
+    border: 0px;
+    background-color: #CAC8C0;
+    padding: 2px;
+    width: 100%;
+}
+
+.condhead {
+    background-color: #F6F6E8;
+    text-align: center;
+    height: 12px;
+    white-space: nowrap;
+}
+
+.conddata {
+    background-color: white;
+    padding-right: 3px;
+    padding-left: 3px;
+}
+
+.conthead {
+    background-color: #F0F0F0;
+    text-align: right;
+    padding-right: 5px;
+    padding-left: 5px;
+    height: 22px;
+}
+
+.contdata {
+    background-color: white;
+    padding-right: 3px;
+    padding-left: 3px;
+    height: 22px;
+}
+
+.listhead {
+    background-color: #EDEDED;
+    text-align: center;
+    height: 22px;
+    white-space: nowrap;
+}
+
+.listdata {
+    background-color: white;
+    padding-right: 3px;
+    padding-left: 3px;
+    height: 20px;
+}

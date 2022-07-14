@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+<!-- 분석자료 목록 조회 -->
+<query name="/retrieveAnalyList"><![CDATA[
+SELECT ANALY_ID
+     , MGT_NO
+     , ANALY_NAME
+     , COMPETITOR
+     , DECODE(RESULT, '1', '대상', '2', '비대상') RESULT_NAME
+     , DECODE(STATUS, '1', '대기', '2', '진행', '3', '완료') STATUS_NAME
+     , FN_USER_NAME(CRE_USER) CRE_USER_NAME
+     , CRE_DATE
+FROM   TB_IPB_ANALY
+WHERE  ANALY_DIV = {@ANALY_DIV}
+]]></query>
+<query name="/retrieveAnalyList/mgtNo"><![CDATA[
+AND    UPPER(MGT_NO) LIKE '%'||UPPER({@MGT_NO})||'%'
+]]></query>
+<query name="/retrieveAnalyList/disputeSubject"><![CDATA[
+AND    ANALY_NAME LIKE '%'||{@ANALY_NAME}||'%'
+]]></query>
+<query name="/retrieveAnalyList/competitor"><![CDATA[
+AND    COMPETITOR LIKE '%'||{@COMPETITOR}||'%'
+]]></query>
+<query name="/retrieveAnalyList/dateStart"><![CDATA[
+AND    CRE_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveAnalyList/dateEnd"><![CDATA[
+AND    CRE_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 분석자료 생성 -->
+<query name="/createAnaly"><![CDATA[
+INSERT INTO TB_IPB_ANALY (
+       ANALY_ID
+     , MGT_NO
+     , ANALY_DIV
+     , ANALY_NAME
+     , COMPETITOR
+     , EXAM_OPINION
+     , REMARK
+     , RESULT
+     , STATUS
+     , ATTACH_FILE
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@ANALY_ID}
+     , {@MGT_NO}
+     , {@ANALY_DIV}
+     , {@ANALY_NAME}
+     , {@COMPETITOR}
+     , {@EXAM_OPINION}
+     , {@REMARK}
+     , {@RESULT}
+     , {@STATUS}
+     , {@ATTACH_FILE}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 분석자료 상세 조회 -->
+<query name="/retrieveAnaly"><![CDATA[
+SELECT MGT_NO
+     , FN_USER_NAME(CRE_USER) CRE_USER_NAME
+     , CRE_DATE
+     , ANALY_DIV
+     , ANALY_NAME
+     , COMPETITOR
+     , EXAM_OPINION
+     , REMARK
+     , RESULT
+     , STATUS
+     , DECODE(RESULT, '1', '대상', '2', '비대상') RESULT_NAME
+     , DECODE(STATUS, '1', '대기', '2', '진행', '3', '완료') STATUS_NAME
+     , ATTACH_FILE
+FROM   TB_IPB_ANALY
+WHERE  ANALY_ID = {@ANALY_ID}
+]]></query>
+
+<!-- 분석자료 수정 -->
+<query name="/updateAnaly"><![CDATA[
+UPDATE TB_IPB_ANALY SET
+       ANALY_NAME   = {@ANALY_NAME}
+     , COMPETITOR   = {@COMPETITOR}
+     , EXAM_OPINION = {@EXAM_OPINION}
+     , REMARK       = {@REMARK}
+     , RESULT       = {@RESULT}
+     , STATUS       = {@STATUS}
+     , ATTACH_FILE  = {@ATTACH_FILE}
+     , UPD_USER     = {@$USER_ID}
+     , UPD_DATE     = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  ANALY_ID     = {@ANALY_ID}
+]]></query>
+
+<!-- 분석자료 삭제 -->
+<query name="/deleteAnaly"><![CDATA[
+DELETE FROM TB_IPB_ANALY
+WHERE  ANALY_ID = {@ANALY_ID}
+]]></query>
+
+</root>

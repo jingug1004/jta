@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 자산/거절 품의 목록 조회 -->
+<query name="/retrieveAssetConsultList"><![CDATA[
+SELECT A.CONSULT_ID
+     , A.CONSULT_SUBJECT
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , A.CRE_DATE
+     , {#codeData:NVL(B.APPR_STATUS,'0'):/common/apprStatus} APPR_STATUS_NAME
+FROM   TB_COST_CONSULT A
+     , TB_APPR_MST B
+WHERE  A.APPR_NO = B.APPR_NO(+)
+AND    CONSULT_KIND = 'S'
+]]></query>
+<query name="/retrieveAssetConsultList/consultSubject"><![CDATA[
+AND    CONSULT_SUBJECT LIKE '%'||{@CONSULT_SUBJECT}||'%'
+]]></query>
+<query name="/retrieveAssetConsultList/consultStatus"><![CDATA[
+AND    B.APPR_STATUS = {@CONSULT_STATUS}
+]]></query>
+<query name="/retrieveAssetConsultList/consultStatusDefault"><![CDATA[
+AND    B.APPR_STATUS IS NULL
+]]></query>
+<query name="/retrieveAssetConsultList/creUser"><![CDATA[
+AND    FN_USER_NAME(A.CRE_USER) LIKE '%'||{@CRE_USER}||'%'
+]]></query>
+<query name="/retrieveAssetConsultList/dateStart"><![CDATA[
+AND    A.CRE_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveAssetConsultList/dateEnd"><![CDATA[
+AND    A.CRE_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 자산/거절 품의 생성 -->
+<query name="/createAssetConsult"><![CDATA[
+INSERT INTO TB_COST_CONSULT(
+       CONSULT_ID
+     , CONSULT_KIND
+     , CONSULT_SUBJECT
+     , CRE_USER
+     , CRE_DATE
+)VALUES(
+       {@CONSULT_ID}
+     , 'S'
+     , '자산/거절 품의 ('  || TO_CHAR(SYSDATE, 'YYYY/MM/DD') || ')'
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 비용마스터 품의ID 저장 -->
+<query name="/updateCostMstConsultId"><![CDATA[
+UPDATE TB_COST_MST SET
+       CONSULT_ID = {@CONSULT_ID}
+WHERE  COST_SEQ = {@COST_SEQ}
+]]></query>
+
+<!-- 자산/거절 품의 상세 조회 -->
+<query name="/retrieveAssetConsult"><![CDATA[
+SELECT A.CONSULT_SUBJECT
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , A.CRE_USER
+     , A.CRE_DATE
+     , B.TOTAL_COUNT
+     , B.TOTAL_WON_PRICE
+FROM   TB_COST_CONSULT A
+     , (SELECT COUNT(COST_SEQ) TOTAL_COUNT
+             , SUM(WON_PRICE) TOTAL_WON_PRICE
+        FROM   TB_COST_MST
+        WHERE  CONSULT_ID = {@CONSULT_ID}) B
+WHERE  A.CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 자산/거절 품의 비용목록 조회 -->
+<query name="/retrieveAssetConsultCostList"><![CDATA[
+SELECT A.REF_ID
+     , A.APP_NO
+     , A.APP_DATE
+     , A.REF_NO
+     , A.INOUT_DIV
+     , A.KO_APP_TITLE
+     , FN_COM_CODE_NAME('INOUT_DIV', A.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , D.GRAND_NAME
+     , E.DETAIL_NAME
+     , FN_COM_CODE_NAME('RIGHT_DIV_ALL', A.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , B.WON_PRICE
+     , B.PRICE
+FROM   V_MASTER_ALL A
+     , TB_COST_MST B
+     , TB_COST_MGT_GRANDCODE D
+     , TB_COST_MGT_DETAILCODE E
+WHERE  A.REF_ID = B.REF_ID
+AND    B.GRAND_CODE = D.GRAND_CODE
+AND    B.DETAIL_CODE = E.DETAIL_CODE
+AND    D.GRAND_CODE = E.GRAND_CODE
+AND    B.CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 자산/거절 품의 수정-->
+<query name="/updateAssetConsult"><![CDATA[
+UPDATE TB_COST_CONSULT SET
+       CONSULT_SUBJECT = {@CONSULT_SUBJECT}
+WHERE  CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 자산/거절 품의 삭제-->
+<query name="/deleteAssetConsult"><![CDATA[
+DELETE FROM TB_COST_CONSULT
+WHERE  CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 비용마스터 품의ID 제거 -->
+<query name="/updateCostMstConsultIdToNull"><![CDATA[
+UPDATE TB_COST_MST SET
+       CONSULT_ID = NULL
+WHERE  CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+
+</root>

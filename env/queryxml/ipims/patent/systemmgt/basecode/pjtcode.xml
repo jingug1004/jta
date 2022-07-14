@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 프로젝트코드 목록 조회 -->
+<query name="/retrievePjtCodeList"><![CDATA[
+SELECT PJT_CODE
+     , PJT_NAME
+     , PJT_CORE
+     , PJT_LAB
+     , BUDJET
+     , FN_COM_CODE_NAME('USE_YN', USE_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) USE_YN_NAME
+FROM   TB_COM_PJT
+WHERE  1 = 1
+]]></query>
+<query name="/retrievePjtCodeList/pjtCode"><![CDATA[
+AND    UPPER(PJT_CODE) LIKE '%'||UPPER({@PJT_CODE})||'%'
+]]></query>
+<query name="/retrievePjtCodeList/searchText"><![CDATA[
+AND    (UPPER(PJT_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+]]></query>
+
+<!-- 프로젝트코드 생성 -->
+<query name="/createPjtCode"><![CDATA[
+INSERT INTO TB_COM_PJT (
+       PJT_CODE
+     , PJT_NAME
+     , PJT_CORE
+     , PJT_LAB
+     , PJT_NO
+     , PJT_MGT
+     , PJT_DEPT
+     , PJT_OWNER
+     , PJT_START_DATE
+     , PJT_END_DATE
+     , BUDJET
+     , USE_YN
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT
+       {@PJT_CODE}
+     , {@PJT_NAME}
+     , {@PJT_CORE}
+     , {@PJT_LAB}
+     , {@PJT_NO}
+     , {@PJT_MGT}
+     , {@PJT_DEPT}
+     , {@PJT_OWNER}
+     , {@PJT_START_DATE}
+     , {@PJT_END_DATE}
+     , {@BUDJET}
+     , {@USE_YN}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM DUAL
+]]></query>
+
+<!-- 프로젝트코드 조회 -->
+<query name="/retrievePjtCode"><![CDATA[
+SELECT PJT_CODE
+     , PJT_NAME
+     , PJT_CORE
+     , PJT_LAB
+     , PJT_NO
+     , PJT_MGT
+     , PJT_DEPT
+     , PJT_OWNER
+     , PJT_START_DATE
+     , PJT_END_DATE
+     , BUDJET
+     , USE_YN
+FROM   TB_COM_PJT
+WHERE  PJT_CODE = {@PJT_CODE}
+]]></query>
+
+<!-- 프로젝트코드 수정 -->
+<query name="/updatePjtCode"><![CDATA[
+UPDATE TB_COM_PJT SET
+       PJT_NAME = {@PJT_NAME}
+     , PJT_CORE = {@PJT_CORE}
+     , PJT_LAB = {@PJT_LAB}
+     , PJT_NO = {@PJT_NO}
+     , PJT_MGT = {@PJT_MGT}
+     , PJT_DEPT = {@PJT_DEPT}
+     , PJT_OWNER = {@PJT_OWNER}
+     , PJT_START_DATE = {@PJT_START_DATE}
+     , PJT_END_DATE = {@PJT_END_DATE}
+     , BUDJET = {@BUDJET}
+     , USE_YN ={@USE_YN}
+     , UPD_USER = {@$USER_ID}
+     , UPD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  PJT_CODE = {@PJT_CODE}
+]]></query>
+
+<!-- 프로젝트코드 삭제 -->
+<query name="/deletePjtCode"><![CDATA[
+DELETE TB_COM_PJT A
+WHERE  PJT_CODE = {@PJT_CODE}
+]]></query>
+
+</root>

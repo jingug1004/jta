@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 출원실적 목록 조회 - 발명자별 -->
+<query name="/retrieveApplyPlanInvActualList"><![CDATA[
+SELECT FN_USER_NAME(B.USER_ID) EMP_HNAME
+     , B.POSITION_NAME
+     , FN_COM_CODE_NAME('HT_CODE', A.HT_CODE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) HT_CODE_NAME
+     , C.INT_PLAN_CNT
+     , C.EXT_PLAN_CNT
+     , NVL(D.CNT, 0) INT_REQ_CNT
+     , NVL(E.CNT, 0) INT_ACT_CNT
+     , NVL(F.CNT, 0) INT_RET_CNT
+     , NVL(E.CNT, 0) / DECODE(C.INT_PLAN_CNT, 0,NULL, C.INT_PLAN_CNT) * 100 INT_RATIO
+     , NVL(G.CNT, 0) EXT_ACT_CNT
+     , NVL(G.CNT, 0) / DECODE(C.EXT_PLAN_CNT, 0,NULL, C.EXT_PLAN_CNT) * 100 EXT_RATIO
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+     , (SELECT NULL INT_PLAN_CNT
+             , NULL EXT_PLAN_CNT
+        FROM   DUAL
+       ) C
+     , (SELECT T2.INV_USER USER_ID
+             , SUM(FN_INV_APPLY_ACTUAL(T2.REF_ID, T2.INV_USER)) CNT
+        FROM   TB_APP_MST_INT T1
+             , TB_MAPP_INVENTOR T2
+        WHERE  T1.REF_ID = T2.REF_ID
+        AND    T1.PATTEAM_RCPT_DATE BETWEEN {@PLAN_YEAR}||'0101' AND {@PLAN_YEAR}||'1231'
+        AND    T1.ACTR_SUM_TARGET_YN = '1'
+        GROUP BY T2.INV_USER
+       ) D
+     , (SELECT T2.INV_USER USER_ID
+             , SUM(FN_INV_APPLY_ACTUAL(T2.REF_ID, T2.INV_USER)) CNT
+        FROM   TB_APP_MST_INT T1
+             , TB_MAPP_INVENTOR T2
+        WHERE  T1.REF_ID = T2.REF_ID
+        AND    T1.PATTEAM_RCPT_DATE BETWEEN {@PLAN_YEAR}||'0101' AND {@PLAN_YEAR}||'1231'
+        AND    T1.ACTR_SUM_TARGET_YN = '1'
+        GROUP BY T2.INV_USER
+       ) E
+     , (SELECT T2.INV_USER USER_ID
+             , SUM(FN_INV_APPLY_ACTUAL(T2.REF_ID, T2.INV_USER)) CNT
+        FROM   TB_APP_MST_INT T1
+             , TB_MAPP_INVENTOR T2
+             , TB_APP_INT_CONSULT T4
+        WHERE  T1.REF_ID = T2.REF_ID
+        AND    T1.REF_ID = T4.REF_ID
+        AND    T1.PATTEAM_RCPT_DATE BETWEEN {@PLAN_YEAR}||'0101' AND {@PLAN_YEAR}||'1231'
+        AND    T1.ACTR_SUM_TARGET_YN = '1'
+        AND    T4.EXAM_RESULT = '2'
+        GROUP BY T2.INV_USER
+       ) F
+     , (SELECT T3.INV_USER USER_ID
+             , SUM(FN_INV_APPLY_ACTUAL(T2.REF_ID, T3.INV_USER)) CNT
+        FROM   TB_APP_MST T1
+             , TB_APP_MST_EXT T2
+             , TB_MAPP_INVENTOR T3
+             , TB_APP_MST_INT T4
+        WHERE  T1.INOUT_DIV = 'EXT'
+        AND    T1.REF_ID = T2.REF_ID
+        AND    T2.GRP_ID = T3.REF_ID
+        AND    T1.REF_ID = T4.REF_ID
+        AND    T1.CRE_DATE BETWEEN {@PLAN_YEAR}||'0101' AND {@PLAN_YEAR}||'1231'
+        AND    T4.ACTR_SUM_TARGET_YN = '1'
+        GROUP BY T3.INV_USER
+       ) G
+WHERE  A.USER_ID = B.USER_ID
+AND    B.USER_ID = D.USER_ID(+)
+AND    B.USER_ID = E.USER_ID(+)
+AND    B.USER_ID = F.USER_ID(+)
+AND    B.USER_ID = G.USER_ID(+)
+AND    B.DEPT_CODE = {@DEPT_CODE}
+]]></query>
+
+</root>

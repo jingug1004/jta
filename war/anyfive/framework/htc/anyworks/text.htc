@@ -1,0 +1,303 @@
+<PUBLIC:COMPONENT lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:ATTACH event="onpropertychange" onevent="property_onchange();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="format" get="getFormat" put="setFormat">
+    <PUBLIC:PROPERTY name="maxByte" get="getMaxByte" put="setMaxByte">
+    <PUBLIC:PROPERTY name="value2" get="getValue2" put="setValue2">
+    <PUBLIC:PROPERTY name="readOnly2" get="getReadOnly2" put="setReadOnly2">
+    <PUBLIC:METHOD name="checkValid">
+    <PUBLIC:EVENT name="OnChangeValue" id="OnChangeValueEvent">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var myBorderStyle = "#D2CAB9 1px solid";
+var myFormat = new Object();
+var myMaxByte;
+var myReadOnly2;
+
+var messageDiv;
+
+eval(function()
+{
+    if (element.document.media == "print") return;
+
+    if (element.style.borderTop == "" && element.style.borderRight == "" && element.style.borderBottom == "" && element.style.borderLeft == "") {
+        element.style.border = myBorderStyle;
+    }
+
+    if (element.style.width == "") {
+        element.style.width = "100%";
+    }
+
+    if (element.tagName == "TEXTAREA") {
+        messageDiv = element.document.createElement('DIV');
+        messageDiv.style.width = "100%";
+        messageDiv.style.display = "none";
+        element.insertAdjacentElement("afterEnd", messageDiv);
+    }
+})();
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    setMessage();
+
+    element.attachEvent("onfocus", function()
+    {
+        if (myFormat.format == "date") return;
+        if (myReadOnly2 == true) return;
+
+        if (myFormat.format == "number") {
+            element.value = getValue2();
+            element.select();
+        }
+    });
+
+    element.attachEvent("onblur", function()
+    {
+        checkValid();
+
+        if (myFormat.format == "date") return;
+        if (myReadOnly2 == true) return;
+
+        if (myFormat.format == "number") {
+            setValue2(element.value);
+        } else if (element.value != getValue2()) {
+            element.value = getValue2();
+        }
+    });
+
+    element.attachEvent("onkeypress", function()
+    {
+        if (myFormat.format == "date" || myFormat.format == "number") {
+            if (keyCheck() != true) event.keyCode = 0;
+        }
+
+        function keyCheck()
+        {
+            if (event.keyCode == 13) return true;
+            if (event.keyCode >= 48 && event.keyCode <= 57) return true;
+            if (myFormat.minus == true && event.keyCode == "-".charCodeAt(0) && element.value.indexOf("-") == -1) return true;
+            if (myFormat.digits > 0 && event.keyCode == ".".charCodeAt(0) && element.value.indexOf(".") == -1) return true;
+            return false;
+        }
+    });
+
+    element.attachEvent("onkeyup", function()
+    {
+        if (event.keyCode == 8 || event.keyCode == 46) {
+            setMessage();
+        }
+    });
+
+    element.style.visibility = "visible";
+
+    element.isReady = true;
+}
+
+function property_onchange()
+{
+    switch (event.propertyName) {
+    case "value":
+        setMessage();
+        OnChangeValueEvent.fire(element.document.createEventObject());
+        break;
+    }
+}
+
+function getMaxByte()
+{
+    return myMaxByte;
+}
+
+function getFormat()
+{
+    if (myFormat.number == null) {
+        return myFormat.format;
+    } else {
+        return myFormat.format + "(" + myFormat.number + "." + myFormat.digits + ")";
+    }
+}
+
+function setFormat(val)
+{
+    if (element.document.media == "print") return;
+
+    if (window.AnyWorksValidCheckControls == null) window.AnyWorksValidCheckControls = new Array();
+
+    window.AnyWorksValidCheckControls.push(element);
+
+    myFormat = cfGetMyFormat(val);
+
+    switch (myFormat.format) {
+    case "date":
+        element.maxLength = 10;
+        element.style.textAlign = "center";
+        break;
+    case "number":
+        if (myFormat.number != null) {
+            element.maxLength = myFormat.number + myFormat.digits + (myFormat.minus == true ? 1 : 0) + (myFormat.digits > 0 ? 1 : 0);
+        }
+        if (element.style.textAlign == "") {
+            element.style.textAlign = "right";
+        }
+        break;
+    }
+}
+
+function setMaxByte(val)
+{
+    if (val == null || isNaN(val)) {
+        myMaxByte = null;
+    } else {
+        myMaxByte = Number(val);
+    }
+
+    setMessageDisplay();
+    setMessage();
+}
+
+function setMessageDisplay()
+{
+    if (messageDiv == null) return;
+
+    if (myMaxByte == null) {
+        messageDiv.style.display = "none";
+    } else {
+        messageDiv.style.display = "";
+    }
+}
+
+function setMessage()
+{
+    if (element.document.media == "print") return;
+
+    if (myMaxByte == null) return;
+
+    var txt = element.value;
+    var totByte = 0;
+
+    for (var i = 0; i < txt.length; i++) {
+        totByte += getByte(txt.charCodeAt(i));
+    }
+
+    if (element.tagName == "TEXTAREA") {
+        messageDiv.innerHTML = myMaxByte + 'Byte 중 <FONT color="' + (totByte > myMaxByte ? "red" : "blue") + '">' + totByte + 'Byte</FONT> 입력';
+    } else {
+        element.maxLength = myMaxByte - (totByte - txt.length);
+    }
+}
+
+function getValue2()
+{
+    var txt = element.value;
+
+    switch (myFormat.format) {
+    case "date":
+        txt = cfGetUnformatDate(txt);
+        break;
+    case "number":
+        txt = cfGetUnformatNumber(txt);
+        break;
+    default:
+        if (myMaxByte == null) break;
+
+        var totByte = 0;
+        var idx = 0;
+
+        for (var i = 0; i < txt.length; i++) {
+            totByte += getByte(txt.charCodeAt(i));
+            if (totByte <= myMaxByte) idx = i;
+        }
+
+        txt = txt.substring(0, idx + 1);
+
+        if (txt.substr(txt.length - 1) == "\r") {
+            txt = txt.substr(0, txt.length - 1);
+        }
+
+        break;
+    }
+
+    switch (element.style.textTransform.toLowerCase()) {
+        case "uppercase": return txt.toUpperCase();
+        case "lowercase": return txt.toLowerCase();
+    }
+
+    return txt;
+}
+
+function setValue2(val)
+{
+    switch (myFormat.format) {
+    case "date":
+        element.value = cfGetFormatDate(val);
+        break;
+    case "number":
+        if (isNaN(val) == true || val == "") {
+            element.value = "";
+        } else {
+            element.value = cfGetFormatNumber(val, myFormat.digits, myFormat.comma != true);
+        }
+        break;
+    default:
+        element.value = val;
+        break;
+    }
+}
+
+function getReadOnly2()
+{
+    return myReadOnly2;
+}
+
+function setReadOnly2(val)
+{
+    myReadOnly2 = (String(val) == "" || String(val).toLowerCase() == "true");
+
+    element.style.border = (myReadOnly2 == true ? "none" : myBorderStyle);
+    element.readOnly = myReadOnly2;
+}
+
+function checkValid()
+{
+    var msg = null;
+
+    switch (myFormat.format) {
+    case "email":
+        if (cfGetValid("email", element.value) != true) {
+            msg = "E-Mail 주소가 올바르지 않습니다.\n\nex) anyfive@anyfive.com";
+        }
+        break;
+    case "telephone":
+        if (cfGetValid("telephone", element.value) != true) {
+            msg = "전화번호가 올바르지 않습니다.\n\nex) 02-2109-8830";
+        }
+        break;
+    case "cellphone":
+        if (cfGetValid("cellphone", element.value) != true) {
+            msg = "휴대전화번호가 올바르지 않습니다.\n\nex) 010-1234-1234";
+        }
+        break;
+    }
+
+    if (msg == null) return true;
+
+    alert(msg);
+    element.focus();
+
+    return false;
+}
+
+function getByte(charCode)
+{
+    if (charCode <= 128) {
+        return 1;
+    } else {
+        return 3;
+    }
+}
+</SCRIPT>

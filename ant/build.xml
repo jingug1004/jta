@@ -1,0 +1,255 @@
+<project name="Autron_IPIMS_Build" default="main" basedir="..">
+
+    <tstamp>
+        <format property="DSTAMP" pattern="yyyyMMdd" />
+        <format property="TSTAMP" pattern="HHmmss" />
+    </tstamp>
+
+    <!-- file property -->
+    <property file="conf/build.properties" />
+    <property file="conf/security.properties" />
+
+    <!-- main -->
+    <target name="main">
+        <input message="빌드방법을 선택하세요." addproperty="input.mode" validargs="local,svn" defaultvalue="local" />
+        <condition property="mode.local">
+            <equals arg1="${input.mode}" arg2="local" />
+        </condition>
+        <condition property="mode.svn">
+            <equals arg1="${input.mode}" arg2="svn" />
+        </condition>
+
+        <condition property="is-all-package">
+            <istrue value="${package.all}" />
+        </condition>
+        <condition property="is-part-package">
+            <istrue value="${package.part}" />
+        </condition>
+
+        <condition property="is-full-package">
+            <istrue value="${package.full}" />
+        </condition>
+        <condition property="is-light-package">
+            <isfalse value="${package.full}" />
+        </condition>
+
+        <antcall target="package_full" />
+        <antcall target="package_light" />
+    </target>
+
+    <!-- package - Full -->
+    <target name="package_full" if="is-full-package">
+        <property name="package-name" value="full" />
+
+        <antcall target="main_local" />
+        <antcall target="main_svn" />
+    </target>
+
+    <!-- package - Light -->
+    <target name="package_light" if="is-light-package">
+        <property name="package-name" value="light" />
+
+        <antcall target="main_local" />
+        <antcall target="main_svn" />
+    </target>
+
+    <!-- main - Local -->
+    <target name="main_local" if="mode.local">
+        <property name="mode-name" value="local" />
+
+        <initdir modename="${mode-name}" />
+
+        <mkdir dir="${work_dir}/any/conf" />
+        <copy todir="${work_dir}/any/conf" preservelastmodified="yes" failonerror="false">
+            <fileset dir="..${any.conf}" />
+        </copy>
+
+        <mkdir dir="${work_dir}/env" />
+        <copy todir="${work_dir}/env" preservelastmodified="yes">
+            <fileset dir="../env" />
+        </copy>
+
+        <mkdir dir="${work_dir}/src" />
+        <copy todir="${work_dir}/src" preservelastmodified="yes">
+            <fileset dir="../src" />
+        </copy>
+
+        <mkdir dir="${work_dir}/war" />
+        <copy todir="${work_dir}/war" preservelastmodified="yes">
+            <fileset dir="../war">
+                <exclude name="WEB-INF/classes/**" />
+            </fileset>
+        </copy>
+
+        <antcall target="build" />
+    </target>
+
+    <!-- main - SVN -->
+    <target name="main_svn" if="mode.svn">
+        <input message="SVN 경로를 입력하세요." addproperty="svn.path" defaultvalue="/trunk" />
+
+        <property name="mode-name" value="svn" />
+
+        <initdir modename="${mode-name}" />
+
+        <path id="svnant.classpath">
+            <fileset dir="${svnant.library}">
+                <include name="**/*.jar" />
+            </fileset>
+        </path>
+
+        <typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpathref="svnant.classpath" />
+
+        <svn username="${svn.username}" password="${svn.password}" failonerror="false">
+            <export revision="HEAD" srcurl="${svn.url}${svn.path}${any.conf}" destpath="${work_dir}/any/conf" />
+        </svn>
+        <svn username="${svn.username}" password="${svn.password}">
+            <export revision="HEAD" srcurl="${svn.url}${svn.path}/env" destpath="${work_dir}/env" />
+            <export revision="HEAD" srcurl="${svn.url}${svn.path}/src" destpath="${work_dir}/src" />
+            <export revision="HEAD" srcurl="${svn.url}${svn.path}/war" destpath="${work_dir}/war" />
+        </svn>
+
+        <antcall target="build" />
+    </target>
+
+    <macrodef name="initdir">
+        <attribute name="modename" />
+        <sequential>
+            <property name="mode-name" value="@{modename}" />
+            <property name="work_dir" location="work/${DSTAMP}_${TSTAMP}_${mode-name}_${package-name}" />
+            <delete dir="${work_dir}" />
+        </sequential>
+    </macrodef>
+
+    <target name="build">
+        <antcall target="build_all" />
+        <antcall target="build_patent" />
+        <antcall target="build_office" />
+
+        <echo message="Build completed!" />
+
+        <delete dir="${work_dir}" />
+    </target>
+
+    <target name="build_all" if="is-all-package">
+        <build include="all" exclude="(none)" />
+    </target>
+    <target name="build_patent" if="is-part-package">
+        <build include="patent" exclude="office" />
+    </target>
+    <target name="build_office" if="is-part-package">
+        <build include="office" exclude="patent" />
+    </target>
+
+    <!-- Build -->
+    <macrodef name="build">
+        <attribute name="include" />
+        <attribute name="exclude" />
+
+        <sequential>
+            <property name="target.include" value="@{include}" />
+            <property name="target.exclude" value="@{exclude}" />
+
+            <path id="compile.classpath">
+                <fileset dir="${tomcat.library}">
+                    <include name="**/*" />
+                </fileset>
+                <fileset dir="${work_dir}/war/WEB-INF/lib">
+                    <include name="**/*" />
+                </fileset>
+                <fileset dir="${work_dir}/war/WEB-INF/lib-exc">
+                    <include name="**/*" />
+                </fileset>
+            </path>
+
+            <!-- Compile -->
+            <mkdir dir="${work_dir}/temp" />
+            <move todir="${work_dir}/temp">
+                <fileset dir="${work_dir}">
+                    <include name="src/anyfive/ipims/${target.exclude}/**" />
+                </fileset>
+            </move>
+            <mkdir dir="${work_dir}/classes" />
+            <javac srcdir="${work_dir}/src" destdir="${work_dir}/classes" classpathref="compile.classpath" encoding="UTF-8" debug="on" debuglevel="lines,vars,source" deprecation="on" optimize="off" />
+            <move todir="${work_dir}">
+                <fileset dir="${work_dir}/temp">
+                    <include name="src/**" />
+                </fileset>
+            </move>
+
+            <!-- JAR파일 생성 -->
+            <jar jarfile="${work_dir}/war/WEB-INF/lib/ipims_${target.include}.jar">
+                <fileset dir="${work_dir}/classes">
+                    <exclude name="anyfive/ipims/${target.exclude}/**" />
+                </fileset>
+            </jar>
+            <delete dir="${work_dir}/classes" />
+
+            <!-- ENV archive -->
+            <mkdir dir="${work_dir}/temp" />
+            <move todir="${work_dir}/temp">
+                <fileset dir="${work_dir}">
+                    <include name="env/queryxml/ipims/${target.exclude}/**" />
+                </fileset>
+            </move>
+            <java classname="any.util.envmap.NEnvMapArchive">
+                <classpath location="${work_dir}/war/WEB-INF/lib/anyworks14.jar" />
+                <arg value="${work_dir}/env/message" />
+                <arg value="${work_dir}/env/queryxml" />
+                <arg value="${work_dir}/env/mailtemplate" />
+                <arg value="${work_dir}/env/codedata" />
+            </java>
+            <move todir="${work_dir}">
+                <fileset dir="${work_dir}/temp">
+                    <include name="env/**" />
+                </fileset>
+            </move>
+
+            <mkdir dir="${work_dir}/temp" />
+            <move todir="${work_dir}/temp">
+                <fileset dir="${work_dir}">
+                    <include name="any/conf/**" />
+                    <include name="war/WEB-INF/lib/**" if="is-light-package" />
+                    <exclude name="war/WEB-INF/lib/anyworks*.jar" />
+                    <exclude name="war/WEB-INF/lib/ipims*.jar" />
+                </fileset>
+            </move>
+            <copy todir="${work_dir}/any/conf">
+                <fileset dir="${work_dir}/temp/any/conf/${target.include}" />
+            </copy>
+
+            <!-- 최종압축파일 생성 -->
+            <property name="zip_name" value="${system.name}_${DSTAMP}_${TSTAMP}_${target.include}_${mode-name}_${package-name}.zip" />
+            <mkdir dir="work" />
+            <delete file="work/${zip_name}" />
+            <zip destfile="work/${zip_name}">
+                <fileset dir="${work_dir}" excludes="${package.excludes}">
+                    <include name="any/conf/**" />
+                    <include name="env/filetemplate/**" if="is-full-package" />
+                    <include name="env/*.archive" />
+                    <include name="war/**" />
+                    <exclude name="war/META-INF/**" />
+                    <exclude name="war/WEB-INF/lib-exc/**" />
+                    <exclude name="war/**/*.jpeg" if="is-light-package" />
+                    <exclude name="war/**/*.jpg" if="is-light-package" />
+                    <exclude name="war/**/*.gif" if="is-light-package" />
+                    <exclude name="war/**/*.swf" if="is-light-package" />
+                    <exclude name="war/**/*.cab" if="is-light-package" />
+                    <exclude name="war/**/*.lpk" if="is-light-package" />
+                    <exclude name="war/anyfive/ipims/${target.exclude}/**" />
+                </fileset>
+            </zip>
+
+            <move todir="${work_dir}">
+                <fileset dir="${work_dir}/temp">
+                    <include name="any/**" />
+                    <include name="war/**" />
+                </fileset>
+            </move>
+
+            <!-- 다음 작업을 위해 현재 생성된 JAR파일 삭제 -->
+            <delete file="${work_dir}/war/WEB-INF/lib/ipims_${target.include}.jar" />
+        </sequential>
+    </macrodef>
+
+</project>

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 디자인국내출원의뢰 현황 조회 -->
+<query name="/retrieveDesignIntRequestList"><![CDATA[
+SELECT REQ.REF_ID
+     , REQ.REF_NO
+     , REQ.KO_APP_TITLE
+     , REQ.CRE_DATE
+     , FN_USER_NAME(REQ.CRE_USER) CRE_USER_NAME
+     , FN_BIZ_CODE_NAME(COMMST.STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) STATUS_NAME
+     , FN_INVENTOR_NAMES(REQ.REF_ID) INVENTOR_NAMES
+     , CONSULT.PATTEAM_RCPT_DATE
+     , FN_COM_CODE_NAME('EXAM_RESULT', CONSULT.EXAM_RESULT, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) EXAM_RESULT
+     , FN_USER_NAME(MST.JOB_MAN) JOB_MAN_NAME
+FROM   TB_APP_INT_REQ REQ
+     , TB_APP_INT_CONSULT CONSULT
+     , TB_BIZ_COM_MST COMMST
+     , TB_APP_MST MST
+WHERE  REQ.REF_ID = CONSULT.REF_ID(+)
+  AND  REQ.REF_ID = COMMST.REF_ID(+)
+  AND  REQ.REF_ID = MST.REF_ID(+)
+  AND  REQ.RIGHT_DIV = '30'
+]]></query>
+<query name="/retrieveDesignIntRequestList/inventor"><![CDATA[
+AND   (REQ.CRE_USER = {@$USER_ID}
+       OR REQ.REF_ID IN (SELECT E.REF_ID FROM TB_MAPP_INVENTOR E WHERE E.INV_USER = {@$USER_ID}))
+]]></query>
+<query name="/retrieveDesignIntRequestList/refNo"><![CDATA[
+AND    REQ.REF_NO LIKE '%'||{@REF_NO}||'%'
+]]></query>
+<query name="/retrieveDesignIntRequestList/status"><![CDATA[
+AND    COMMST.STATUS = {@STATUS}
+]]></query>
+<query name="/retrieveDesignIntRequestList/dateStart"><![CDATA[
+AND    REQ.{#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveDesignIntRequestList/dateEnd"><![CDATA[
+AND    REQ.{#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+<query name="/retrieveDesignIntRequestList/status"><![CDATA[
+AND    COMMST.STATUS = {@STATUS}
+]]></query>
+<query name="/retrieveDesignIntRequestList/jobMan"><![CDATA[
+AND    MST.JOB_MAN = {@JOB_MAN}
+]]></query>
+
+<!-- 디자인국내출원의뢰 조회 -->
+<query name="/retrieveDesignIntRequest"><![CDATA[
+SELECT REQ.REF_ID
+     , REQ.REF_NO
+     , REQ.CRE_USER
+     , REQ.CRE_DATE
+     , REQ.KO_APP_TITLE
+     , REQ.EN_APP_TITLE
+     , REQ.DIVISN_CODE
+     , D.LAB_NAME
+     , REQ.LAB_CODE
+     , REQ.DEPT_CODE
+     , FN_DEPT_NAME(REQ.DEPT_CODE) DEPT_NAME
+     , DESIGN.DESIGN_IMG_FILE
+     , DESIGN.PROD_PLAN_DATE
+     , DESIGN.OUT_MODEL_NAME
+     , REQ.APP_IMMED_YN
+     , REQ.APP_IMMED_REASON
+     , DESIGN.ETC_FILE
+     , DESIGN.DESIGN_DESC
+     , DESIGN.DESIGN_CREATE_CONTENTS
+     , FN_USER_NAME(REQ.CRE_USER) USER_NAME
+     , REQ.WRITE_END_YN
+     , DESIGN.DOC_FILE
+     , NVL(REQ.UPD_USER, REQ.CRE_USER) UPD_USER
+FROM   TB_APP_INT_REQ REQ
+     , TB_APP_INT_REQ_DESIGN DESIGN
+     , TB_BIZ_COM_MST COMMST
+     , TB_ORG_LAB D
+WHERE  REQ.REF_ID = DESIGN.REF_ID(+)
+  AND  REQ.REF_ID = COMMST.REF_ID(+)
+  AND  REQ.LAB_CODE = D.LAB_CODE(+)
+  AND  REQ.RIGHT_DIV = '30'
+  AND  REQ.REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 디자인국내출원의뢰 작성 -->
+<query name="/createDesignIntRequest"><![CDATA[
+INSERT INTO TB_APP_INT_REQ (
+       REF_ID
+     , REF_NO
+     , RIGHT_DIV
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , DIVISN_CODE
+     , DEPT_CODE
+     , LAB_CODE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+     , WRITE_END_YN
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@REF_ID}
+     , {@REF_NO}
+     , '30'
+     , {@KO_APP_TITLE}
+     , {@EN_APP_TITLE}
+     , {@DIVISN_CODE}
+     , {@DEPT_CODE}
+     , {@LAB_CODE}
+     , {@APP_IMMED_YN}
+     , {@APP_IMMED_REASON}
+     , {@WRITE_END_YN}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 디자인출원의뢰현황 상세 생성 -->
+<query name="/createDesignIntRequestDesign"><![CDATA[
+INSERT INTO TB_APP_INT_REQ_DESIGN(
+       REF_ID
+     , DESIGN_IMG_FILE
+     , ETC_FILE
+     , OUT_MODEL_NAME
+     , PROD_PLAN_DATE
+     , DESIGN_DESC
+     , DESIGN_CREATE_CONTENTS
+     , DOC_FILE
+) VALUES (
+       {@REF_ID}
+     , {@DESIGN_IMG_FILE}
+     , {@ETC_FILE}
+     , {@OUT_MODEL_NAME}
+     , {@PROD_PLAN_DATE}
+     , {@DESIGN_DESC}
+     , {@DESIGN_CREATE_CONTENTS}
+     , {@DOC_FILE}
+)
+]]></query>
+
+<!-- 디자인국내출원의뢰 수정 -->
+<query name="/updateDesignIntRequest"><![CDATA[
+UPDATE TB_APP_INT_REQ SET
+       REF_NO            = {@REF_NO}
+     , RIGHT_DIV         = '30'
+     , KO_APP_TITLE      = {@KO_APP_TITLE}
+     , EN_APP_TITLE      = {@EN_APP_TITLE}
+     , DIVISN_CODE       = {@DIVISN_CODE}
+     , DEPT_CODE         = {@DEPT_CODE}
+     , LAB_CODE          = {@LAB_CODE}
+     , APP_IMMED_YN      = {@APP_IMMED_YN}
+     , APP_IMMED_REASON  = {@APP_IMMED_REASON}
+     , WRITE_END_YN      = {@WRITE_END_YN}
+     , UPD_USER          = {@$USER_ID}
+     , UPD_DATE          = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 디자인국내출원의뢰 상세 수정 -->
+<query name="/updateDesignIntRequestDesign"><![CDATA[
+UPDATE TB_APP_INT_REQ_DESIGN SET
+       DESIGN_IMG_FILE        = {@DESIGN_IMG_FILE}
+     , ETC_FILE               = {@ETC_FILE}
+     , OUT_MODEL_NAME         = {@OUT_MODEL_NAME}
+     , PROD_PLAN_DATE         = {@PROD_PLAN_DATE}
+     , DESIGN_DESC            = {@DESIGN_DESC}
+     , DESIGN_CREATE_CONTENTS = {@DESIGN_CREATE_CONTENTS}
+     , DOC_FILE               = {@DOC_FILE}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 디자인국내출원의뢰 삭제 -->
+<query name="/deleteDesignIntRequest"><![CDATA[
+DELETE FROM TB_APP_INT_REQ
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 디자인국내출원의뢰 상세 삭제 -->
+<query name="/deleteDesignIntRequestDesign"><![CDATA[
+DELETE FROM TB_APP_INT_REQ_DESIGN
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

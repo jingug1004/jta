@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 외부발명자 목록 조회 -->
+<query name="/retrieveOutInventorList"><![CDATA[
+SELECT A.USER_ID
+     , B.EMP_NO
+     , A.EMP_HNAME
+     , A.EMP_ENAME
+     , B.OFFICE_TEL
+     , A.MAIL_ADDR
+     , B.APP_MAN_CODE
+     , FN_APP_MAN_NAME(B.APP_MAN_CODE) APP_MAN_NAME
+FROM   TB_USR_MST A
+     , TB_USR_OUT_INVENTOR B
+WHERE  A.USER_ID = B.USER_ID
+]]></query>
+<query name="/retrieveOutInventorList/empName"><![CDATA[
+AND    (UPPER(A.EMP_HNAME) LIKE '%'||UPPER({@EMP_NAME})||'%' OR
+        UPPER(A.EMP_ENAME) LIKE '%'||UPPER({@EMP_NAME})||'%' OR
+        UPPER(A.EMP_CNAME) LIKE '%'||UPPER({@EMP_NAME})||'%'
+       )
+]]></query>
+<query name="/retrieveOutInventorList/empNo"><![CDATA[
+AND    B.EMP_NO = {@EMP_NO}
+]]></query>
+<query name="/retrieveOutInventorList/countryCode"><![CDATA[
+AND    B.COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveOutInventorList/appManCode"><![CDATA[
+AND    B.APP_MAN_CODE = {@APP_MAN_CODE}
+]]></query>
+
+<!-- 외부발명자 조회 -->
+<query name="/retrieveOutInventor"><![CDATA[
+SELECT A.USER_ID
+     , B.EMP_NO
+     , B.COUNTRY_CODE
+     , A.JUMIN_NO1
+     , A.JUMIN_NO2
+     , B.PASSPORT_NO
+     , A.LOGIN_ID
+     , A.LOGIN_PW
+     , A.EMP_HNAME
+     , A.EMP_ENAME
+     , A.EMP_CNAME
+     , B.COMPANY_NAME
+     , B.POSITION_NAME
+     , B.DEPT_NAME
+     , B.OFFICE_TEL
+     , B.OFFICE_FAX
+     , B.MOBILE_TEL
+     , B.HOME_TEL
+     , B.HOME_ADDR
+     , A.MAIL_ADDR
+     , B.REMARK
+     , A.USE_YN
+     , B.APP_MAN_CODE
+     , FN_APP_MAN_NAME(B.APP_MAN_CODE) APP_MAN_NAME
+FROM   TB_USR_MST A
+     , TB_USR_OUT_INVENTOR B
+WHERE  A.USER_ID = {@USER_ID}
+AND    A.USER_ID = B.USER_ID
+]]></query>
+
+<!-- 사용자 마스터 생성 -->
+<query name="/createUserMaster"><![CDATA[
+INSERT INTO TB_USR_MST (
+       USER_ID
+     , SYSTEM_TYPE
+     , EMP_HNAME
+     , EMP_ENAME
+     , EMP_CNAME
+     , JUMIN_NO1
+     , JUMIN_NO2
+     , MAIL_ADDR
+     , HT_CODE
+     , LOGIN_ID
+     , LOGIN_PW
+     , USE_YN
+     , CRE_USER
+     , CRE_DATETIME
+)
+SELECT {@USER_ID}
+     , 'PATENT'
+     , {@EMP_HNAME}
+     , {@EMP_ENAME}
+     , {@EMP_CNAME}
+     , {@JUMIN_NO1}
+     , {@JUMIN_NO2}
+     , {@MAIL_ADDR}
+     , 'C'
+     , {@LOGIN_ID}
+     , {@LOGIN_PW}
+     , {@USE_YN}
+     , {@$USER_ID}
+     , SYSDATE
+FROM   DUAL
+WHERE  NOT EXISTS (SELECT 1
+                   FROM   TB_USR_MST
+                   WHERE  LOGIN_ID = {@LOGIN_ID}
+                  )
+]]></query>
+
+<!-- 외부발명자 생성 -->
+<query name="/createOutInventor"><![CDATA[
+INSERT INTO TB_USR_OUT_INVENTOR (
+       USER_ID
+     , EMP_NO
+     , PASSPORT_NO
+     , COUNTRY_CODE
+     , COMPANY_NAME
+     , DEPT_NAME
+     , POSITION_NAME
+     , OFFICE_TEL
+     , OFFICE_FAX
+     , MOBILE_TEL
+     , HOME_TEL
+     , HOME_ADDR
+     , REMARK
+     , APP_MAN_CODE
+) VALUES (
+       {@USER_ID}
+     , {@EMP_NO}
+     , {@PASSPORT_NO}
+     , {@COUNTRY_CODE}
+     , {@COMPANY_NAME}
+     , {@DEPT_NAME}
+     , {@POSITION_NAME}
+     , {@OFFICE_TEL}
+     , {@OFFICE_FAX}
+     , {@MOBILE_TEL}
+     , {@HOME_TEL}
+     , {@HOME_ADDR}
+     , {@REMARK}
+     , {@APP_MAN_CODE}
+)
+]]></query>
+
+<!-- 사용자 마스터 수정 -->
+<query name="/updateUserMaster"><![CDATA[
+UPDATE TB_USR_MST SET
+       EMP_HNAME    = {@EMP_HNAME}
+     , EMP_ENAME    = {@EMP_ENAME}
+     , EMP_CNAME    = {@EMP_CNAME}
+     , JUMIN_NO1    = {@JUMIN_NO1}
+     , JUMIN_NO2    = {@JUMIN_NO2}
+     , MAIL_ADDR    = {@MAIL_ADDR}
+     , USE_YN       = {@USE_YN}
+     , UPD_USER     = {@$USER_ID}
+     , UPD_DATETIME = SYSDATE
+WHERE  USER_ID = {@USER_ID}
+]]></query>
+
+<!-- 외부발명자 수정 -->
+<query name="/updateOutInventor"><![CDATA[
+UPDATE TB_USR_OUT_INVENTOR SET
+       EMP_NO        = {@EMP_NO}
+     , PASSPORT_NO   = {@PASSPORT_NO}
+     , COUNTRY_CODE  = {@COUNTRY_CODE}
+     , COMPANY_NAME  = {@COMPANY_NAME}
+     , DEPT_NAME     = {@DEPT_NAME}
+     , POSITION_NAME = {@POSITION_NAME}
+     , OFFICE_TEL    = {@OFFICE_TEL}
+     , OFFICE_FAX    = {@OFFICE_FAX}
+     , MOBILE_TEL    = {@MOBILE_TEL}
+     , HOME_TEL      = {@HOME_TEL}
+     , HOME_ADDR     = {@HOME_ADDR}
+     , REMARK        = {@REMARK}
+     , APP_MAN_CODE  = {@APP_MAN_CODE}
+WHERE  USER_ID = {@USER_ID}
+]]></query>
+
+</root>

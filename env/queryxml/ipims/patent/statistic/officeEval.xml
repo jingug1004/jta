@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 사무소평가현황 목록조회 -->
+<query name="/retrieveOfficeEvalMasterList"><![CDATA[
+SELECT A.REF_ID
+    , A.REF_NO
+    , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+    , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+    , FN_USER_NAME(A.OFFICE_JOB_MAN) OFFICE_JOB_MAN_NAME
+    , D.PAPER_NAME
+    , B.SUM_TOTAL
+    , NVL(B.INVDEPT_EVAL_SHEET_ID, B.PATDEPT_EVAL_SHEET_ID) EVAL_SHEET_ID
+FROM  TB_APP_MST A
+    , TB_EVAL_COM_MST B
+    , TB_PAPER_LIST C
+    , TB_PAPER_MGT_MST D
+WHERE A.REF_ID =B.REF_ID
+AND B.PAPER_LIST_SEQ = C.LIST_SEQ
+AND B.EVAL_CODE IN ('E04','E05')
+AND C.REF_ID =A.REF_ID
+AND C.PAPER_CODE = D.PAPER_CODE
+
+]]></query>
+<query name="/retrieveOfficeEvalMasterList/refNo"><![CDATA[
+AND    UPPER(A.REF_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+<query name="/retrieveOfficeEvalMasterList/patNo"><![CDATA[
+AND    UPPER(A.APP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+<query name="/retrieveOfficeEvalMasterList/regNO"><![CDATA[
+AND    UPPER(A.REG_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+<query name="/retrieveOfficeEvalMasterList/countryCd"><![CDATA[
+AND    A.COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveOfficeEvalMasterList/jobMan"><![CDATA[
+AND    A.JOB_MAN = {@JOB_MAN}
+]]></query>
+<query name="/retrieveOfficeEvalMasterList/officeCode"><![CDATA[
+AND    A.OFFICE_CODE = {@OFFICE_CODE}
+]]></query>
+<query name="/retrieveOfficeEvalMasterList/dateStart"><![CDATA[
+AND    (B.INVDEPT_EVAL_DATE >= {@DATE_START} OR B.PATDEPT_EVAL_DATE >= {@DATE_START})
+]]></query>
+<query name="/retrieveOfficeEvalMasterList/dateEnd"><![CDATA[
+AND    (B.INVDEPT_EVAL_DATE <= {@DATE_END} OR B.PATDEPT_EVAL_DATE <= {@DATE_END})
+]]></query>
+
+
+<!-- 사무소평가현황 조회 -->
+<query name="/retrieveOfficeEvalMasterDetail"><![CDATA[
+SELECT A.LIST_SEQ
+     , C.EVAL_ID
+     , C.REF_ID
+     , NVL(FN_USER_NAME(C.INVDEPT_EVAL_USER),FN_USER_NAME(C.PATDEPT_EVAL_USER)) JOB_MAN_NAME
+     , NVL(INVDEPT_EVAL_DATE,PATDEPT_EVAL_DATE) EVAL_DATE
+     , B.PAPER_NAME || '-' || P.PAPER_SUBNAME PAPER_FULL_NAME
+     , D1.ELEM_VALUE ELEM_VALUE_1
+     , D2.ELEM_VALUE ELEM_VALUE_2
+     , D3.ELEM_VALUE ELEM_VALUE_3
+     , D4.ELEM_VALUE ELEM_VALUE_4
+     , D5.ELEM_VALUE ELEM_VALUE_5
+     , 0 ELEM_VALUE_6
+     , 0 ELEM_VALUE_7
+     , C.SUM_TOTAL
+FROM   TB_PAPER_LIST A
+     , TB_PAPER_MGT_MST B
+     , TB_PAPER_MGT_SUB P
+     , TB_EVAL_COM_MST C
+     , TB_EVAL_COM_ITEM D1
+     , TB_EVAL_COM_ITEM D2
+     , TB_EVAL_COM_ITEM D3
+     , TB_EVAL_COM_ITEM D4
+     , TB_EVAL_COM_ITEM D5
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.PAPER_CODE = B.PAPER_CODE
+AND    A.PAPER_CODE = P.PAPER_CODE
+AND    A.PAPER_SUBCODE = P.PAPER_SUBCODE
+AND    A.REF_ID = C.REF_ID
+AND    A.LIST_SEQ = C.PAPER_LIST_SEQ
+AND    C.EVAL_CODE IN ('E04')
+AND    C.EVAL_ID = D1.EVAL_ID
+AND    D1.ITEM_SEQ = '001'
+AND    C.EVAL_ID = D2.EVAL_ID
+AND    D2.ITEM_SEQ = '002'
+AND    C.EVAL_ID = D3.EVAL_ID
+AND    D3.ITEM_SEQ = '003'
+AND    C.EVAL_ID = D4.EVAL_ID
+AND    D4.ITEM_SEQ = '004'
+AND    C.EVAL_ID = D5.EVAL_ID
+AND    D5.ITEM_SEQ = '005'
+UNION ALL
+SELECT A.LIST_SEQ
+     , C.EVAL_ID
+     , C.REF_ID
+     , NVL(FN_USER_NAME(C.INVDEPT_EVAL_USER),FN_USER_NAME(C.PATDEPT_EVAL_USER)) JOB_MAN_NAME
+     , NVL(INVDEPT_EVAL_DATE,PATDEPT_EVAL_DATE) EVAL_DATE
+     , B.PAPER_NAME || '-' || P.PAPER_SUBNAME PAPER_FULL_NAME
+     , D1.ELEM_VALUE ELEM_VALUE_1
+     , D2.ELEM_VALUE ELEM_VALUE_2
+     , D3.ELEM_VALUE ELEM_VALUE_3
+     , D4.ELEM_VALUE ELEM_VALUE_4
+     , D5.ELEM_VALUE ELEM_VALUE_5
+     , D6.ELEM_VALUE ELEM_VALUE_6
+     , D7.ELEM_VALUE ELEM_VALUE_7
+     , C.SUM_TOTAL
+FROM   TB_PAPER_LIST A
+     , TB_PAPER_MGT_MST B
+     , TB_PAPER_MGT_SUB P
+     , TB_EVAL_COM_MST C
+     , TB_EVAL_COM_ITEM D1
+     , TB_EVAL_COM_ITEM D2
+     , TB_EVAL_COM_ITEM D3
+     , TB_EVAL_COM_ITEM D4
+     , TB_EVAL_COM_ITEM D5
+     , TB_EVAL_COM_ITEM D6
+     , TB_EVAL_COM_ITEM D7
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.PAPER_CODE = B.PAPER_CODE
+AND    A.PAPER_CODE = P.PAPER_CODE
+AND    A.PAPER_SUBCODE = P.PAPER_SUBCODE
+AND    A.REF_ID = C.REF_ID
+AND    A.LIST_SEQ = C.PAPER_LIST_SEQ
+AND    C.EVAL_CODE IN ('E05')
+AND    C.EVAL_ID = D1.EVAL_ID
+AND    D1.ITEM_SEQ = '001'
+AND    C.EVAL_ID = D2.EVAL_ID
+AND    D2.ITEM_SEQ = '002'
+AND    C.EVAL_ID = D3.EVAL_ID
+AND    D3.ITEM_SEQ = '003'
+AND    C.EVAL_ID = D4.EVAL_ID
+AND    D4.ITEM_SEQ = '004'
+AND    C.EVAL_ID = D5.EVAL_ID
+AND    D5.ITEM_SEQ = '005'
+AND    C.EVAL_ID = D6.EVAL_ID
+AND    D6.ITEM_SEQ = '006'
+AND    C.EVAL_ID = D7.EVAL_ID
+AND    D7.ITEM_SEQ = '007'
+
+]]></query>
+
+
+<!-- 종합평가의견 조회 -->
+<query name="/retrieveEvalOpinionView"><![CDATA[
+SELECT EVAL_OPINION
+FROM TB_EVAL_COM_MST
+WHERE EVAL_ID = {@EVAL_ID}
+AND REF_ID = {@REF_ID}
+
+]]></query>
+
+<!-- 세부평가항목조회 -->
+<query name="/retrieveEvalItem"><![CDATA[
+SELECT A.ITEM_SEQ
+     , A.ITEM_NAME
+FROM   TB_EVAL_SHEET_ITEM A
+WHERE  A.EVAL_SHEET_ID = {@EVAL_SHEET_ID}
+ORDER BY A.DISP_ORD
+
+]]></query>
+</root>

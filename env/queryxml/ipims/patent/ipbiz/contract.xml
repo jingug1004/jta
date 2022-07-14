@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+
+<!-- 계약서 현황 목록 조회 -->
+<query name="/retrieveContractList"><![CDATA[
+SELECT MGT_ID
+     , MGT_NO
+     , OTHER_TITLE
+     , CONTRACT_KIND
+     , FN_COM_CODE_NAME('CONTRACT_KIND', CONTRACT_KIND, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) CONTRACT_KIND_NAME
+     , CONTRACT_GOAL
+     , CONTRACT_JOB_MAN
+     , CONTRACT_PRICE
+     , CURRENCY_UNIT
+     , START_DATE
+     , END_DATE
+     , CRE_DATE
+     , FN_USER_NAME(CRE_USER) CRE_USER
+FROM TB_IPB_CONTRACT
+WHERE 1=1
+]]></query>
+<query name="/retrieveContractList/mgtId"><![CDATA[
+AND UPPER(MGT_NO) LIKE '%'||UPPER({@MGT_ID})||'%'
+]]></query>
+<query name="/retrieveContractList/contractKind"><![CDATA[
+AND CONTRACT_KIND = {@CONTRACT_KIND}
+]]></query>
+<query name="/retrieveContractList/otherTitle"><![CDATA[
+AND   ( UPPER(OTHER_TITLE) LIKE '%'||UPPER({@OTHER_TITLE})||'%' OR UPPER(OTHER_TITLE2) LIKE '%'||UPPER({@OTHER_TITLE2})||'%' )
+]]></query>
+<query name="/retrieveContractList/country"><![CDATA[
+AND COUNTRY = {@COUNTRY}
+]]></query>
+
+<!-- 계약서 생성 -->
+<query name="/createContractC"><![CDATA[
+INSERT INTO TB_IPB_CONTRACT(
+       MGT_ID
+     , MGT_NO
+     , CONTRACT_KIND
+     , COUNTRY
+     , OTHER_TITLE
+     , OTHER_TITLE2
+     , LOCATION
+     , CEO_NAME
+     , CONTRACT_JOB_MAN
+     , SIGNATURE
+     , OFFICE_TITLE
+     , CONTRACT_GOAL
+     , START_DATE
+     , END_DATE
+     , CONTRACT_PRICE
+     , CURRENCY_UNIT
+     , SECRET_DATE
+     , DISP_RESOLUTION
+     , GOVERNING_LAW
+     , COMPETENT_COURT
+     , ATTACH_FILE
+     , MAIN_CONTENT
+     , REMARK
+     , CRE_USER
+     , CRE_DATE
+)VALUES(
+       {@MGT_ID}
+     , {@MGT_NO}
+     , {@CONTRACT_KIND}
+     , {@COUNTRY}
+     , {@OTHER_TITLE}
+     , {@OTHER_TITLE2}
+     , {@LOCATION}
+     , {@CEO_NAME}
+     , {@CONTRACT_JOB_MAN}
+     , {@SIGNATURE}
+     , {@OFFICE_TITLE}
+     , {@CONTRACT_GOAL}
+     , {@START_DATE}
+     , {@END_DATE}
+     , {@CONTRACT_PRICE}
+     , {@CURRENCY_UNIT}
+     , {@SECRET_DATE}
+     , {@DISP_RESOLUTION}
+     , {@GOVERNING_LAW}
+     , {@COMPETENT_COURT}
+     , {@ATTACH_FILE}
+     , {@MAIN_CONTENT}
+     , {@REMARK}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 계약서 현황 목록상세 조회 -->
+<query name="/retrieveContractRD"><![CDATA[
+SELECT MGT_ID
+     , MGT_NO
+     , CONTRACT_KIND
+     , FN_COM_CODE_NAME('CONTRACT_KIND', CONTRACT_KIND, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) CONTRACT_KIND_NAME
+     , COUNTRY
+     , FN_COUNTRY_NAME(COUNTRY) COUNTRY_NAME
+     , OTHER_TITLE
+     , OTHER_TITLE2
+     , LOCATION
+     , CEO_NAME
+     , CONTRACT_JOB_MAN
+     , SIGNATURE
+     , OFFICE_TITLE
+     , CONTRACT_GOAL
+     , START_DATE
+     , END_DATE
+     , CONTRACT_PRICE
+     , CURRENCY_UNIT
+     , SECRET_DATE
+     , DISP_RESOLUTION
+     , FN_COM_CODE_NAME('DISP_RESOLUTION', DISP_RESOLUTION, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) DISP_RESOLUTION_NAME
+     , GOVERNING_LAW
+     , COMPETENT_COURT
+     , ATTACH_FILE
+     , MAIN_CONTENT
+     , REMARK
+     , CRE_USER
+     , FN_USER_NAME(CRE_USER) CRE_USER_NAME
+     , CRE_DATE
+     , UPD_USER
+     , FN_USER_NAME(UPD_USER) UPD_USER_NAME
+     , UPD_DATE
+FROM TB_IPB_CONTRACT
+WHERE MGT_ID = {@MGT_ID}
+]]></query>
+
+<!-- 계약서 현황 수정 -->
+<query name="/updateContractU"><![CDATA[
+UPDATE TB_IPB_CONTRACT
+SET   CONTRACT_KIND    =  {@CONTRACT_KIND}
+    , COUNTRY          =  {@COUNTRY}
+    , OTHER_TITLE      =  {@OTHER_TITLE}
+    , OTHER_TITLE2     =  {@OTHER_TITLE2}
+    , LOCATION         =  {@LOCATION}
+    , CEO_NAME         =  {@CEO_NAME}
+    , CONTRACT_JOB_MAN =  {@CONTRACT_JOB_MAN}
+    , SIGNATURE        =  {@SIGNATURE}
+    , OFFICE_TITLE     =  {@OFFICE_TITLE}
+    , CONTRACT_GOAL    =  {@CONTRACT_GOAL}
+    , START_DATE       =  {@START_DATE}
+    , END_DATE         =  {@END_DATE}
+    , CONTRACT_PRICE   =  {@CONTRACT_PRICE}
+    , CURRENCY_UNIT    =  {@CURRENCY_UNIT}
+    , SECRET_DATE      =  {@SECRET_DATE}
+    , DISP_RESOLUTION  =  {@DISP_RESOLUTION}
+    , GOVERNING_LAW    =  {@GOVERNING_LAW}
+    , COMPETENT_COURT  =  {@COMPETENT_COURT}
+    , ATTACH_FILE      =  {@ATTACH_FILE}
+    , MAIN_CONTENT     =  {@MAIN_CONTENT}
+    , REMARK           =  {@REMARK}
+    , UPD_USER         =  {@$USER_ID}
+    , UPD_DATE         =  TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE MGT_ID = {@MGT_ID}
+]]></query>
+
+<!-- 계약서 현황 삭제 -->
+<query name="/deleteContract"><![CDATA[
+DELETE FROM TB_IPB_CONTRACT
+WHERE MGT_ID = {@MGT_ID}
+]]></query>
+</root>

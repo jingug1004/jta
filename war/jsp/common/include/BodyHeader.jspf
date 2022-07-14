@@ -1,0 +1,3 @@
+<script type="text/javascript">any.body().begin();</script>
+
+<%= "<div><div any-container>" %>

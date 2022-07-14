@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- SEQ NO 조회 -->
+<query name="/retrieveOracleSequence"><![CDATA[
+SELECT {#NAME}.NEXTVAL SEQ_NO FROM DUAL
+]]></query>
+
+<!-- SEQ NO 조회 -->
+<query name="/retrieveSequence"><![CDATA[
+SELECT SEQ_NO + 1 SEQ_NO
+FROM   TB_SYS_SEQUENCE
+WHERE  SEQ_TYPE   = {@SEQ_TYPE}
+AND    SEQ_HEADER = {@SEQ_HEADER}
+FOR    UPDATE
+]]></query>
+
+<!-- SEQ NO 생성 -->
+<query name="/createSequence"><![CDATA[
+INSERT INTO TB_SYS_SEQUENCE (
+       SEQ_TYPE
+     , SEQ_HEADER
+     , SEQ_NO
+) VALUES (
+       {@SEQ_TYPE}
+     , {@SEQ_HEADER}
+     , {@SEQ_NO:NUMBER}
+)
+]]></query>
+
+<!-- SEQ NO 수정 -->
+<query name="/updateSequence"><![CDATA[
+UPDATE TB_SYS_SEQUENCE SET
+       SEQ_NO     = {@SEQ_NO:NUMBER}
+WHERE  SEQ_TYPE   = {@SEQ_TYPE}
+AND    SEQ_HEADER = {@SEQ_HEADER}
+]]></query>
+
+</root>

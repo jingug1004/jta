@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 마스터 상태 -->
+<query name="/masterStatus"><![CDATA[
+SELECT PAPER_CODE CODE
+     , PAPER_NAME NAME
+FROM   TB_PAPER_MGT_MST
+WHERE  PAPER_DIV = {@1}
+AND    INOUT_DIV = {@2}
+AND    MST_STATUS_YN = '1'
+AND    USE_YN = '1'
+ORDER BY PAPER_NAME
+]]></query>
+
+<!--=======================================================    01.우선처리업무        ===========================-->
+
+<!-- 업무 -->
+<query name="/bizMgtId"><![CDATA[
+SELECT BIZ_MGT_ID CODE
+     , BIZ_MGT_NAME NAME
+FROM   TB_BIZ_MGT_MST
+ORDER BY BIZ_MGT_ID
+]]></query>
+
+<!-- OA발생서류 -->
+<query name="/oaPaperCode"><![CDATA[
+SELECT A.PAPER_CODE CODE
+     , '[' || FN_COM_CODE_NAME('PAPER_DIV', A.PAPER_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) ||
+       ' - ' || FN_COM_CODE_NAME('PAPER_INOUT_DIV', A.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) || '] ' ||
+       A.PAPER_NAME NAME
+FROM   TB_PAPER_MGT_MST A
+WHERE  A.OA_MGT_STEP = 'S'
+ORDER BY A.PAPER_CODE
+]]></query>
+
+<!-- 특허평가현황 검색번호 구분 -->
+<codeData name="/priorJobEvalListNumKind">
+    <row CODE="REF_NO" NAME="REF-NO" />
+    <row CODE="APP_NO" NAME="출원번호" />
+    <row CODE="REG_NO" NAME="등록번호" />
+</codeData>
+
+<!-- 특허평가현황 검색일자 구분 -->
+<codeData name="/priorJobEvalListDateKind">
+    <row CODE="INVDEPT_EVAL_REQ_DATE" NAME="발명부서 평가요청일" />
+    <row CODE="INVDEPT_EVAL_DATE" NAME="발명부서 평가일" />
+    <row CODE="PATDEPT_EVAL_DATE" NAME="특허부서 평가일" />
+</codeData>
+
+<!-- 평가코드 -->
+<query name="/evalCode"><![CDATA[
+SELECT EVAL_CODE CODE
+     , EVAL_TITLE NAME
+FROM   TB_EVAL_CODE
+ORDER BY EVAL_CODE
+]]></query>
+
+<!-- 평가자 -->
+<query name="/evalUser"><![CDATA[
+SELECT INV_USER CODE
+     , FN_USER_NAME(INV_USER) NAME
+FROM   V_INVENTOR_ALL
+WHERE  REF_ID = {@1}
+ORDER BY MAIN_INVENTOR_YN DESC, QUOTA_RATIO DESC
+]]></query>
+
+<!-- 조사의뢰현황 검색어 구분 -->
+<codeData name="/priorSearchRequestListSearchGubun">
+    <row CODE="1" NAME="의뢰인" />
+    <row CODE="2" NAME="담당자" />
+</codeData>
+
+<!-- 조사의뢰현황 검색일 구분 -->
+<codeData name="/priorSearchRequestListDateGubun">
+    <row CODE="REQ_DATE" NAME="특허팀의뢰일" />
+    <row CODE="CRE_DATE" NAME="작성일" />
+</codeData>
+
+<!--=======================================================    04.국내출원관리        ===========================-->
+
+<!-- 직무발명신고현황  검색일 구분 -->
+<codeData name="/intPatentRequestListDateGubun">
+    <row CODE="A.CRE_DATE" NAME="작성일" />
+    <row CODE="A.PATTEAM_REQ_DATE" NAME="특허팀 송부일" />
+    <row CODE="C.PATTEAM_RCPT_DATE" NAME="특허팀 접수일" />
+</codeData>
+
+<!-- 국내출원 마스터 검색어 구분 -->
+<codeData name="/intPatentMasterSearchType">
+    <row CODE="REF_NO"   NAME="REF-NO" />
+    <row CODE="PAT_NO"   NAME="출원번호" />
+    <row CODE="REG_NO"   NAME="등록번호" />
+    <row CODE="INVENTOR" NAME="발명자" />
+</codeData>
+
+<!-- 국내출원 마스터 검색일 구분 -->
+<codeData name="/intPatentMasterSearchDateType">
+    <row CODE="B.PATTEAM_RCPT_DATE" NAME="접수일" />
+    <row CODE="B.PATTEAM_REQ_DATE"  NAME="의뢰일" />
+    <row CODE="A.APP_DATE"          NAME="출원일" />
+    <row CODE="A.REG_DATE"          NAME="등록일" />
+    <row CODE="F.DUE_DATE"          NAME="법정기한일" />
+</codeData>
+
+<!-- 국내출원품의 일구분 -->
+<codeData name="/intPatentConsultDateGubun">
+    <row CODE="A.PATTEAM_RCPT_DATE" NAME="접수일" />
+    <row CODE="E.APP_DATE" NAME="출원일" />
+    <row CODE="E.REG_DATE" NAME="등록일" />
+</codeData>
+
+<!-- 국내출원품의 번호구분 -->
+<codeData name="/inNewConsultNoGubun">
+    <row CODE="REF_NO" NAME="REF-NO" />
+    <row CODE="PAT_NO" NAME="출원번호" />
+    <row CODE="REG_NO" NAME="등록번호" />
+</codeData>
+
+<!-- 양도증인쇄 일구분 -->
+<codeData name="/conveyPrintDateGubun">
+    <row CODE="CRE_DATE"    NAME="신고서작성일" />
+    <row CODE="CONVEY_DATE" NAME="양도일" />
+</codeData>
+
+<!--=======================================================    05.해외출원관리        ===========================-->
+
+<!-- 해외출원품의대상 검색번호 구분 -->
+<codeData name="/extApplySearchType">
+    <row CODE="REF_NO" NAME="REF-NO" />
+    <row CODE="PAT_NO" NAME="출원번호" />
+    <row CODE="REG_NO" NAME="등록번호" />
+</codeData>
+
+<!-- 해외출원품의대상 검색일 구분 -->
+<codeData name="/extApplySearchDateType">
+    <row CODE="B.PATTEAM_RCPT_DATE"  NAME="특허팀접수일" />
+    <row CODE="A.APP_DATE" NAME="출원일자" />
+    <row CODE="A.REG_DATE" NAME="등록일자" />
+</codeData>
+
+<!-- 해외출원품의대상 출원기한 구분 -->
+<codeData name="/extApplySearchLimit">
+    <row CODE="1" NAME="1개월 이내" />
+    <row CODE="2" NAME="2개월 이내" />
+    <row CODE="3" NAME="3개월 이내" />
+</codeData>
+
+<!-- 해외출원품의 검색번호 구분 -->
+<codeData name="/extNewConsultOptSelNo">
+    <row CODE="GRP_NO" NAME="해외출원품의번호" />
+    <row CODE="REF_NO" NAME="REF_NO" />
+    <row CODE="PAT_NO" NAME="출원번호" />
+</codeData>
+
+<!-- 오더레터현황 진행상태구분-->
+<codeData name="/orderLetterStatus">
+    <row CODE="0510" NAME="작성중" />
+    <row CODE="0540" NAME="재작성" />
+    <row CODE="0550" NAME="결재중" />
+    <row CODE="0560" NAME="사무소위임" />
+    <row CODE="0562" NAME="사무소접수" />
+</codeData>
+
+<!-- 해외출원 검색번호구분 -->
+<codeData name="/extMasterSearchDateGubun">
+    <row CODE="A.CRE_DATE"  NAME="작성일" />
+    <row CODE="A.OFFICE_SEND_DATE" NAME="의뢰일" />
+    <row CODE="A.APP_DATE"  NAME="출원일" />
+    <row CODE="A.REG_DATE"  NAME="등록일" />
+    <row CODE="F.DUE_DATE"          NAME="법정기한일" />
+</codeData>
+
+<!-- 해외출원 검색번호구분 -->
+<codeData name="/extMasterSearchOptSelNo">
+    <row CODE="REF_NO"       NAME="REF_NO" />
+    <row CODE="GRP_NO"       NAME="해외품의번호" />
+    <row CODE="PAT_NO"       NAME="출원번호" />
+    <row CODE="REG_NO"       NAME="등록번호" />
+    <row CODE="INT_FIRM_REF" NAME="국내사무소REF" />
+    <row CODE="EXT_FIRM_REF" NAME="해외사무소REF" />
+    <row CODE="KR_APP"       NAME="국내출원번호" />
+    <row CODE="INVENTOR"     NAME="발명자" />
+    <row CODE="PRE_REF_NO"   NAME="우선권번호" />
+</codeData>
+
+<!--=======================================================    06.진행서류관리        ===========================-->
+
+<!--진행서류 검색일 -->
+<codeData name="/paperSearchDateGubun">
+    <row CODE="A.PAPER_DATE"  NAME="서류일" />
+    <row CODE="A.DUE_DATE"    NAME="제출일" />
+    <row CODE="A.CRE_DATE"    NAME="입력일" />
+</codeData>
+
+<!-- 검색번호 구분 -->
+<codeData name="/searchNoGubun">
+    <row CODE="REF_NO"             NAME="REF_NO" />
+    <row CODE="APP_NO"             NAME="출원번호" />
+    <row CODE="REG_NO"             NAME="등록번호" />
+    <row CODE="NOTICE_NO"          NAME="공고번호" />
+    <row CODE="OFFICE_REF_NO"      NAME="국내사무소REF" />
+    <row CODE="EXT_OFFICE_REF_NO"  NAME="해외사무소REF" />
+</codeData>
+
+<!--=======================================================    07.출원통계/검색    ===========================-->
+
+<!--=======================================================    08.분석시스템        ===========================-->
+
+
+<!--=======================================================    09.분쟁/소송관리    ===========================-->
+
+
+<!--=======================================================    10.상표출원관리        ===========================-->
+
+<!-- 상표출원의뢰현황 검색일 구분 -->
+<codeData name="/tMarkIntRequestListDateType">
+    <row CODE="REQ.CRE_DATE"  NAME="작성일" />
+    <row CODE="REQ.PATTEAM_REQ_DATE"   NAME="특허팀 접수일" />
+    <row CODE="CONSULT.PATTEAM_RCPT_DATE" NAME="특허팀 송부일" />
+</codeData>
+<!-- 상표출원품의대상 검색일 구분 -->
+<codeData name="/tMarkIntConsultListDateType">
+    <row CODE="PATTEAM_RCPT_DATE"  NAME="접수일" />
+    <row CODE="APP_DATE" NAME="출원일" />
+    <row CODE="REG_DATE" NAME="등록일" />
+</codeData>
+
+<!-- 상표국내출원  검색어구분 -->
+<codeData name="/tMarkMasterSearchType">
+    <row CODE="REF_NO"   NAME="REF-NO" />
+    <row CODE="PAT_NO"   NAME="출원번호" />
+    <row CODE="REG_NO"   NAME="등록번호" />
+    <row CODE="INVENTOR" NAME="발명자" />
+</codeData>
+<!-- 상표(디자인)국내출원 마스터 검색일 구분 -->
+<codeData name="/tMarkMasterSearchDateType">
+    <row CODE="MST.OFFICE_RCPT_DATE" NAME="접수일" />
+    <row CODE="MST.OFFICE_REQ_DATE"  NAME="의뢰일" />
+    <row CODE="MST.APP_DATE"          NAME="출원일" />
+    <row CODE="MST.REG_DATE"          NAME="등록일" />
+</codeData>
+
+<!-- 상표해외출원품의 검색번호 구분 -->
+<codeData name="/tMarkExtOptSelNo">
+    <row CODE="GRP_NO" NAME="해외출원품의번호" />
+    <row CODE="REF_NO" NAME="REF_NO" />
+    <row CODE="PAT_NO" NAME="출원번호" />
+</codeData>
+
+<!-- 상표해외출원 검색번호구분 -->
+<codeData name="/tMarkExtMasterOptSelNo">
+    <row CODE="REF_NO"       NAME="REF_NO" />
+    <row CODE="GRP_NO"       NAME="해외품의번호" />
+    <row CODE="APP_NO"       NAME="출원번호" />
+    <row CODE="REG_NO"       NAME="등록번호" />
+    <row CODE="INT_FIRM_REF" NAME="국내사무소REF" />
+    <row CODE="EXT_FIRM_REF" NAME="해외사무소REF" />
+    <row CODE="KR_APP"       NAME="국내출원번호" />
+    <row CODE="INVENTOR"     NAME="발명자" />
+</codeData>
+<!--=======================================================    11.디자인출원관리    ===========================-->
+
+<!-- 디자인출원의뢰현황 검색일 구분 -->
+<codeData name="/designIntRequestListDateType">
+    <row CODE="CRE_DATE"  NAME="작성일" />
+    <row CODE="PATTEAM_REQ_DATE"   NAME="특허팀 접수일" />
+    <row CODE="PATTEAM_RCPT_DATE" NAME="특허팀 송부일" />
+</codeData>
+<!-- 디자인출원품의대상 검색일 구분 -->
+<codeData name="/designIntConsultListDateType">
+    <row CODE="PATTEAM_RCPT_DATE"  NAME="접수일" />
+    <row CODE="APP_DATE" NAME="출원일" />
+    <row CODE="REG_DATE" NAME="등록일" />
+</codeData>
+<!-- 디자인국내출원  검색어구분 -->
+<codeData name="/designMasterSearchType">
+    <row CODE="REF_NO"   NAME="REF-NO" />
+    <row CODE="PAT_NO"   NAME="출원번호" />
+    <row CODE="REG_NO"   NAME="등록번호" />
+    <row CODE="INVENTOR" NAME="발명자" />
+</codeData>
+<!-- 디자인 국내출원 마스터 검색일 구분 -->
+<codeData name="/designMasterSearchDateType">
+    <row CODE="MST.OFFICE_RCPT_DATE" NAME="접수일" />
+    <row CODE="MST.OFFICE_REQ_DATE"  NAME="의뢰일" />
+    <row CODE="MST.APP_DATE"          NAME="출원일" />
+    <row CODE="MST.REG_DATE"          NAME="등록일" />
+</codeData>
+<!-- 디자인해외출원품의 검색번호 구분 -->
+<codeData name="/designExtOptSelNo">
+    <row CODE="GRP_NO" NAME="해외출원품의번호" />
+    <row CODE="REF_NO" NAME="REF_NO" />
+    <row CODE="PAT_NO" NAME="출원번호" />
+</codeData>
+<!-- 디자인해외출원 검색번호구분 -->
+<codeData name="/designExtMasterOptSelNo">
+    <row CODE="REF_NO"       NAME="REF_NO" />
+    <row CODE="GRP_NO"       NAME="해외품의번호" />
+    <row CODE="APP_NO"       NAME="출원번호" />
+    <row CODE="REG_NO"       NAME="등록번호" />
+    <row CODE="INT_FIRM_REF" NAME="국내사무소REF" />
+    <row CODE="EXT_FIRM_REF" NAME="해외사무소REF" />
+    <row CODE="KR_APP"       NAME="국내출원번호" />
+    <row CODE="INVENTOR"     NAME="발명자" />
+</codeData>
+
+<!--=======================================================    12. 사무소 요청사항 ===========================-->
+<!-- 처리상태 구분 -->
+<codeData name="/statusGubun">
+    <row CODE="0" NAME="요청중" />
+    <row CODE="1" NAME="처리중" />
+    <row CODE="9" NAME="처리완료" />
+</codeData>
+
+<!-- 요청메일 발송유무 -->
+<codeData name="/reqMailSendYn">
+    <row CODE="1" NAME="요청메일보냄" />
+    <row CODE="0" NAME="요청메일안보냄" />
+</codeData>
+
+<!--=======================================================    01.우선처리업무        ===========================-->
+
+<!--=======================================================    02.출원계획관리        ===========================-->
+
+<!-- 출원계획관리 조회연도 -->
+<query name="/applyPlanYear"><![CDATA[
+SELECT PLAN_YEAR CODE
+     , PLAN_YEAR NAME
+FROM   (SELECT PLAN_YEAR
+        FROM   (SELECT LEVEL + (TO_CHAR(TO_DATE(SYSDATE), 'YYYY') - 10) PLAN_YEAR
+                FROM   DUAL
+                CONNECT BY LEVEL <= 11
+               )
+       )
+ORDER BY PLAN_YEAR DESC
+]]></query>
+
+<!-- 출원계획관리 조회구분 -->
+<codeData name="/applyPlanGubunSearchGubun">
+    <row CODE="DEPT" NAME="팀별" />
+    <row CODE="DIVISN" NAME="실별" />
+</codeData>
+
+<!--=======================================================    03.조사의뢰관리        ===========================-->
+
+<!--=======================================================    04.국내출원관리        ===========================-->
+
+<!-- 사무소담당자 -->
+<query name="/officeJobMan"><![CDATA[
+SELECT USER_ID CODE
+     , FN_USER_NAME(USER_ID) NAME
+FROM   TB_USR_OFFICE
+WHERE  OFFICE_CODE = {@1}
+]]></query>
+
+<!-- 모출원  -->
+<query name="/divisionPriorRefId"><![CDATA[
+SELECT DIVISION_PRIOR_REF_ID CODE
+     , FN_REF_NO(DIVISION_PRIOR_REF_ID) NAME
+FROM   TB_APP_MST
+WHERE  REF_ID = {@1}
+]]></query>
+
+<!-- 분할출원  -->
+<query name="/divisionChildRefId"><![CDATA[
+SELECT REF_ID CODE
+     , FN_REF_NO(REF_ID) NAME
+FROM   TB_APP_MST
+WHERE  DIVISION_PRIOR_REF_ID = {@1}
+]]></query>
+
+<!-- 우선권 취하 REF_NO -->
+<query name="/priorityAppRefNo"><![CDATA[
+SELECT A.REF_ID CODE
+     , A.REF_NO NAME
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+WHERE  A.REF_ID = B.REF_ID
+AND    B.PRIORITY_REF_ID = {@1}
+]]></query>
+
+<!-- 통합 REF_NO -->
+<query name="/unionRefNo"><![CDATA[
+SELECT A.REF_ID CODE
+     , A.REF_NO NAME
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+WHERE  A.REF_ID = B.REF_ID
+AND    B.UNION_REF_ID = {@1}
+]]></query>
+
+<!--=======================================================    05.해외출원관리        ===========================-->
+
+<!--=======================================================    06.진행서류관리        ===========================-->
+
+<!--=======================================================    07.출원통계/검색    ===========================-->
+
+<!-- 국내출원 검색 일구분 -->
+<codeData name="/statisticIntPatentDateGubun">
+    <row CODE="B.PATTEAM_RCPT_DATE"  NAME="접수일" />
+    <row CODE="A.APP_DATE" NAME="출원일" />
+    <row CODE="A.REG_DATE" NAME="등록일" />
+</codeData>
+
+<!-- 해외출원품의 검색번호 구분 -->
+<codeData name="/statisticExtConsultSearchNumKind">
+    <row CODE="GRP_NO" NAME="해외출원번호" />
+    <row CODE="REF_NO" NAME="REF-NO" />
+    <row CODE="APP_NO" NAME="출원번호" />
+</codeData>
+
+<!-- 국내중간관리대장 검색번호 구분 -->
+<codeData name="/statisticIntOASearchNumKind">
+    <row CODE="A.REF_NO" NAME="REF-NO" />
+    <row CODE="A.APP_NO" NAME="출원번호" />
+    <row CODE="A.REG_NO" NAME="등록번호" />
+</codeData>
+
+<!-- 해외출원관리대장 검색일자 구분 -->
+<codeData name="/statisticExtPatentSearchDateKind">
+    <row CODE="A.APP_DATE" NAME="출원일" />
+    <row CODE="A.REG_DATE" NAME="등록일" />
+</codeData>
+
+<!-- 국내중간관리대장 검색일자 구분 -->
+<codeData name="/statisticIntOASearchDateKind">
+    <row CODE="C.PAPER_DATE" NAME="서류일" />
+    <row CODE="C.CRE_DATE" NAME="입력일" />
+    <row CODE="B.DUE_DATE" NAME="DueDate" />
+</codeData>
+
+<!-- 해외중간관리대장 검색일자 구분 -->
+<codeData name="/statisticExtOASearchDateKind">
+    <row CODE="C.PAPER_DATE" NAME="서류일" />
+    <row CODE="C.CRE_DATE" NAME="입력일" />
+    <row CODE="B.DUE_DATE" NAME="DueDate" />
+</codeData>
+
+<!-- 보상금지급조회 검색번호 구분 -->
+<codeData name="/statisticRewardSearchNo">
+    <row CODE="F.REF_NO" NAME="REF-NO" />
+    <row CODE="F.APP_NO" NAME="출원번호" />
+    <row CODE="F.REG_NO" NAME="등록번호" />
+</codeData>
+
+<!-- 보상금지급조회 발명자 목록 -->
+<codeData name="/statisticRewardDateKind">
+    <row CODE="ANS.ANS_DATE" NAME="결재완료일" />
+    <row CODE="F.APP_DATE" NAME="출원일" />
+    <row CODE="F.REG_DATE" NAME="등록일" />
+</codeData>
+
+<!-- 통계구분 -->
+<codeData name="/statisticListType">
+    <row CODE="001" DATE="1" NAME="국내출원관리목록" />
+    <row CODE="002" DATE="1" NAME="특허관련 비용 집행실적 - 특허비" />
+    <row CODE="003" DATE="1" NAME="특허관련 비용 집행실적 - 보상금" />
+    <row CODE="004" DATE="1" NAME="출원보상금 리스트" />
+    <row CODE="005" DATE="1" NAME="등록보상금 리스트" />
+    <row CODE="006" DATE="1" NAME="직무발명보상 상세내역" />
+    <row CODE="007" DATE="0" NAME="연도별 국내출원현황" />
+    <row CODE="008" DATE="0" NAME="연도별 국내등록현황" />
+    <row CODE="009" DATE="0" NAME="연도별 해외출원현황" />
+    <row CODE="010" DATE="0" NAME="연도별 해외등록현황" />
+    <row CODE="011" DATE="1" NAME="건담당자 사무소별 실적현황(분할계속제외)" />
+    <row CODE="012" DATE="1" NAME="건담당자_국내품의처리현황" />
+    <row CODE="013" DATE="1" NAME="해외국가_출원등록현황" />
+    <row CODE="014" DATE="1" NAME="담당자별 해외사무소 위임현황(분할계속제외)" />
+    <row CODE="015" DATE="1" NAME="발명자별 개인실적조회(분할계속제외)" />
+    <row CODE="016" DATE="1" NAME="국내사무소별 해외사무소 의뢰현황(분할계속제외)" />
+</codeData>
+
+<!-- Delivery 현황(출원) 검색일자 구분 -->
+<codeData name="/deliveryApplyDateKind">
+    <row CODE="A.CRE_DATE" NAME="건담당자지정일" />
+    <row CODE="A.OFFICE_RCPT_DATE" NAME="사무소접수일" />
+    <row CODE="D.PAPER_DATE" NAME="초안작성일" />
+    <row CODE="E.PAPER_DATE" NAME="출원일" />
+</codeData>
+
+<!-- Delivery 현황(OA) 검색일자 구분 -->
+<codeData name="/deliveryOADateKind">
+    <row CODE="1" NAME="OA 발생일" />
+    <row CODE="2" NAME="의견안작성일" />
+</codeData>
+
+<!-- Delivery 통계 검색일자 구분 -->
+<codeData name="/deliveryStatisticDateKind">
+    <row CODE="A.CRE_DATE" NAME="건담당자지정일" />
+    <row CODE="A.OFFICE_RCPT_DATE" NAME="사무소접수일" />
+    <row CODE="D.PAPER_DATE" NAME="초안작성일" />
+    <row CODE="E.PAPER_DATE" NAME="출원일" />
+</codeData>
+
+
+<!--=======================================================    08.분석시스템        ===========================-->
+
+
+<!--=======================================================    09.분쟁/소송관리    ===========================-->
+
+
+<!--=======================================================    10.상표출원관리        ===========================-->
+
+
+<!--=======================================================    11.디자인출원관리    ===========================-->
+
+<!--=======================================================    12.프로그램관리===========================-->
+<!-- 프로그램관리 번호검색 구분 -->
+<codeData name="/programRequestListSearchNo">
+    <row CODE="REF_NO" NAME="REF-NO" />
+</codeData>
+
+<!-- 프로그램관리 발명자 구분 -->
+<codeData name="/programRequestListSearchINVGubun">
+    <row CODE="NAME" NAME="이름" />
+    <row CODE="EMP_NO" NAME="사번" />
+</codeData>
+
+<!-- 프로그램관리 검색일자 구분 -->
+<codeData name="/programRequestListSearchDataType">
+    <row CODE="A.PATTEAM_REQ_DATE" NAME="의뢰일" />
+</codeData>
+</root>

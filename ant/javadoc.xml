@@ -1,0 +1,98 @@
+<project name="JavaStandard_JavaDoc" default="main" basedir=".">
+
+    <tstamp>
+        <format property="DSTAMP" pattern="yyyyMMdd" />
+        <format property="TSTAMP" pattern="HHmmss" />
+    </tstamp>
+
+    <!-- file property -->
+    <property file="build.properties" />
+    <property file="security.properties" />
+
+    <!-- main -->
+    <target name="main">
+        <input message="빌드방법을 선택하세요." addproperty="input.mode" validargs="Local,SVN" defaultvalue="Local" />
+        <condition property="mode.local">
+            <equals arg1="${input.mode}" arg2="Local" />
+        </condition>
+        <condition property="mode.svn">
+            <equals arg1="${input.mode}" arg2="SVN" />
+        </condition>
+
+        <antcall target="main_local" />
+        <antcall target="main_svn" />
+    </target>
+
+    <!-- main - Local -->
+    <target name="main_local" if="mode.local">
+        <property name="mode_name" value="local" />
+
+        <initdir modename="${mode_name}" />
+
+        <mkdir dir="${work_dir}/src" />
+        <copy todir="${work_dir}/src" preservelastmodified="yes">
+            <fileset dir="../src" />
+        </copy>
+
+        <mkdir dir="${work_dir}/lib" />
+        <copy todir="${work_dir}/lib" preservelastmodified="yes">
+            <fileset dir="../war/WEB-INF/lib" />
+        </copy>
+
+        <antcall target="build" />
+    </target>
+
+    <!-- main - SVN -->
+    <target name="main_svn" if="mode.svn">
+        <property name="mode_name" value="svn" />
+
+        <initdir modename="${mode_name}" />
+
+        <path id="svnant.classpath">
+            <fileset dir="${svnant.library}">
+                <include name="**/*.jar" />
+            </fileset>
+        </path>
+
+        <typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpathref="svnant.classpath" />
+
+        <property file="${svn.auth-file}" />
+
+        <svn username="${svn.username}" password="${svn.password}">
+            <export revision="HEAD" srcurl="${svn.url}/src" destpath="${work_dir}/src" />
+            <export revision="HEAD" srcurl="${svn.url}/war/WEB-INF/lib" destpath="${work_dir}/lib" />
+        </svn>
+
+        <antcall target="build" />
+    </target>
+
+    <macrodef name="initdir">
+        <attribute name="modename" />
+        <sequential>
+            <property name="mode_name" value="@{modename}" />
+            <property name="work_dir" value="work/${DSTAMP}_${TSTAMP}_${mode_name}" />
+            <delete dir="${work_dir}" />
+        </sequential>
+    </macrodef>
+
+    <!-- Build -->
+    <target name="build">
+        <path id="compile.classpath">
+            <fileset dir="${tomcat.library}">
+                <include name="**/*" />
+            </fileset>
+            <fileset dir="${work_dir}/lib">
+                <include name="**/*.jar" />
+            </fileset>
+        </path>
+
+        <!-- JavaDoc 생성 -->
+        <delete dir="work/doc" />
+        <javadoc sourcepath="${work_dir}/src" destdir="work/doc" classpathref="compile.classpath" packagenames="*" encoding="UTF-8" docencoding="UTF-8" charset="UTF-8" />
+
+        <echo message="Build completed!" />
+
+        <delete dir="${work_dir}" />
+    </target>
+
+</project>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 특허팀 그룹별 사용자 목록 조회 -->
+<query name="/retrievePatentGroupUserList"><![CDATA[
+SELECT A.USER_ID
+     , C.EMP_NO
+     , B.EMP_HNAME
+     , FN_DIVISN_NAME(C.DIVISN_CODE) DIVISN_NAME
+     , FN_DEPT_NAME(C.DEPT_CODE) DEPT_NAME
+FROM   TB_MNU_GROUP_USER A
+     , TB_USR_MST B
+     , TB_USR_PATENT C
+WHERE  A.GROUP_CODE = {@GROUP_CODE}
+AND    B.USER_ID = A.USER_ID
+AND    B.USE_YN = '1'
+AND    B.HT_CODE = 'C'
+AND    B.USER_ID = C.USER_ID(+)
+]]></query>
+
+<!-- 사무소 그룹별 사용자 목록 조회 -->
+<query name="/retrieveOfficeGroupUserList"><![CDATA[
+SELECT A.USER_ID
+     , C.EMP_NO
+     , B.EMP_HNAME
+     , FN_OFFICE_NAME(C.OFFICE_CODE) OFFICE_NAME
+     , C.DEPT_NAME
+FROM   TB_MNU_GROUP_USER A
+     , TB_USR_MST B
+     , TB_USR_OFFICE C
+WHERE  A.GROUP_CODE = {@GROUP_CODE}
+AND    B.USER_ID = A.USER_ID
+AND    B.USE_YN = '1'
+AND    B.HT_CODE = 'C'
+AND    B.USER_ID = C.USER_ID(+)
+]]></query>
+
+<!-- 그룹별 사용자 생성 -->
+<query name="/createGroupUser"><![CDATA[
+INSERT INTO TB_MNU_GROUP_USER (
+       SYSTEM_TYPE
+     , GROUP_CODE
+     , USER_ID
+)
+SELECT {@SYSTEM_TYPE}
+     , {@GROUP_CODE}
+     , {@USER_ID}
+FROM   DUAL
+WHERE  NOT EXISTS (SELECT 1
+                   FROM   TB_MNU_GROUP_USER
+                   WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+                   AND    GROUP_CODE = {@GROUP_CODE}
+                   AND    USER_ID = {@USER_ID}
+                  )
+]]></query>
+
+<!-- 그룹별 사용자 목록 삭제 -->
+<query name="/deleteGroupUserList"><![CDATA[
+DELETE TB_MNU_GROUP_USER
+WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+AND    GROUP_CODE = {@GROUP_CODE}
+AND    USER_ID = {@USER_ID}
+]]></query>
+
+</root>

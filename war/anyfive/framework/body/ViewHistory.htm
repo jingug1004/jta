@@ -1,0 +1,48 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+<TITLE></TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=utf-8">
+<META http-equiv="Cache-Control" content="no-cache; no-store; no-save">
+<META http-equiv="Expires" content="0">
+<META http-equiv="Pragma" content="no-cache">
+<SCRIPT language="JScript">
+window.onload = function()
+{
+    document.title = parent.document.title;
+
+    var viewerDiv = parent.document.getElementById(window.name).parentElement;
+
+    if (viewerDiv == null) return;
+
+    viewerDiv.style.display = "none";
+
+    goViewer();
+    doReload();
+
+    function goViewer()
+    {
+        if (viewerDiv.viewer == null) return;
+
+        viewerDiv.viewer.view();
+
+        viewerDiv.viewer = null;
+    }
+
+    function doReload()
+    {
+        if (viewerDiv.arg == null) return;
+        if (viewerDiv.arg.onReload == null) return;
+        if (viewerDiv.reloadList != true) return;
+
+        viewerDiv.reloadList = null;
+
+        viewerDiv.arg.onReload();
+    }
+}
+</SCRIPT>
+</HEAD>
+
+<BODY>
+</BODY>
+</HTML>

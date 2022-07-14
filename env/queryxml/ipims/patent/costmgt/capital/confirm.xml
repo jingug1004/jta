@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+
+<!-- 자본적 지출 확정 목록 조회 (처리대상건) -->
+<query name="/retrieveCapitalMgtStatusZList"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , A.INOUT_DIV
+     , FN_COM_CODE_NAME('INOUT_DIV', A.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , A.RIGHT_DIV
+     , FN_COM_CODE_NAME('RIGHT_DIV', A.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , A.KO_APP_TITLE
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.APP_NO
+     , A.APP_DATE
+     , A.REG_NO
+     , A.REG_DATE
+     , B.ASSET_PRICE
+FROM   TB_APP_MST A
+     ,
+      (
+          SELECT A.REF_ID,SUM(WON_PRICE) ASSET_PRICE
+            FROM TB_COST_MST A,
+          (
+            SELECT REF_ID,CRE_DATE
+              FROM TB_COST_MST
+             WHERE COST_KIND = '1'
+             GROUP BY REF_ID,CRE_DATE
+          ) B
+           WHERE  A.REF_ID = B.REF_ID
+             AND A.CRE_DATE >= B.CRE_DATE
+             AND A.COST_KIND='4'
+             AND SLIP_STATUS IN ('1', '9')
+           GROUP BY A.REF_ID
+      )B
+WHERE  A.REF_ID = B.REF_ID
+AND    B.ASSET_PRICE > 0
+AND NOT EXISTS (
+               SELECT B.REF_ID
+                 FROM TB_COST_MST B
+                 WHERE A.REF_ID = B.REF_ID
+                 AND B.COST_KIND = '9'
+                GROUP BY B.REF_ID
+                )
+]]></query>
+<query name="/retrieveCapitalMgtStatusZList/searchText"><![CDATA[
+AND    UPPER({#SEARCH_TYPE}) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+<query name="/retrieveCapitalMgtStatusZList/inoutDiv"><![CDATA[
+AND    A.INOUT_DIV = {@INOUT_DIV}
+]]></query>
+<query name="/retrieveCapitalMgtStatusZList/officeCode"><![CDATA[
+AND    A.OFFICE_CODE = {@OFFICE_CODE}
+]]></query>
+<query name="/retrieveCapitalMgtStatusZList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveCapitalMgtStatusZList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+
+
+<!-- 자본적 지출 확정 목록 조회 (품의대상건) -->
+<query name="/retrieveCapitalMgtStatusOList"><![CDATA[
+SELECT C.COST_SEQ
+     , A.REF_ID
+     , A.REF_NO
+     , A.INOUT_DIV
+     , FN_COM_CODE_NAME('INOUT_DIV', A.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , A.RIGHT_DIV
+     , FN_COM_CODE_NAME('RIGHT_DIV', A.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , A.KO_APP_TITLE
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.APP_NO
+     , A.APP_DATE
+     , A.REG_NO
+     , A.REG_DATE
+     , C.WON_PRICE ASSET_PRICE
+FROM   TB_APP_MST A
+     , TB_COST_MST C
+WHERE  A.REF_ID = C.REF_ID
+AND    C.CONSULT_ID IS NULL
+AND    C.COST_KIND ='9'
+]]></query>
+<query name="//retrieveCapitalMgtStatusOList/searchText"><![CDATA[
+AND    UPPER({#SEARCH_TYPE}) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+<query name="//retrieveCapitalMgtStatusOList/inoutDiv"><![CDATA[
+AND    A.INOUT_DIV = {@INOUT_DIV}
+]]></query>
+<query name="//retrieveCapitalMgtStatusOList/officeCode"><![CDATA[
+AND    A.OFFICE_CODE = {@OFFICE_CODE}
+]]></query>
+<query name="//retrieveCapitalMgtStatusOList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="//retrieveCapitalMgtStatusOList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+
+<!-- 자본적 지출 확정 생성 -->
+<query name="/createCapitalMgt"><![CDATA[
+INSERT INTO TB_COST_MST (
+       COST_SEQ
+     , MST_DIV
+     , COST_KIND
+     , REF_ID
+     , GRAND_CODE
+     , DETAIL_CODE
+     , OFFICE_CODE
+     , WON_PRICE
+     , PRICE
+     , CURRENCY_UNIT
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@COST_SEQ}
+     , 'I'
+     , '9'
+     , REF_ID
+     , '35'
+     , '0001'
+     , OFFICE_CODE
+     , {@ASSET_PRICE}
+     , {@ASSET_PRICE}
+     , 'KRW'
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_MST
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 매각 확정 취소(삭제) -->
+<query name="/deleteCapitalMgt"><![CDATA[
+DELETE FROM TB_COST_MST
+WHERE  COST_SEQ = {@COST_SEQ}
+]]></query>
+
+</root>

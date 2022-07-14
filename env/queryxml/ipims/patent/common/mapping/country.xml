@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 국가 맵핑목록 조회 -->
+<query name="/retrieveCountryList"><![CDATA[
+SELECT A.COUNTRY_CODE
+     , B.COUNTRY_NAME
+FROM   TB_MAPP_COUNTRY A
+     , TB_COM_COUNTRY B
+WHERE  A.REF_ID       = {@REF_ID}
+AND    A.MAPP_DIV     = {@MAPP_DIV}
+AND    A.COUNTRY_CODE = B.COUNTRY_CODE
+ORDER BY B.DISP_ORD
+]]></query>
+
+<!-- 국가  맵핑 생성 -->
+<query name="/createCountry"><![CDATA[
+INSERT INTO TB_MAPP_COUNTRY (
+       REF_ID
+     , MAPP_DIV
+     , COUNTRY_CODE
+) VALUES (
+       {@REF_ID}
+     , {@MAPP_DIV}
+     , {@COUNTRY_CODE}
+)
+]]></query>
+
+<!-- 국가  맵핑 삭제 -->
+<query name="/deleteCountry"><![CDATA[
+DELETE FROM TB_MAPP_COUNTRY
+WHERE  REF_ID       = {@REF_ID}
+AND    MAPP_DIV     = {@MAPP_DIV}
+AND    COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+
+<!-- 국가  맵핑목록 전체 삭제 -->
+<query name="/deleteCountryListAll"><![CDATA[
+DELETE FROM TB_MAPP_COUNTRY
+WHERE  REF_ID = {@REF_ID}
+AND    MAPP_DIV = {@MAPP_DIV}
+]]></query>
+
+</root>

@@ -1,0 +1,148 @@
+﻿<PUBLIC:COMPONENT lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="dsId" get="getDsId" put="setDsId">
+    <PUBLIC:PROPERTY name="colId" get="getColId" put="setColId">
+    <PUBLIC:PROPERTY name="rows" get="getRows" put="setRows">
+    <PUBLIC:PROPERTY name="maxByte" get="getMaxByte" put="setMaxByte">
+    <PUBLIC:METHOD name="focus">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var control_id = element.id + "_" + element.sourceIndex;
+
+var gDs;
+var gDsId;
+
+if (element.id.substr(0, 4) == "any_") {
+    gDsId = "ds_" + element.id.substr(4);
+} else {
+    gDsId = "ds_" + element.id;
+}
+
+var gColId = "LANG_VALUE";
+var gRows = -1;
+var gMaxByte = -1;
+
+var gText;
+var gText_id = "txt_langValue_" + control_id;
+
+function document_onready()
+{
+    init();
+
+    gDs = element.document.createElement('<ANY:DS id="' + gDsId + '" />');
+    element.document.appendChild(gDs);
+
+    gDs.OnInit = function()
+    {
+        gDs.setKeys("LANG_CODE");
+        gDs.addBind("LANG_CODE", gText_id, "langCode");
+        gDs.addBind(gColId, gText_id);
+    }
+}
+
+function init()
+{
+    var langCodes = any.getCodeData("{LANG_CODE}");
+    var tr, td;
+    var ctrl;
+
+    for (var i = 0; i < langCodes.length; i++) {
+        tr = element.document.createElement('<TR>');
+        element.appendChild(tr);
+
+        td = element.document.createElement('<TD>');
+        if (langCodes[i].data.CODE == any.defaultLangCode) {
+            td.className = "require";
+            td.req = checkDefaultLangCode;
+        }
+        td.innerHTML = langCodes[i].data.NAME + " : " + langCodes[i].data.CODE;
+        td.noWrap = true;
+        td.align = "right";
+        tr.appendChild(td);
+
+        td = element.document.createElement('<TD>');
+        if (gRows <= 1) {
+            ctrl = element.document.createElement('<INPUT type="text" class="text">');
+        } else {
+            ctrl = element.document.createElement('<TEXTAREA class="text">');
+        }
+        ctrl.id = gText_id;
+        if (gMaxByte != -1) {
+            ctrl.maxByte = gMaxByte;
+        }
+        ctrl.langCode = langCodes[i].data.CODE;
+        td.appendChild(ctrl);
+        tr.appendChild(td);
+    }
+}
+
+function checkDefaultLangCode()
+{
+    var boxes = element.document.getElementsByName(gText_id);
+
+    for (var i = 0; i < boxes.length; i++) {
+        if (boxes[i].langCode != any.defaultLangCode) continue;
+        if (any.trim(boxes[i].value) == "") return boxes[i];
+    }
+
+    return true;
+}
+
+function getDsId()
+{
+    return gDsId;
+}
+
+function setDsId(val)
+{
+    if (val == null || val == "") return;
+
+    gDsId = val;
+}
+
+function getColId()
+{
+    return gColId;
+}
+
+function setColId(val)
+{
+    if (val == null || val == "") return;
+
+    gColId = val;
+}
+
+function getRows()
+{
+    return gRows;
+}
+
+function setRows(val)
+{
+    if (val == null || val == "" || isNaN(val)) return;
+
+    gRows = parseInt(val, 10);
+}
+
+function getMaxByte()
+{
+    return gMaxByte;
+}
+
+function setMaxByte(val)
+{
+    if (val == null || val == "" || isNaN(val)) return;
+
+    gMaxByte = parseInt(val, 10);
+}
+
+function focus()
+{
+    try {
+        element.document.getElementsByName(gText_id)[0].focus();
+    } catch(ex) {
+    }
+}
+</SCRIPT>

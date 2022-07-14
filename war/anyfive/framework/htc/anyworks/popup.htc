@@ -1,0 +1,201 @@
+﻿<PUBLIC:COMPONENT tagName="POPUP" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="codeData" get="getCodeData" put="setCodeData">
+    <PUBLIC:PROPERTY name="value" get="getValue" put="setValue">
+    <PUBLIC:PROPERTY name="labelText" get="getLabelText" put="setLabelText">
+    <PUBLIC:PROPERTY name="firstName">
+    <PUBLIC:PROPERTY name="text" get="getText">
+    <PUBLIC:PROPERTY name="data" get="getData">
+    <PUBLIC:PROPERTY name="popupWidth">
+    <PUBLIC:METHOD name="setCodeDataObject">
+    <PUBLIC:METHOD name="addItem">
+    <PUBLIC:METHOD name="show">
+    <PUBLIC:EVENT name="OnReady" id="OnReadyEvent">
+    <PUBLIC:EVENT name="OnChange" id="OnChangeEvent">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var myDiv;
+var myCodeData;
+var myValue;
+var myLabelText;
+
+var popupData;
+var currData;
+
+eval(function()
+{
+    if (element.document.media == "print") return;
+
+    myDiv = element.document.createElement('<A onMouseOver="this.style.textDecoration=\'underline\';" onMouseOut="this.style.textDecoration=\'none\';">');
+    element.appendChild(myDiv);
+})();
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    for (var i = 0, elements = element.getElementsByTagName("*"); i < elements.length; i++) {
+        if (elements[i].tagName == "SCRIPT" || elements[i].tagName == "COMMENT") eval(elements[i].text);
+    }
+
+    try {
+        OnReadyEvent.fire(element.document.createEventObject());
+    } catch(ex) {
+    }
+
+    element.isReady = true;
+}
+
+function getCodeData()
+{
+    return myCodeData;
+}
+
+function setCodeData(val)
+{
+    myCodeData = val;
+
+    if (element.document.media == "print") return;
+    if (element.document.readyState != "complete") return;
+
+    setCodeDataObject(any.getCodeData(myCodeData, element.firstName));
+}
+
+function setCodeDataObject(codeDatas)
+{
+    if (codeDatas == null) return;
+
+    var firstNode = any.getFirstNode(element.firstName);
+
+    if (firstNode != null) {
+        addItem(firstNode.CODE, firstNode.NAME, firstNode);
+    }
+
+    for (var i = 0; i < codeDatas.length; i++) {
+        addItem(codeDatas[i].data.CODE, any.getCodeName(codeDatas[i].data), codeDatas[i].data);
+    }
+
+    if (myValue != null) {
+        setValue(myValue);
+        myValue = null;
+    }
+}
+
+function getValue()
+{
+    return currData.code;
+}
+
+function setValue(val)
+{
+    myValue = val;
+
+    if (popupData == null) return;
+
+    for (var i = 0; i < popupData.length; i++) {
+        if (popupData[i].code != myValue) continue;
+        currData = popupData[i];
+        break;
+    }
+
+    if (myLabelText == null) {
+        myDiv.innerText = (currData == null ? "[NULL]" : currData.name);
+    }
+}
+
+function getText()
+{
+    return currData.name;
+}
+
+function getData()
+{
+    return currData;
+}
+
+function getLabelText()
+{
+    return myLabelText;
+}
+
+function setLabelText(val)
+{
+    myLabelText = val;
+
+    myDiv.innerText = myLabelText;
+}
+
+function addItem(code, name, data)
+{
+    if (popupData == null) popupData = new Array();
+
+    popupData.push({ code:code, name:name, data:data });
+}
+
+function show(obj)
+{
+    if (popupData == null) return;
+
+    var popup = window.createPopup();
+    var width;
+
+    if (element.popupWidth == null) {
+        width = element.offsetWidth;
+    } else {
+        width = parseInt(element.popupWidth, 10);
+    }
+
+    popup.document.createStyleSheet(top.getRoot() + "/anyfive/framework/css/style.css");
+    popup.document.body.onselectstart = function() { return false; }
+    popup.document.body.ondragstart   = function() { return false; }
+    popup.document.body.oncontextmenu = function() { return false; }
+    popup.document.body.style.border = "#D0D0D0 1px solid";
+    popup.document.body.style.backgroundColor = "#F7F7F7";
+    popup.document.body.style.margin = "4px";
+    popup.document.body.innerHTML = '<TABLE border="0" cellspacing="0" cellpadding="1" width="100%" height="100%"><TBODY id="tbd_main"></TBODY><TABLE>';
+    popup.show(0, (obj == null ? element : obj).offsetHeight, width, 22 * popupData.length, (obj == null ? element : obj));
+
+    for (var i = 0; i < popupData.length; i++) {
+        add(popupData[i]);
+    }
+
+    function add(data)
+    {
+        var tbd = popup.document.getElementById("tbd_main");
+        var tr, td;
+
+        tr = popup.document.createElement('<TR onMouseOver="this.style.backgroundColor=\'#EFEFEF\';" onMouseOut="this.style.backgroundColor=\'#F7F7F7\';">');
+        tbd.appendChild(tr);
+
+        td = popup.document.createElement('<TD noWrap style="cursor:hand; padding-left:6px;" onMouseOver="this.style.color=\'#D66963\';" onMouseOut="this.style.color=\'\';">');
+        td.data = data;
+        td.innerHTML = '<IMG src="' + top.getRoot() + '/anyfive/framework/htc/anyworks/image/popup_bullet.gif" width="4" height="7" align="absmiddle">&nbsp;' + data.name;
+        tr.appendChild(td);
+
+        td.onclick = function()
+        {
+            currData = this.data;
+            goLink();
+            OnChangeEvent.fire(element.document.createEventObject());
+            popup.hide();
+        }
+    }
+
+    function goLink()
+    {
+        var a = element.document.getElementById("__POPUP_LINK_EXECUTE__");
+
+        if (a == null) {
+            a = element.document.body.appendChild(element.document.createElement('<A id="a_goLinkInfo" style="display:none;">'));
+        }
+
+        a.target = (currData.code.toLowerCase().indexOf("http") == 0 ? "_blank" : "");
+        a.href = currData.code;
+
+        a.click();
+    }
+}
+</SCRIPT>

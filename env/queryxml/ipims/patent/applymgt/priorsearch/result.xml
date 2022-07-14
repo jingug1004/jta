@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 선행기술조사 결과 조회 -->
+<query name="/retrievePriorSearchResult"><![CDATA[
+SELECT PRSCH_RESULT
+     , RESULT_FILE
+     , INFORM_DATE
+FROM   TB_APP_PRSCH_RESULT
+WHERE  PRSCH_ID = {@PRSCH_ID}
+]]></query>
+
+<!-- 선행기술조사 결과 생성 -->
+<query name="/createPriorSearchResult"><![CDATA[
+INSERT INTO TB_APP_PRSCH_RESULT (
+       PRSCH_ID
+     , PRSCH_RESULT
+     , RESULT_FILE
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@PRSCH_ID}
+     , {@PRSCH_RESULT}
+     , {@RESULT_FILE}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 선행기술조사 결과 수정 -->
+<query name="/updatePriorSearchResult"><![CDATA[
+UPDATE TB_APP_PRSCH_RESULT SET
+       PRSCH_RESULT = {@PRSCH_RESULT}
+     , RESULT_FILE  = {@RESULT_FILE}
+     , UPD_USER     = {@$USER_ID}
+     , UPD_DATE     = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  PRSCH_ID = {@PRSCH_ID}
+]]></query>
+
+<!-- 선행기술조사 결과 완료 -->
+<query name="/updatePriorSearchComplete"><![CDATA[
+UPDATE TB_APP_PRSCH_RESULT SET
+       INFORM_DATE  = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  PRSCH_ID = {@PRSCH_ID}
+]]></query>
+
+<!-- 조사결과 통보메일 발송정보 조회(외부조사인 경우에만) -->
+<query name="/retrievePriorSearchInformMailInfo"><![CDATA[
+SELECT '[조사완료] 조사의뢰 [' || A.PRSCH_NO || ']의 조사결과가 완료되었습니다.' MAIL_SUBJECT
+     , (SELECT T.MAIL_ADDR FROM TB_USR_MST T WHERE T.USER_ID = A.REQ_USER) TO_ADDR
+     , FN_USER_NAME(A.REQ_USER) TO_NAME
+     , A.PRSCH_NO
+     , A.PRSCH_SUBJECT
+     , C.INFORM_DATE
+     , FN_USER_NAME(B.JOB_MAN) JOB_MAN_NAME
+     , FN_OFFICE_NAME(B.OFFICE_CODE) OFFICE_NAME
+     , FN_USER_NAME(B.OFFICE_JOB_MAN) OFFICE_JOB_MAN_NAME
+FROM   TB_APP_PRSCH_REQ A
+     , TB_APP_PRSCH_CONSULT B
+     , TB_APP_PRSCH_RESULT C
+WHERE  A.PRSCH_ID = {@PRSCH_ID}
+AND    A.PRSCH_ID = B.PRSCH_ID(+)
+AND    A.PRSCH_ID = C.PRSCH_ID(+)
+]]></query>
+
+</root>

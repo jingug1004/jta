@@ -1,0 +1,233 @@
+<PUBLIC:COMPONENT tagName="OLCOUNTRY" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="mode" get="getMode" put="setMode">
+    <PUBLIC:PROPERTY name="rowCount" get="getRowCount">
+    <PUBLIC:PROPERTY name="valid" get="getValid">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var ds_main;
+var ds_main_id;
+
+if (element.id.substr(0, 4) == "any_") {
+    ds_main_id = "ds_" + element.id.substr(4);
+} else {
+    ds_main_id = "ds_" + element.id;
+}
+
+var control_id = element.id + "_" + element.sourceIndex;
+
+var tbd_main;
+var tbd_main_id = "tbd_main_" + control_id;
+
+var tr_main;
+var tr_main_id = "tr_main_" + control_id;
+
+var rdo_examreqYn;
+var rdo_examreqYn_id = "rdo_examreqYn_" + control_id;
+
+var rdo_appImmedYn;
+var rdo_appImmedYn_id = "rdo_appImmedYn_" + control_id;
+
+var txt_officeRefNo;
+var txt_officeRefNo_id = "txt_officeRefNo_" + control_id;
+
+var sel_officeJobMan;
+var sel_officeJobMan_id = "sel_officeJobMan_" + control_id;
+
+var txt_extOfficeRefNo;
+var txt_extOfficeRefNo_id = "txt_extOfficeRefNo_" + control_id;
+
+var sel_extOfficeCode;
+var sel_extOfficeCode_id = "sel_extOfficeCode_" + control_id;
+
+var gMode = "R";
+var gMode2 = "R";
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    ds_main = element.document.createElement('<ANY:DS id="' + ds_main_id + '">');
+    element.document.appendChild(ds_main);
+
+    ds_main.OnInit = function()
+    {
+        ds_main.setKeys("COUNTRY_CODE");
+        ds_main.addBind("COUNTRY_CODE", tr_main_id, "COUNTRY_CODE");
+        ds_main.addBind("EXAMREQ_YN", rdo_examreqYn_id);
+        ds_main.addBind("APP_IMMED_YN", rdo_appImmedYn_id);
+        ds_main.addBind("OFFICE_REF_NO", txt_officeRefNo_id);
+        ds_main.addBind("OFFICE_JOB_MAN", sel_officeJobMan_id);
+        ds_main.addBind("EXT_OFFICE_REF_NO", txt_extOfficeRefNo_id);
+        ds_main.addBind("EXT_OFFICE_CODE", sel_extOfficeCode_id);
+    }
+
+    ds_main.OnLoad = function()
+    {
+        makeHTML();
+    }
+    element.isReady = true;
+
+}
+
+function makeHTML()
+{
+    var html = new Array();
+
+    html.push('<TABLE border="0" cellspacing="1" cellpadding="0" class="main">');
+    html.push('    <TR style="cursor:default;">');
+    html.push('        <TD class="listhead" noWrap width="100px">REF_NO</TD>');
+    html.push('        <TD class="listhead" noWrap width="100px">출원국가</TD>');
+    html.push('        <TD class="listhead" noWrap width="120px">심사청구유무</TD>');
+    html.push('        <TD class="listhead" noWrap width="120px">출원긴급성여부</TD>');
+    html.push('        <TD class="listhead" noWrap width="160px">사무소REF</TD>');
+    html.push('        <TD class="listhead" noWrap width="120px">사무소담당자</TD>');
+    html.push('        <TD class="listhead" noWrap width="160px">해외사무소REF</TD>');
+    html.push('        <TD class="listhead" noWrap width="120px%">해외사무소</TD>');
+    html.push('    </TR>');
+    html.push('    <COLGROUP>');
+    for (var i = 0; i < 8; i++) {
+        html.push('        <COL class="listdata">');
+    }
+    html.push('    </COLGROUP>');
+
+    html.push('    <TBODY id="' + tbd_main_id + '"></TBODY>');
+    html.push('</TABLE>');
+
+    element.innerHTML = html.join("\n");
+
+    tbd_main = element.document.getElementById(tbd_main_id);
+    tr_main = element.document.getElementsByName(tr_main_id);
+    rdo_examreqYn = element.document.getElementsByName(rdo_examreqYn_id);
+    rdo_appImmedYn = element.document.getElementsByName(rdo_appImmedYn_id);
+    txt_officeRefNo = element.document.getElementsByName(txt_officeRefNo_id);
+    sel_officeJobMan = element.document.getElementsByName(sel_officeJobMan_id);
+    txt_extOfficeRefNo = element.document.getElementsByName(txt_extOfficeRefNo_id);
+    sel_extOfficeCode = element.document.getElementsByName(sel_extOfficeCode_id);
+
+    for (var r = 0; r < ds_main.rowCount; r++) {
+        addHTML(ds_main.rowData(r));
+    }
+}
+
+function getMode()
+{
+    return gMode;
+}
+
+function setMode(val)
+{
+    if (gMode == val) return;
+
+    gMode = val;
+    gMode2 = gMode.substr(0, 1);
+
+    if (element.isReady == true) {
+        makeHTML();
+    }
+}
+
+function getRowCount()
+{
+    return tr_main.length;
+}
+
+function getValid()
+{
+    for (var i = 0; i < tr_main.length; i++) {
+        if (any.trim(txt_officeRefNo[i].value) == "") {
+            alert("사무소REF를 입력하세요.");
+            txt_officeRefNo[i].focus();
+            return false;
+        }
+        if (any.trim(sel_officeJobMan[i].value) == "") {
+            alert("사무소담당자를 선택하세요.");
+            sel_officeJobMan[i].focus();
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function addHTML(obj)
+{
+    var tr, td;
+    var idx = tbd_main.rows.length;
+
+    tr = element.document.createElement('<TR id="' + tr_main_id + '">');
+    tr.COUNTRY_CODE = obj.COUNTRY_CODE;
+    tbd_main.appendChild(tr);
+
+    //REF-NO
+    td = addCol(obj.REF_NO);
+    td.align = "center";
+    td.width = "100px"
+    td.noWrap = true;
+
+    //출원국가
+    td = addCol(obj.COUNTRY_NAME);
+    td.width = "100px"
+    td.noWrap = true;
+
+    //심사청구유뮤
+    td = addCol('<ANY:RADIO id="' + rdo_examreqYn_id + '" codeData="{EXAMREQ_YN}" readOnly />', true);
+    td.align = "center";
+    td.width = "120px"
+    rdo_examreqYn[rdo_examreqYn.length - 1].value = (obj.EXAMREQ_YN == null ? "0" : obj.EXAMREQ_YN);
+
+    //출원긴급성여부
+    td = addCol('<ANY:RADIO id="' + rdo_appImmedYn_id + '" codeData="{APP_IMMED_YN}" readOnly />', true);
+    td.align = "center";
+    td.width = "120px"
+    rdo_appImmedYn[rdo_appImmedYn.length - 1].value = (obj.APP_IMMED_YN == null ? "0" : obj.APP_IMMED_YN);
+
+    //사무소REF-NO
+    if (gMode2 == "R") {
+        td = addCol(obj.OFFICE_REF_NO);
+        td.width="160px"
+    } else {
+        td = addCol('<INPUT type="text" id="' + txt_officeRefNo_id + '" class="text">', true);
+        td.width="160px"
+        txt_officeRefNo[txt_officeRefNo.length - 1].value = obj.OFFICE_REF_NO;
+    }
+
+    //사무소담당자
+    if (gMode2 == "R") {
+        td = addCol(obj.OFFICE_JOB_MAN_NAME);
+        td.width="120px"
+    } else {
+        td = addCol('<ANY:SELECT id="' + sel_officeJobMan_id + '" codeData="/common/officeJobManByOfficeUser" firstName="sel" />', true);
+        td.width="120px"
+        sel_officeJobMan[sel_officeJobMan.length - 1].value = obj.OFFICE_JOB_MAN;
+    }
+
+    //해외사무소 REF_NO
+    td = addCol('<INPUT type="text" id="' + txt_extOfficeRefNo_id + '" class="text" >', true);
+    td.width="160px"
+    txt_extOfficeRefNo[txt_extOfficeRefNo.length - 1].value = obj.EXT_OFFICE_REF_NO;
+
+    td = addCol('<ANY:SELECT id="' + sel_extOfficeCode_id + '" codeData="/common/extOfficeCode" firstName="sel" />', true);
+    td.width="120px"
+    sel_extOfficeCode[sel_extOfficeCode.length - 1].value = obj.EXT_OFFICE_CODE;
+
+    function addCol(str, html)
+    {
+        var td = element.document.createElement('<TD>');
+        tr.appendChild(td);
+
+        if (str == null) return td;
+
+        if (html == true) {
+            td.innerHTML = str;
+        } else {
+            td.innerText = str;
+        }
+
+        return td;
+    }
+}
+</SCRIPT>

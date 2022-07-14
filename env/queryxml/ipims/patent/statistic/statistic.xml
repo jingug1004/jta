@@ -1,0 +1,1187 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 전체 통계현황 -->
+<query name="/retrieveAllStatisticCount"><![CDATA[
+SELECT '출원' DIV_NAME
+       , (SELECT COUNT(1) FROM TB_APP_MST A
+                              ,TB_MAPP_APP_MAN B
+                          WHERE A.REF_ID = B.REF_ID
+                            AND A.INOUT_DIV = 'INT'
+                            AND RIGHT_DIV IN ('10')
+                            AND A.APP_NO IS NOT NULL
+                            AND A.REG_NO IS NULL
+                            AND B.APP_MAN_CODE IN ('P0006','P0016')
+                            AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088') {#appDate} ) INT_PAT_CNT
+      , (SELECT COUNT(1) FROM TB_APP_MST A
+                            ,TB_APP_MST_EXT B
+                            ,TB_APP_EXT_GRP C
+                            ,TB_MAPP_APP_MAN D
+                         WHERE A.REF_ID = B.REF_ID
+                            AND B.GRP_ID(+) = C.GRP_ID
+                            AND C.GRP_ID = D.REF_ID
+                            AND A.INOUT_DIV = 'EXT'
+                            AND A.RIGHT_DIV IN ('10')
+                            AND A.APP_NO IS NOT NULL
+                            AND A.REG_NO IS NULL
+                            AND D.APP_MAN_CODE IN ('P0006','P0016')
+                            AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088') {#appDate} ) EXT_PAT_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST A
+                            ,TB_MAPP_APP_MAN B
+                         WHERE A.REF_ID = B.REF_ID
+                            AND A.INOUT_DIV = 'INT'
+                            AND RIGHT_DIV IN ('20')
+                            AND A.APP_NO IS NOT NULL
+                            AND A.REG_NO IS NULL
+                            AND B.APP_MAN_CODE IN ('P0006','P0016')
+                            AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088') {#appDate} ) INT_UTIL_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST A
+                            ,TB_APP_MST_EXT B
+                            ,TB_APP_EXT_GRP C
+                            ,TB_MAPP_APP_MAN D
+                         WHERE A.REF_ID = B.REF_ID
+                            AND B.GRP_ID(+) = C.GRP_ID
+                            AND C.GRP_ID = D.REF_ID
+                            AND A.INOUT_DIV = 'EXT'
+                            AND A.RIGHT_DIV IN ('20')
+                            AND A.APP_NO IS NOT NULL
+                            AND A.REG_NO IS NULL
+                            AND D.APP_MAN_CODE IN ('P0006','P0016')
+                            AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088') {#appDate} ) EXT_UTIL_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST WHERE INOUT_DIV = 'INT' AND RIGHT_DIV IN ('30') AND APP_NO IS NOT NULL AND REG_NO IS NULL {#appDate} ) INT_DESIGN_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST WHERE INOUT_DIV = 'EXT' AND RIGHT_DIV IN ('30') AND APP_NO IS NOT NULL AND REG_NO IS NULL {#appDate} ) EXT_DESIGN_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST WHERE INOUT_DIV = 'INT' AND RIGHT_DIV IN ('40') AND APP_NO IS NOT NULL AND REG_NO IS NULL {#appDate} ) INT_TMARK_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST WHERE INOUT_DIV = 'EXT' AND RIGHT_DIV IN ('40') AND APP_NO IS NOT NULL AND REG_NO IS NULL {#appDate} ) EXT_TMARK_CNT
+FROM   DUAL
+UNION ALL
+SELECT '계류' DIV_NAME
+     , (SELECT COUNT(1) FROM TB_APP_MST A
+                            ,TB_MAPP_APP_MAN B
+                         WHERE A.REF_ID = B.REF_ID
+                            AND A.INOUT_DIV = 'INT'
+                            AND RIGHT_DIV IN ('10')
+                            AND A.APP_NO IS NOT NULL
+                            AND A.REG_NO IS NULL
+                            AND A.ABD_YN = '0'
+                            AND B.APP_MAN_CODE IN ('P0006','P0016')
+                            AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088') {#appDate} ) INT_PAT_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST A
+                            ,TB_APP_MST_EXT B
+                            ,TB_APP_EXT_GRP C
+                            ,TB_MAPP_APP_MAN D
+                         WHERE A.REF_ID = B.REF_ID
+                            AND B.GRP_ID(+) = C.GRP_ID
+                            AND C.GRP_ID = D.REF_ID
+                            AND A.INOUT_DIV = 'EXT'
+                            AND A.RIGHT_DIV IN ('10')
+                            AND A.APP_NO IS NOT NULL
+                            AND A.REG_NO IS NULL
+                            AND A.ABD_YN = '0'
+                            AND D.APP_MAN_CODE IN ('P0006','P0016')
+                            AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088') {#appDate} ) EXT_PAT_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST A
+                            ,TB_MAPP_APP_MAN B
+                        WHERE A.REF_ID = B.REF_ID
+                            AND A.INOUT_DIV = 'INT'
+                            AND RIGHT_DIV IN ('20')
+                            AND A.APP_NO IS NOT NULL
+                            AND A.REG_NO IS NULL
+                            AND A.ABD_YN = '0'
+                            AND B.APP_MAN_CODE IN ('P0006','P0016')
+                            AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088') {#appDate} ) INT_UTIL_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST A
+                            ,TB_APP_MST_EXT B
+                            ,TB_APP_EXT_GRP C
+                            ,TB_MAPP_APP_MAN D
+                         WHERE A.REF_ID = B.REF_ID
+                            AND B.GRP_ID(+) = C.GRP_ID
+                            AND C.GRP_ID = D.REF_ID
+                            AND A.INOUT_DIV = 'EXT'
+                            AND A.RIGHT_DIV IN ('20')
+                            AND A.APP_NO IS NOT NULL
+                            AND A.REG_NO IS NULL
+                            AND A.ABD_YN = '0'
+                            AND D.APP_MAN_CODE IN ('P0006','P0016')
+                            AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088') {#appDate} ) EXT_UTIL_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST WHERE INOUT_DIV = 'INT' AND RIGHT_DIV IN ('30') AND APP_NO IS NOT NULL  AND REG_NO IS NULL {#appDate}) INT_DESIGN_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST WHERE INOUT_DIV = 'EXT' AND RIGHT_DIV IN ('30') AND APP_NO IS NOT NULL  AND REG_NO IS NULL {#appDate}) EXT_DESIGN_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST WHERE INOUT_DIV = 'INT' AND RIGHT_DIV IN ('40') AND APP_NO IS NOT NULL  AND REG_NO IS NULL {#appDate}) INT_TMARK_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST WHERE INOUT_DIV = 'EXT' AND RIGHT_DIV IN ('40') AND APP_NO IS NOT NULL  AND REG_NO IS NULL {#appDate}) EXT_TMARK_CNT
+FROM   DUAL
+UNION ALL
+SELECT '등록' DIV_NAME
+     , (SELECT COUNT(1) FROM TB_APP_MST A
+                            ,TB_MAPP_APP_MAN B
+                         WHERE A.REF_ID = B.REF_ID
+                           AND A.INOUT_DIV = 'INT'
+                           AND A.RIGHT_DIV IN ('10')
+                           AND A.APP_NO IS NOT NULL
+                           AND A.REG_NO IS NOT NULL
+                           AND B.APP_MAN_CODE IN ('P0006','P0016')
+                           AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088') {#regDate} ) INT_PAT_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST A
+                           , TB_APP_MST_EXT B
+                           , TB_APP_EXT_GRP C
+                           , TB_MAPP_APP_MAN D
+                        WHERE A.REF_ID = B.REF_ID
+                           AND B.GRP_ID(+) = C.GRP_ID
+                           AND C.GRP_ID = D.REF_ID
+                           AND A.INOUT_DIV = 'EXT'
+                           AND A.RIGHT_DIV IN ('10')
+                           AND A.APP_NO IS NOT NULL
+                           AND A.REG_NO IS NOT NULL
+                           AND D.APP_MAN_CODE IN ('P0006','P0016')
+                           AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088') {#regDate} ) EXT_PAT_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST A
+                            ,TB_MAPP_APP_MAN B
+                        WHERE A.REF_ID = B.REF_ID
+                           AND A.INOUT_DIV = 'INT'
+                           AND A.RIGHT_DIV IN ('20')
+                           AND A.APP_NO IS NOT NULL
+                           AND A.REG_NO IS NOT NULL
+                           AND B.APP_MAN_CODE IN ('P0006','P0016')
+                           AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088') {#regDate} ) INT_UTIL_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST A
+                           , TB_APP_MST_EXT B
+                           , TB_APP_EXT_GRP C
+                           , TB_MAPP_APP_MAN D
+                        WHERE A.REF_ID = B.REF_ID
+                           AND B.GRP_ID(+) = C.GRP_ID
+                           AND C.GRP_ID = D.REF_ID
+                           AND A.INOUT_DIV = 'EXT'
+                           AND A.RIGHT_DIV IN ('20')
+                           AND A.APP_NO IS NOT NULL
+                           AND A.REG_NO IS NOT NULL
+                           AND D.APP_MAN_CODE IN ('P0006','P0016')
+                           AND A.STATUS NOT IN ('10INT-0056','10INT-0083','10EXT-0088') {#regDate} ) EXT_UTIL_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST WHERE INOUT_DIV = 'INT' AND RIGHT_DIV IN ('30') AND APP_NO IS NOT NULL AND REG_NO IS NOT NULL {#regDate} ) INT_DESIGN_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST WHERE INOUT_DIV = 'EXT' AND RIGHT_DIV IN ('30') AND APP_NO IS NOT NULL AND REG_NO IS NOT NULL {#regDate} ) EXT_DESIGN_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST WHERE INOUT_DIV = 'INT' AND RIGHT_DIV IN ('40') AND APP_NO IS NOT NULL AND REG_NO IS NOT NULL {#regDate} ) INT_TMARK_CNT
+     , (SELECT COUNT(1) FROM TB_APP_MST WHERE INOUT_DIV = 'EXT' AND RIGHT_DIV IN ('40') AND APP_NO IS NOT NULL AND REG_NO IS NOT NULL {#regDate} ) EXT_TMARK_CNT
+FROM   DUAL
+]]></query>
+<query name="/retrieveAllStatisticCount/appDateStart" target="appDate"><![CDATA[
+AND    APP_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveAllStatisticCount/appDateEnd" target="appDate"><![CDATA[
+AND    APP_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveAllStatisticCount/regDateStart" target="regDate"><![CDATA[
+AND    REG_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveAllStatisticCount/regDateEnd" target="regDate"><![CDATA[
+AND    REG_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 국내출원품의대장 목록 조회 -->
+<query name="/retrieveIntApplyConsultList"><![CDATA[
+SELECT A.RIGHT_DIV
+     , A.REF_ID
+     , C.REF_NO
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , C.PATTEAM_RCPT_DATE
+     , C.OFFICE_SEND_DATE
+     , D.DATE_1
+     , A.OFFICE_RCPT_DATE
+     , E.DATE_2
+     , F.DATE_3
+     , G.DATE_4
+     , A.APP_DATE
+     , H.DATE_5
+     , FN_INVENTOR_NAMES(C.REF_ID) INVENTOR_NAMES
+     , B.INV_GRADE
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+     , TB_APP_INT_CONSULT C
+     , (SELECT REF_ID
+             , MAX(PAPER_DATE) DATE_1
+        FROM   TB_PAPER_LIST
+        WHERE  PAPER_CODE = '10INT-0002'
+        GROUP BY REF_ID) D
+     , (SELECT REF_ID
+             , MAX(PAPER_DATE) DATE_2
+        FROM   TB_PAPER_LIST
+        WHERE  PAPER_CODE = '10INT-0008'
+        AND    PAPER_SUBCODE = '027'
+        GROUP BY REF_ID) E
+     , (SELECT REF_ID
+             , MAX(PAPER_DATE) DATE_3
+        FROM   TB_PAPER_LIST
+        WHERE  PAPER_CODE = '10INT-0008'
+        AND    PAPER_SUBCODE = '028'
+        GROUP BY REF_ID) F
+     , (SELECT REF_ID
+             , MAX(PAPER_DATE) DATE_4
+        FROM   TB_PAPER_LIST
+        WHERE  PAPER_CODE = '10INT-0015'
+        GROUP BY REF_ID) G
+     , (SELECT REF_ID
+             , MAX(PAPER_DATE) DATE_5
+        FROM   TB_PAPER_LIST
+        WHERE  PAPER_CODE = '10INT-0071'
+        GROUP BY REF_ID) H
+WHERE   A.REF_ID = B.REF_ID
+AND     A.REF_ID = C.REF_ID(+)
+AND     A.REF_ID = D.REF_ID(+)
+AND     A.REF_ID = E.REF_ID(+)
+AND     A.REF_ID = F.REF_ID(+)
+AND     A.REF_ID = G.REF_ID(+)
+AND     A.REF_ID = H.REF_ID(+)
+]]></query>
+<query name="/retrieveIntApplyConsultList/refNo"><![CDATA[
+AND    A.REF_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveIntApplyConsultList/patNo"><![CDATA[
+AND    A.APP_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveIntApplyConsultList/regNO"><![CDATA[
+AND    A.REG_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveIntApplyConsultList/jobMan"><![CDATA[
+AND    A.JOB_MAN = {@JOB_MAN}
+]]></query>
+<query name="/retrieveIntApplyConsultList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveIntApplyConsultList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+
+<!-- 해외출원품의대장 목록 조회 -->
+<query name="/retrieveExtApplyConsultList"><![CDATA[
+SELECT A.RIGHT_DIV
+     , B.GRP_ID
+     , C.GRP_NO
+     , FN_COUNTRY_NAME(C.FIRSTAPP_COUNTRY ) COUNTRY_NAME
+     , FN_USER_NAME(C.JOB_MAN) JOB_MAN_NAME
+     , FN_OFFICE_NAME(C.OFFICE_CODE) OFFICE_NAME
+     , FN_OFFICE_NAME(B.EXT_OFFICE_CODE) EXT_OFFICE_NAME
+     , A.OFFICE_SEND_DATE
+     , A.OFFICE_RCPT_DATE
+     , D.DATE_1
+     , E.DATE_2
+     , F.DATE_3
+     , G.DATE_4
+     , H.DATE_5
+     , A.APP_NO
+     , A.APP_DATE
+     , FN_INVENTOR_NAMES(C.GRP_ID) INVENTOR_NAMES
+     , A.REF_NO
+     , C.CRE_DATE
+FROM   TB_APP_MST A
+     , TB_APP_MST_EXT B
+     , TB_APP_EXT_GRP C
+     , (SELECT REF_ID
+             , MAX(PAPER_DATE) DATE_1
+        FROM   TB_PAPER_LIST
+        WHERE  PAPER_CODE = '10EXT-0003'
+        AND    PAPER_SUBCODE = '001'
+        GROUP BY REF_ID) D
+     , (SELECT REF_ID
+             , MAX(PAPER_DATE) DATE_2
+        FROM   TB_PAPER_LIST
+        WHERE  PAPER_CODE = '10EXT-0005'
+        AND    PAPER_SUBCODE IN ('003', '005')
+        GROUP BY REF_ID) E
+     , (SELECT REF_ID
+             , MAX(PAPER_DATE) DATE_3
+        FROM   TB_PAPER_LIST
+        WHERE  PAPER_CODE = '10EXT-0015'
+        GROUP BY REF_ID) F
+     , (SELECT REF_ID
+             , MAX(PAPER_DATE) DATE_4
+        FROM   TB_PAPER_LIST
+        WHERE  PAPER_CODE = '10EXT-0017'
+        GROUP BY REF_ID) G
+     , (SELECT REF_ID
+             , MAX(PAPER_DATE) DATE_5
+        FROM   TB_PAPER_LIST
+        WHERE  PAPER_CODE = '10EXT-0011'
+        GROUP BY REF_ID) H
+WHERE  A.REF_ID = B.REF_ID
+AND    B.GRP_ID = C.GRP_ID
+AND    B.REF_ID = D.REF_ID(+)
+AND    B.REF_ID = E.REF_ID(+)
+AND    B.REF_ID = F.REF_ID(+)
+AND    B.REF_ID = G.REF_ID(+)
+AND    B.REF_ID = H.REF_ID(+)
+]]></query>
+<query name="/retrieveExtApplyConsultList/grpNo"><![CDATA[
+AND    C.GRP_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveExtApplyConsultList/RefNo"><![CDATA[
+AND    C.GRP_ID IN (SELECT GRP_ID FROM TB_MAPP_REF_ID A, TB_APP_MST B
+                  WHERE  GRP_ID = A.GRP_ID
+                  AND    A.REF_ID = B.REF_ID
+                  AND    A.MAPP_KIND = 'G'
+                  AND    B.REF_NO LIKE '%'||{@SR_NO}||'%')
+]]></query>
+<query name="/retrieveExtApplyConsultList/PatNo"><![CDATA[
+AND    A.APP_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveExtApplyConsultList/jobMan"><![CDATA[
+AND    A.JOB_MAN = {@JOB_MAN}
+]]></query>
+<query name="/retrieveExtApplyConsultList/dateStart"><![CDATA[
+AND    A.CRE_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveExtApplyConsultList/dateEnd"><![CDATA[
+AND    A.CRE_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 국내출원관리대장 목록 조회 -->
+<query name="/retrieveIntMasterList"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , A.APP_NO
+     , A.APP_DATE
+     , FN_COM_CODE_NAME('RIGHT_DIV', A.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , A.KO_APP_TITLE
+     , A.REG_NO
+     , A.REG_DATE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , FN_DIVISN_NAME(A.DIVISN_CODE) DIVISN_CODE_NAME
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , FN_COM_CODE_NAME('EXT_APP_STATUS', B.EXT_APP_STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) EXT_APP_STATUS_NAME
+     , FN_COM_CODE_NAME('EXAMREQ_YN', A.EXAMREQ_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) EXAMREQ_YN_NAME
+     , (B.INDEP_CLAIM ||'/'|| B.SUBORD_CLAIM) NDEP
+     , B.PATTEAM_RCPT_DATE
+     , B.PATTEAM_REQ_DATE
+     , D.REWARD_GIVE_DATE
+     , A.ABD_DATE
+     , FN_PAPER_NAME(A.STATUS) STATUS_NAME
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+     , (SELECT REF_ID
+             , MIN(PAPER_DATE) PAPER_DATE
+        FROM   TB_PAPER_LIST
+        WHERE  PAPER_CODE IN ('10INT-0008', '30INT-0005', '40INT-0005')
+        GROUP  BY REF_ID) C
+     , TB_APP_REWARD D
+WHERE  A.REF_ID = B.REF_ID
+AND    A.REF_ID = C.REF_ID
+AND    A.REF_ID = D.REF_ID
+]]></query>
+<query name="/retrieveIntMasterList/refNo"><![CDATA[
+AND    A.REF_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveIntMasterList/patNo"><![CDATA[
+AND    A.APP_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveIntMasterList/regNO"><![CDATA[
+AND    A.REG_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveIntMasterList/jobMan"><![CDATA[
+AND    A.JOB_MAN = {@JOB_MAN}
+]]></query>
+<query name="/retrieveIntMasterList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveIntMasterList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+
+<!-- 국내중간관리대장 목록 조회 -->
+<query name="/retrieveIntOAList"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , A.APP_NO
+     , A.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , FN_PAPER_NAME(C.PAPER_CODE) PAPER_NAME
+     , FN_PAPER_SUBNAME(C.PAPER_CODE, C.PAPER_SUBCODE) PAPER_SUBNAME
+     , C.PAPER_DATE
+     , C.CRE_DATE
+     , B.DUE_DATE
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10INT-0022', '30INT-0015')
+       ) DATE01 -- 거절이유검토서
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10INT-0032', '30INT-0017', '40INT-0008')
+       ) DATE02 -- 의견서제출
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10INT-0026', '30INT-0014')
+       ) DATE03 -- 의견안접수
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10INT-0031')
+       ) DATE04 -- 의견안제출지시
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10INT-0029', '30INT-0013', '40INT-0007')
+       ) DATE05 -- 기간연장서
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10INT-0043', '30INT-0021', '40INT-0019')
+       ) DATE06 -- 등록결정
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10INT-0025', '30INT-0041', '40INT-0009')
+       ) DATE07 -- 거절결정
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10INT-0057', '30INT-0033', '40INT-0031')
+       ) DATE08 -- 포기
+FROM   TB_APP_MST A
+     , TB_OA_HIST B
+     , TB_PAPER_LIST C
+WHERE  A.INOUT_DIV = 'INT'
+AND    A.REF_ID = B.REF_ID
+AND    B.REF_ID = C.REF_ID
+AND    B.START_PAPER_SEQ = C.LIST_SEQ
+]]></query>
+<query name="/retrieveIntOAList/searchNo"><![CDATA[
+AND    {#SR_GUBUN} LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveIntOAList/jobMan"><![CDATA[
+AND    A.JOB_MAN = {@JOB_MAN}
+]]></query>
+<query name="/retrieveIntOAList/dateStart"><![CDATA[
+AND    {#DATE_KIND} >= {@DATE_START}
+]]></query>
+<query name="/retrieveIntOAList/dateEnd"><![CDATA[
+AND    {#DATE_KIND} <= {@DATE_END}
+]]></query>
+
+<!-- 해외출원관리대장 목록 조회 -->
+<query name="/retrieveExtMasterList"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , C.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(C.GRP_ID) INVENTOR_NAMES
+     , FN_USER_NAME(C.JOB_MAN) JOB_MAN_NAME
+     , FN_COUNTRY_NAME(A.COUNTRY_CODE) COUNTRY_NAME
+     , FN_OFFICE_NAME(C.OFFICE_CODE) OFFICE_NAME
+     , FN_OFFICE_NAME(B.EXT_OFFICE_CODE) EXT_OFFICE_NAME
+     , A.APP_NO
+     , A.APP_DATE
+     , A.REG_NO
+     , A.REG_DATE
+     , FN_COM_CODE_NAME('EXAMREQ_YN', A.EXAMREQ_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) EXAMREQ_YN_NAME
+     , FN_PAPER_NAME(A.STATUS) STATUS_NAME
+FROM   TB_APP_MST A
+     , TB_APP_MST_EXT B
+     , TB_APP_EXT_GRP C
+WHERE  A.REF_ID = B.REF_ID
+AND    B.GRP_ID = C.GRP_ID
+AND    C.RIGHT_DIV = '10'
+]]></query>
+<query name="/retrieveExtMasterList/refNo"><![CDATA[
+AND    A.REF_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveExtMasterList/patNo"><![CDATA[
+AND    A.APP_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveExtMasterList/regNO"><![CDATA[
+AND    A.REG_NO LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveExtMasterList/jobMan"><![CDATA[
+AND    A.JOB_MAN = {@JOB_MAN}
+]]></query>
+<query name="/retrieveExtMasterList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveExtMasterList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+
+<!-- 해외중간관리대장 목록 조회 -->
+<query name="/retrieveExtOAList"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , A.APP_NO
+     , A.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , FN_PAPER_NAME(C.PAPER_CODE) PAPER_NAME
+     , FN_PAPER_SUBNAME(C.PAPER_CODE, C.PAPER_SUBCODE) PAPER_SUBNAME
+     , C.PAPER_DATE
+     , C.CRE_DATE
+     , B.DUE_DATE
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10EXT-0026', '30EXT-0015')
+       ) DATE01 -- 거절이유검토서
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10EXT-0038', '30EXT-0018', '40EXT-0088')
+       ) DATE02 -- Response제출
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10EXT-0029', '30EXT-0016')
+       ) DATE03 -- 의견안접수
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10EXT-0037')
+       ) DATE04 -- Response제출지시
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10EXT-0023', '30EXT-0014', '40EXT-0015')
+       ) DATE05 -- 기간연장서
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10EXT-0047', '40EXT-0031', '40EXT-0032')
+       ) DATE06 -- 등록결정
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10EXT-0021', '30EXT-0049', '40EXT-0017')
+       ) DATE07 -- 거절결정
+     , (SELECT MAX(PAPER_DATE)
+        FROM   TB_PAPER_LIST X
+        WHERE  X.REF_ID = B.REF_ID
+        AND    X.OA_SEQ = B.OA_SEQ
+        AND    X.PAPER_CODE IN ('10EXT-0072', '30EXT-0035', '40EXT-0043')
+       ) DATE08 -- 포기
+FROM   TB_APP_MST A
+     , TB_OA_HIST B
+     , TB_PAPER_LIST C
+WHERE  A.INOUT_DIV = 'EXT'
+AND    A.REF_ID = B.REF_ID
+AND    B.REF_ID = C.REF_ID
+AND    B.START_PAPER_SEQ = C.LIST_SEQ
+]]></query>
+<query name="/retrieveExtOAList/searchNo"><![CDATA[
+AND    {#SR_GUBUN} LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveExtOAList/jobMan"><![CDATA[
+AND    A.JOB_MAN = {@JOB_MAN}
+]]></query>
+<query name="/retrieveExtOAList/dateStart"><![CDATA[
+AND    {#DATE_KIND} >= {@DATE_START}
+]]></query>
+<query name="/retrieveExtOAList/dateEnd"><![CDATA[
+AND    {#DATE_KIND} <= {@DATE_END}
+]]></query>
+
+<!-- 기술별 실적 통계 -->
+<query name="/retrieveActualByTechList"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , A.APP_NO
+     , DECODE(A.PAT_APP_NO, NULL , A.APP_NO , A.PAT_APP_NO) PAT_APP_NO
+     , A.KO_APP_TITLE
+     , A.EN_APP_TITLE
+     , B.PATTEAM_RCPT_DATE
+     , B.PATTEAM_REQ_DATE
+     , A.APP_DATE
+     , A.REG_NO
+     , A.REG_DATE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , FN_PAPER_NAME(A.STATUS) STATUS_NAME
+     , A.STATUS_DATE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , C.TECH_CODE
+     , A.INOUT_DIV
+     , FN_PJT_NAME(A.REF_ID) PJT_NAME
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+     , TB_MAPP_TECH_CLS C
+WHERE  A.REF_ID = B.REF_ID
+AND    A.REF_ID = C.REF_ID
+AND    C.TECH_CODE = {@TECH_CODE}
+AND    A.APP_DATE IS NOT NULL
+UNION ALL
+SELECT MST.REF_ID
+     , MST.REF_NO
+     , MST.APP_NO
+     , DECODE(MST.PAT_APP_NO , NULL , MST.APP_NO, MST.PAT_APP_NO) PAT_APP_NO
+     , MST.KO_APP_TITLE
+     , MST.EN_APP_TITLE
+     , NULL PATTEAM_RCPT_DATE
+     , NULL PATTEAM_REQ_DATE
+     , MST.APP_DATE
+     , MST.REG_NO
+     , MST.REG_DATE
+     , FN_OFFICE_NAME(MST.OFFICE_CODE) OFFICE_NAME
+     , FN_USER_NAME(MST.JOB_MAN) JOB_MAN_NAME
+     , FN_PAPER_NAME(MST.STATUS) STATUS_NAME
+     , MST.STATUS_DATE
+     , FN_INVENTOR_NAMES(MST.REF_ID) INVENTOR_NAMES
+     , NULL TECH_CODE
+     , MST.INOUT_DIV
+     , FN_PJT_NAME(MST.REF_ID) PJT_NAME
+FROM TB_APP_MST MST
+INNER JOIN TB_APP_MST_EXT EXT ON MST.REF_ID = EXT.REF_ID
+INNER JOIN TB_MAPP_REF_ID D ON EXT.GRP_ID = D.GRP_ID
+LEFT JOIN TB_MAPP_TECH_CLS C ON D.REF_ID = C.REF_ID
+WHERE    MST.APP_DATE IS NOT NULL
+AND    C.TECH_CODE = {@TECH_CODE}
+]]></query>
+
+<!-- IPC 국내 실적 통계 -->
+<query name="/retrieveActualByIpcList"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , A.APP_NO
+     , A.PAT_APP_NO
+     , A.KO_APP_TITLE
+     , B.PATTEAM_RCPT_DATE
+     , B.PATTEAM_REQ_DATE
+     , A.APP_DATE
+     , A.REG_NO
+     , A.REG_DATE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , FN_PAPER_NAME(A.STATUS) STATUS_NAME
+     , A.STATUS_DATE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , C.IPC_CODE
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+     , TB_MAPP_IPC_CLS C
+WHERE  A.REF_ID = B.REF_ID
+AND    A.REF_ID = C.REF_ID
+AND    C.IPC_CODE = {@IPC_CODE}
+UNION ALL
+SELECT A.REF_ID
+     , A.REF_NO
+     , A.APP_NO
+     , A.PAT_APP_NO
+     , A.KO_APP_TITLE
+     , NULL PATTEAM_RCPT_DATE
+     , NULL PATTEAM_REQ_DATE
+     , A.APP_DATE
+     , A.REG_NO
+     , A.REG_DATE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , FN_PAPER_NAME(A.STATUS) STATUS_NAME
+     , A.STATUS_DATE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , C.IPC_CODE
+FROM   TB_APP_MST A
+     , TB_APP_MST_EXT EXT
+     , TB_APP_EXT_GRP GRP
+     , TB_MAPP_IPC_CLS C
+WHERE  A.REF_ID = EXT.REF_ID
+AND    GRP.GRP_ID = EXT.GRP_ID
+AND    A.REF_ID = C.REF_ID
+AND    A.INOUT_DIV = 'EXT'
+AND    C.IPC_CODE = {@IPC_CODE}
+]]></query>
+
+<!-- 프로젝트별 실적 통계 -->
+<query name="/retrieveActualByProjectList"><![CDATA[
+SELECT P.PJT_NAME
+     , NVL(T1.APP_CNT,0) INT_APP_CNT
+     , NVL(T2.REG_CNT ,0) INT_REG_CNT
+     , NVL(T3.EXT_APP_CNT ,0) EXT_APP_CNT
+     , NVL(T4.EXT_REG_CNT ,0) EXT_REG_CNT
+     , P.PJT_CODE
+FROM ( SELECT A.PJT_CODE
+            , COUNT(*) APP_CNT
+       FROM  (SELECT DISTINCT REF_ID
+                   , PJT_CODE
+              FROM   TB_MAPP_PJT ) A
+                   , TB_APP_MST B
+              WHERE  A.REF_ID = B.REF_ID
+                AND  B.APP_NO IS NOT NULL
+                AND  B.REG_NO IS NULL
+]]></query>
+<query name="/retrieveActualByProjectList/IntRegQuery"><![CDATA[
+              GROUP BY A.PJT_CODE) T1
+           , (SELECT A.PJT_CODE
+                   , COUNT(*) REG_CNT
+              FROM  (SELECT DISTINCT REF_ID
+                          , PJT_CODE
+                     FROM   TB_MAPP_PJT ) A
+                   , TB_APP_MST B
+              WHERE  A.REF_ID = B.REF_ID
+                AND  B.APP_NO IS NOT NULL
+                AND  B.REG_NO IS NOT NULL
+]]></query>
+<query name="/retrieveActualByProjectList/ExtAppQuery"><![CDATA[
+              GROUP BY A.PJT_CODE) T2
+            ,(SELECT A.PJT_CODE
+                , COUNT(*) EXT_APP_CNT
+           FROM  (SELECT DISTINCT REF_ID
+                       , PJT_CODE
+                  FROM   TB_MAPP_PJT ) A
+                , TB_APP_MST B
+                , TB_APP_MST_EXT C
+                , TB_APP_EXT_GRP D
+           WHERE  A.REF_ID(+) = D.GRP_ID
+             AND  B.REF_ID = C.REF_ID
+             AND  C.GRP_ID(+) = D.GRP_ID
+             AND  B.INOUT_DIV = 'EXT'
+             AND  B.APP_NO IS NOT NULL
+             AND  B.REG_NO IS NULL
+]]></query>
+<query name="/retrieveActualByProjectList/ExtRegQuery"><![CDATA[
+             GROUP BY A.PJT_CODE) T3
+           ,(SELECT A.PJT_CODE
+                 , COUNT(*) EXT_REG_CNT
+            FROM  (SELECT DISTINCT REF_ID
+                        , PJT_CODE
+                   FROM   TB_MAPP_PJT ) A
+                 , TB_APP_MST B
+                 , TB_APP_MST_EXT C
+                 , TB_APP_EXT_GRP D
+            WHERE  A.REF_ID(+) = D.GRP_ID
+              AND  B.REF_ID = C.REF_ID
+              AND  C.GRP_ID(+) = D.GRP_ID
+              AND  B.INOUT_DIV = 'EXT'
+              AND  B.APP_NO IS NOT NULL
+              AND  B.REG_NO IS NOT NULL
+ ]]></query>
+<query name="/retrieveActualByProjectList/EndQuery"><![CDATA[
+            GROUP BY A.PJT_CODE) T4
+     , TB_COM_PJT P
+WHERE  P.PJT_CODE = T1.PJT_CODE(+)
+AND    P.PJT_CODE = T2.PJT_CODE(+)
+AND    P.PJT_CODE = T3.PJT_CODE(+)
+AND    P.PJT_CODE = T4.PJT_CODE(+)
+]]></query>
+<query name="/retrieveActualByProjectList/IntappDateStart"><![CDATA[
+              AND    B.APP_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveActualByProjectList/IntappDateEnd"><![CDATA[
+              AND    B.APP_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveActualByProjectList/IntregDateStart"><![CDATA[
+              AND    B.REG_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveActualByProjectList/IntregDateEnd"><![CDATA[
+              AND    B.REG_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveActualByProjectList/ExtappDateStart"><![CDATA[
+              AND    B.APP_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveActualByProjectList/ExtappDateEnd"><![CDATA[
+              AND    B.APP_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveActualByProjectList/ExtregDateStart"><![CDATA[
+              AND    B.REG_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveActualByProjectList/ExtregDateEnd"><![CDATA[
+              AND    B.REG_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 연구소별 실적 통계 -->
+<query name="/retrieveActualByLabList"><![CDATA[
+SELECT L.LAB_NAME
+     , NVL(A.INT_CRE_CNT, 0) INT_CRE_CNT
+     , NVL(B.INT_APP_CNT, 0) INT_APP_CNT
+     , NVL(C.INT_REG_CNT, 0) INT_REG_CNT
+     , NVL(D.EXT_APP_CNT, 0) EXT_APP_CNT
+     , NVL(E.EXT_REG_CNT, 0) EXT_REG_CNT
+     , L.LAB_CODE
+FROM  (SELECT LAB_CODE
+            , COUNT(*) INT_CRE_CNT
+       FROM   TB_APP_MST
+       WHERE  INOUT_DIV = 'INT'
+       AND    CRE_DATE >= {@DATE_START}
+       AND    CRE_DATE <= {@DATE_END}
+       GROUP  BY LAB_CODE) A
+     ,(SELECT LAB_CODE
+            , COUNT(*) INT_APP_CNT
+       FROM   TB_APP_MST
+       WHERE  INOUT_DIV = 'INT'
+       AND    APP_DATE >= {@DATE_START}
+       AND    APP_DATE <= {@DATE_END}
+       GROUP  BY LAB_CODE) B
+     ,(SELECT LAB_CODE
+            , COUNT(*) INT_REG_CNT
+       FROM   TB_APP_MST
+       WHERE  INOUT_DIV = 'INT'
+       AND    REG_DATE >= {@DATE_START}
+       AND    REG_DATE <= {@DATE_END}
+       GROUP  BY LAB_CODE) C
+     ,(SELECT LAB_CODE
+            , COUNT(*) EXT_APP_CNT
+       FROM   TB_APP_MST
+       WHERE  INOUT_DIV = 'EXT'
+       AND    APP_DATE >= {@DATE_START}
+       AND    APP_DATE <= {@DATE_END}
+       GROUP  BY LAB_CODE) D
+     ,(SELECT LAB_CODE
+            , COUNT(*) EXT_REG_CNT
+       FROM   TB_APP_MST
+       WHERE  INOUT_DIV = 'EXT'
+       AND    REG_DATE >= {@DATE_START}
+       AND    REG_DATE <= {@DATE_END}
+       GROUP  BY LAB_CODE) E
+     , TB_ORG_LAB L
+WHERE  L.LAB_CODE = A.LAB_CODE(+)
+AND    L.LAB_CODE = B.LAB_CODE(+)
+AND    L.LAB_CODE = C.LAB_CODE(+)
+AND    L.LAB_CODE = D.LAB_CODE(+)
+AND    L.LAB_CODE = E.LAB_CODE(+)
+]]></query>
+
+<!-- 연구소별 실적 상세조회 -->
+<query name="/retrieveActualByLab"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , A.APP_NO
+     , A.KO_APP_TITLE
+     , B.PATTEAM_RCPT_DATE
+     , A.OFFICE_RCPT_DATE
+     , A.APP_DATE
+     , A.REG_NO
+     , A.REG_DATE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , FN_BIZ_CODE_NAME(A.STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) STATUS_NAME
+     , A.STATUS_DATE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+WHERE  A.REF_ID   = B.REF_ID(+)
+AND    A.LAB_CODE = {@LAB_CODE}
+]]></query>
+<query name="/retrieveActualByLab/inOutDiv"><![CDATA[
+AND    A.INOUT_DIV = {@INOUT_DIV}
+]]></query>
+<query name="/retrieveActualByLab/creDate"><![CDATA[
+AND    A.CRE_DATE >= {@DATE_START}
+AND    A.CRE_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveActualByLab/appDate"><![CDATA[
+AND    A.APP_DATE >= {@DATE_START}
+AND    A.APP_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveActualByLab/regDate"><![CDATA[
+AND    A.REG_DATE >= {@DATE_START}
+AND    A.REG_DATE <= {@DATE_END}
+]]></query>
+
+<!-- Delivery 현황(출원) 목록 조회 -->
+<query name="/retrieveDeliveryApplyList"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , A.OFFICE_CODE
+     , B.FIRM_HNAME AS OFFICE_NAME
+     , A.OFFICE_JOB_MAN
+     , C.EMP_HNAME AS OFFICE_JOB_CONTACT
+     , A.JOB_MAN
+     , F.EMP_HNAME AS JOB_CONTACT
+     , A.KO_APP_TITLE
+     , CASE WHEN OFFICE_RCPT_DATE IS NOT NULL
+            THEN TO_CHAR((TO_DATE(A.OFFICE_RCPT_DATE,'YYYYMMDD') - TO_DATE(A.CRE_DATE,'YYYYMMDD'))) || '일'
+            ELSE '-'
+       END JOB_MAN_TO_OFFICE
+     , CASE WHEN A.OFFICE_RCPT_DATE IS NOT NULL
+             AND D.PAPER_DATE IS NOT NULL
+            THEN TO_CHAR((TO_DATE(D.PAPER_DATE,'YYYYMMDD') - TO_DATE(A.OFFICE_RCPT_DATE,'YYYYMMDD'))) || '일'
+            ELSE '-'
+       END OFFICE_TO_DRAFT
+     , CASE WHEN D.PAPER_DATE IS NOT NULL
+             AND E.PAPER_DATE IS NOT NULL
+            THEN TO_CHAR((TO_DATE(E.PAPER_DATE,'YYYYMMDD') - TO_DATE(D.PAPER_DATE,'YYYYMMDD'))) || '일'
+            ELSE '-'
+       END DRAFT_TO_APPLY
+FROM   TB_APP_MST A
+     , TB_ORG_OFFICE B
+     , TB_USR_MST C
+     , TB_USR_MST F
+     , (SELECT REF_ID, PAPER_DATE FROM TB_PAPER_LIST WHERE PAPER_CODE = '10INT-0008') D
+     , (SELECT REF_ID, PAPER_DATE FROM TB_PAPER_LIST WHERE PAPER_CODE = '10INT-0016') E
+WHERE  1=1
+AND    A.OFFICE_JOB_MAN IS NOT NULL
+AND    C.SYSTEM_TYPE = 'OFFICE'
+AND    F.SYSTEM_TYPE = 'PATENT'
+AND    A.OFFICE_CODE = B.OFFICE_CODE
+AND    A.OFFICE_JOB_MAN = C.USER_ID
+AND    A.JOB_MAN = F.USER_ID
+AND    A.REF_ID = D.REF_ID(+)
+AND    A.REF_ID = E.REF_ID(+)
+]]></query>
+<query name="/retrieveDeliveryApplyList/refNo"><![CDATA[
+AND INSTR(A.REF_NO, {@SR_REF_NO}) > 0
+]]></query>
+<query name="/retrieveDeliveryApplyList/officeName"><![CDATA[
+AND INSTR(B.FIRM_HNAME, {@SR_OFFICE_NAME}) > 0
+]]></query>
+<query name="/retrieveDeliveryApplyList/officeJobContact"><![CDATA[
+AND INSTR(C.EMP_HNAME, {@SR_OFFICE_JOB_CONTACT}) > 0
+]]></query>
+<query name="/retrieveDeliveryApplyList/jobContact"><![CDATA[
+AND INSTR(F.EMP_HNAME, {@SR_JOB_CONTACT}) > 0
+]]></query>
+<query name="/retrieveDeliveryApplyList/dateStart"><![CDATA[
+AND {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveDeliveryApplyList/dateEnd"><![CDATA[
+AND {#DATE_GUBUN} >= {@DATE_END}
+]]></query>
+
+<!-- Delivery 현황(OA) 목록 조회 -->
+<query name="/retrieveDeliveryOAList"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , A.OFFICE_CODE
+     , B.FIRM_HNAME AS OFFICE_NAME
+     , A.OFFICE_JOB_MAN
+     , C.EMP_HNAME AS OFFICE_JOB_CONTACT
+     , A.JOB_MAN
+     , F.EMP_HNAME AS JOB_CONTACT
+     , A.KO_APP_TITLE
+     , CASE WHEN D.OA_GENERATION1 IS NOT NULL
+            THEN D.OA_GENERATION1 || '일'
+            ELSE '-'
+       END OA_GENERATION1
+     , CASE WHEN D.OA_GENERATION2 IS NOT NULL
+            THEN D.OA_GENERATION2 || '일'
+            ELSE '-'
+       END OA_GENERATION2
+     , CASE WHEN D.OA_GENERATION3 IS NOT NULL
+            THEN D.OA_GENERATION3 || '일'
+            ELSE '-'
+       END OA_GENERATION3
+FROM   TB_APP_MST A
+     , TB_ORG_OFFICE B
+     , TB_USR_MST C
+     , TB_USR_MST F
+     , (
+         SELECT AA.REF_ID
+              , MAX((TO_DATE(BB.OAA,'YYYYMMDD') - TO_DATE(AA.OAA,'YYYYMMDD'))) OA_GENERATION1
+              , MAX((TO_DATE(BB.OAB,'YYYYMMDD') - TO_DATE(AA.OAB,'YYYYMMDD'))) OA_GENERATION2
+              , MAX((TO_DATE(BB.OAC,'YYYYMMDD') - TO_DATE(AA.OAC,'YYYYMMDD'))) OA_GENERATION3
+        FROM (
+        SELECT MM.REF_ID
+              , MAX((SELECT PAPER_DATE FROM TB_PAPER_LIST WHERE REF_ID = MM.REF_ID AND PAPER_CODE IN ('10INT-0017','10INT-0018','10INT-0019') AND LIST_SEQ = MM.LIST_SEQ AND 1 = MM.RN)) OAA
+              , MAX((SELECT PAPER_DATE FROM TB_PAPER_LIST WHERE REF_ID = MM.REF_ID AND PAPER_CODE IN ('10INT-0017','10INT-0018','10INT-0019') AND LIST_SEQ = MM.LIST_SEQ AND 2 = MM.RN)) OAB
+              , MAX((SELECT PAPER_DATE FROM TB_PAPER_LIST WHERE REF_ID = MM.REF_ID AND PAPER_CODE IN ('10INT-0017','10INT-0018','10INT-0019') AND LIST_SEQ = MM.LIST_SEQ AND 3 = MM.RN)) OAC
+        FROM (
+        SELECT REF_ID
+             , PAPER_DATE
+             , LIST_SEQ
+             , ROW_NUMBER() OVER(PARTITION BY REF_ID ORDER BY REF_ID, LIST_SEQ ASC) RN
+        FROM TB_PAPER_LIST
+        WHERE PAPER_CODE IN ('10INT-0017','10INT-0018','10INT-0019')
+        ORDER BY REF_ID, PAPER_DATE ASC) MM
+        WHERE MM.RN < 4
+        GROUP BY MM.REF_ID) AA
+        ,(
+        SELECT NN.REF_ID
+             , MAX((SELECT PAPER_DATE FROM TB_PAPER_LIST WHERE REF_ID = NN.REF_ID AND PAPER_CODE = '10INT-0032' AND LIST_SEQ = NN.LIST_SEQ AND 1= NN.RN)) OAA
+             , MAX((SELECT PAPER_DATE FROM TB_PAPER_LIST WHERE REF_ID = NN.REF_ID AND PAPER_CODE = '10INT-0032' AND LIST_SEQ = NN.LIST_SEQ AND 2= NN.RN)) OAB
+             , MAX((SELECT PAPER_DATE FROM TB_PAPER_LIST WHERE REF_ID = NN.REF_ID AND PAPER_CODE = '10INT-0032' AND LIST_SEQ = NN.LIST_SEQ AND 3= NN.RN)) OAC
+        FROM (
+        SELECT REF_ID
+             , PAPER_DATE
+             , LIST_SEQ
+             , ROW_NUMBER() OVER(PARTITION BY REF_ID ORDER BY REF_ID ASC) RN
+        FROM TB_PAPER_LIST
+        WHERE PAPER_CODE = '10INT-0032'
+        ORDER BY REF_ID, PAPER_DATE ASC) NN
+        WHERE NN.RN < 4
+        GROUP BY NN.REF_ID) BB
+        WHERE 1=1
+        AND AA.REF_ID = BB.REF_ID(+)
+        GROUP BY AA.REF_ID) D
+WHERE  1=1
+AND    A.OFFICE_JOB_MAN IS NOT NULL
+AND    C.SYSTEM_TYPE = 'OFFICE'
+AND    F.SYSTEM_TYPE = 'PATENT'
+AND    A.OFFICE_CODE = B.OFFICE_CODE
+AND    A.OFFICE_JOB_MAN = C.USER_ID
+AND    A.JOB_MAN = F.USER_ID
+AND    A.REF_ID = D.REF_ID(+)
+]]></query>
+<query name="/retrieveDeliveryOAList/refNo"><![CDATA[
+AND INSTR(A.REF_NO, {@SR_REF_NO}) > 0
+]]></query>
+<query name="/retrieveDeliveryOAList/officeName"><![CDATA[
+AND INSTR(B.FIRM_HNAME, {@SR_OFFICE_NAME}) > 0
+]]></query>
+<query name="/retrieveDeliveryOAList/officeJobContact"><![CDATA[
+AND INSTR(C.EMP_HNAME, {@SR_OFFICE_JOB_CONTACT}) > 0
+]]></query>
+<query name="/retrieveDeliveryOAList/jobContact"><![CDATA[
+AND INSTR(F.EMP_HNAME, {@SR_JOB_CONTACT}) > 0
+]]></query>
+
+<!-- Delivery 통계현황 목록 조회 -->
+<query name="/retrieveDeliveryStatisticList"><![CDATA[
+
+SELECT MAIN_TB.OFFICE_CODE
+     , MAIN_TB.OFFICE_NAME
+     , MAIN_TB.OFFICE_JOB_MAN
+     , MAIN_TB.OFFICE_JOB_CONTACT
+     , CASE WHEN SUM(MAIN_TB.JOB_MAN_TO_OFFICE) > 0 AND SUM(JOB_MAN_TO_OFFICE_COUNT) > 0
+            THEN TO_CHAR(TRUNC((SUM(MAIN_TB.JOB_MAN_TO_OFFICE) / SUM(JOB_MAN_TO_OFFICE_COUNT)), 1)) || '일'
+            ELSE '-'
+       END JOB_MAN_TO_OFFICE
+     , CASE WHEN SUM(MAIN_TB.OFFICE_TO_DRAFT) > 0 AND SUM(MAIN_TB.OFFICE_TO_DRAFT_COUNT) > 0
+            THEN TO_CHAR(TRUNC(SUM(MAIN_TB.OFFICE_TO_DRAFT) / SUM(MAIN_TB.OFFICE_TO_DRAFT_COUNT), 1)) || '일'
+            ELSE '-'
+       END OFFICE_TO_DRAFT
+     , CASE WHEN SUM(MAIN_TB.DRAFT_TO_APPLY) > 0 AND SUM(MAIN_TB.DRAFT_TO_APPLY_COUNT) > 0
+            THEN TO_CHAR(TRUNC(SUM(MAIN_TB.DRAFT_TO_APPLY) / SUM(MAIN_TB.DRAFT_TO_APPLY_COUNT), 1)) || '일'
+            ELSE '-'
+       END DRAFT_TO_APPLY
+     , CASE WHEN SUM(MAIN_TB.OA_GENERATION1) > 0 AND SUM(MAIN_TB.OA_COUNT1) > 0
+            THEN TO_CHAR(TRUNC( (SUM(MAIN_TB.OA_GENERATION1) / SUM(MAIN_TB.OA_COUNT1)) , 1)) || '일'
+            ELSE '-'
+       END OA_GENERATION1
+     , CASE WHEN SUM(MAIN_TB.OA_GENERATION2) > 0 AND SUM(MAIN_TB.OA_COUNT2) > 0
+            THEN TO_CHAR(TRUNC( (SUM(MAIN_TB.OA_GENERATION2) / SUM(MAIN_TB.OA_COUNT2)) , 1)) || '일'
+            ELSE '-'
+       END OA_GENERATION2
+     , CASE WHEN SUM(MAIN_TB.OA_GENERATION3) > 0 AND SUM(MAIN_TB.OA_COUNT3) > 0
+            THEN TO_CHAR(TRUNC( (SUM(MAIN_TB.OA_GENERATION3) / SUM(MAIN_TB.OA_COUNT3)) , 1)) || '일'
+            ELSE '-'
+       END OA_GENERATION3
+FROM (
+SELECT A.OFFICE_CODE
+     , B.FIRM_HNAME AS OFFICE_NAME
+     , A.OFFICE_JOB_MAN
+     , C.EMP_HNAME AS OFFICE_JOB_CONTACT
+     , CASE WHEN OFFICE_RCPT_DATE IS NOT NULL
+            THEN (TO_DATE(A.OFFICE_RCPT_DATE,'YYYYMMDD') - TO_DATE(A.CRE_DATE,'YYYYMMDD'))
+            ELSE 0
+       END JOB_MAN_TO_OFFICE
+     , CASE WHEN OFFICE_RCPT_DATE IS NOT NULL
+            THEN 1
+            ELSE 0
+       END JOB_MAN_TO_OFFICE_COUNT
+     , CASE WHEN A.OFFICE_RCPT_DATE IS NOT NULL
+             AND D.PAPER_DATE IS NOT NULL
+            THEN (TO_DATE(D.PAPER_DATE,'YYYYMMDD') - TO_DATE(A.OFFICE_RCPT_DATE,'YYYYMMDD'))
+            ELSE 0
+       END OFFICE_TO_DRAFT
+     , CASE WHEN A.OFFICE_RCPT_DATE IS NOT NULL
+             AND D.PAPER_DATE IS NOT NULL
+            THEN 1
+            ELSE 0
+       END OFFICE_TO_DRAFT_COUNT
+     , CASE WHEN D.PAPER_DATE IS NOT NULL
+             AND E.PAPER_DATE IS NOT NULL
+            THEN (TO_DATE(E.PAPER_DATE,'YYYYMMDD') - TO_DATE(D.PAPER_DATE,'YYYYMMDD'))
+            ELSE 0
+       END DRAFT_TO_APPLY
+     , CASE WHEN D.PAPER_DATE IS NOT NULL
+             AND E.PAPER_DATE IS NOT NULL
+            THEN 1
+            ELSE 0
+       END DRAFT_TO_APPLY_COUNT
+     , NVL(OA_GENERATION1, 0) OA_GENERATION1
+     , DECODE(OA_GENERATION1,NULL, 0,1) OA_COUNT1
+     , NVL(OA_GENERATION2, 0) OA_GENERATION2
+     , DECODE(OA_GENERATION2,NULL, 0,1) OA_COUNT2
+     , NVL(OA_GENERATION3, 0) OA_GENERATION3
+     , DECODE(OA_GENERATION3,NULL, 0,1) OA_COUNT3
+FROM   TB_APP_MST A
+     , TB_ORG_OFFICE B
+     , TB_USR_MST C
+     , (SELECT REF_ID, PAPER_DATE FROM TB_PAPER_LIST WHERE PAPER_CODE = '10INT-0008') D
+     , (SELECT REF_ID, PAPER_DATE FROM TB_PAPER_LIST WHERE PAPER_CODE = '10INT-0016') E
+     , (
+         SELECT AA.REF_ID
+              , MAX((TO_DATE(BB.OAA,'YYYYMMDD') - TO_DATE(AA.OAA,'YYYYMMDD'))) OA_GENERATION1
+              , MAX((TO_DATE(BB.OAB,'YYYYMMDD') - TO_DATE(AA.OAB,'YYYYMMDD'))) OA_GENERATION2
+              , MAX((TO_DATE(BB.OAC,'YYYYMMDD') - TO_DATE(AA.OAC,'YYYYMMDD'))) OA_GENERATION3
+        FROM (
+        SELECT MM.REF_ID
+              , MAX((SELECT PAPER_DATE FROM TB_PAPER_LIST WHERE REF_ID = MM.REF_ID AND PAPER_CODE IN ('10INT-0017','10INT-0018','10INT-0019') AND LIST_SEQ = MM.LIST_SEQ AND 1 = MM.RN)) OAA
+              , MAX((SELECT PAPER_DATE FROM TB_PAPER_LIST WHERE REF_ID = MM.REF_ID AND PAPER_CODE IN ('10INT-0017','10INT-0018','10INT-0019') AND LIST_SEQ = MM.LIST_SEQ AND 2 = MM.RN)) OAB
+              , MAX((SELECT PAPER_DATE FROM TB_PAPER_LIST WHERE REF_ID = MM.REF_ID AND PAPER_CODE IN ('10INT-0017','10INT-0018','10INT-0019') AND LIST_SEQ = MM.LIST_SEQ AND 3 = MM.RN)) OAC
+        FROM (
+        SELECT REF_ID
+             , PAPER_DATE
+             , LIST_SEQ
+             , ROW_NUMBER() OVER(PARTITION BY REF_ID ORDER BY REF_ID, LIST_SEQ ASC) RN
+        FROM TB_PAPER_LIST
+        WHERE PAPER_CODE IN ('10INT-0017','10INT-0018','10INT-0019')
+        {#1}
+        ORDER BY REF_ID, PAPER_DATE ASC) MM
+        WHERE MM.RN < 4
+        GROUP BY MM.REF_ID) AA
+        ,(
+        SELECT NN.REF_ID
+             , MAX((SELECT PAPER_DATE FROM TB_PAPER_LIST WHERE REF_ID = NN.REF_ID AND PAPER_CODE = '10INT-0032' AND LIST_SEQ = NN.LIST_SEQ AND 1= NN.RN)) OAA
+             , MAX((SELECT PAPER_DATE FROM TB_PAPER_LIST WHERE REF_ID = NN.REF_ID AND PAPER_CODE = '10INT-0032' AND LIST_SEQ = NN.LIST_SEQ AND 2= NN.RN)) OAB
+             , MAX((SELECT PAPER_DATE FROM TB_PAPER_LIST WHERE REF_ID = NN.REF_ID AND PAPER_CODE = '10INT-0032' AND LIST_SEQ = NN.LIST_SEQ AND 3= NN.RN)) OAC
+        FROM (
+        SELECT REF_ID
+             , PAPER_DATE
+             , LIST_SEQ
+             , ROW_NUMBER() OVER(PARTITION BY REF_ID ORDER BY REF_ID ASC) RN
+        FROM TB_PAPER_LIST
+        WHERE PAPER_CODE = '10INT-0032'
+        {#2}
+        ORDER BY REF_ID, PAPER_DATE ASC) NN
+        WHERE NN.RN < 4
+        GROUP BY NN.REF_ID) BB
+        WHERE 1=1
+        AND AA.REF_ID = BB.REF_ID(+)
+        GROUP BY AA.REF_ID) F
+WHERE  1=1
+AND    A.OFFICE_JOB_MAN IS NOT NULL
+AND    C.SYSTEM_TYPE = 'OFFICE'
+AND    A.OFFICE_CODE = B.OFFICE_CODE
+AND    A.OFFICE_JOB_MAN = C.USER_ID
+AND    A.REF_ID = D.REF_ID(+)
+AND    A.REF_ID = E.REF_ID(+)
+AND    A.REF_ID = F.REF_ID(+)
+) MAIN_TB
+GROUP BY OFFICE_CODE, OFFICE_NAME, OFFICE_JOB_MAN, OFFICE_JOB_CONTACT
+]]></query>
+
+<!-- 20170623 기술별 chart 조회 -->
+<query name="/A"><![CDATA[
+SELECT TECH_HNAME
+     , CNT
+FROM
+(
+SELECT
+      CTC.TECH_HNAME
+    , SUM(CNT) CNT
+FROM (
+  SELECT SUBSTR(MCT.TECH_CODE, 1, 1) TECH_CODE
+       , COUNT(*) CNT
+  FROM TB_APP_MST AM
+       INNER JOIN TB_MAPP_APP_MAN MAM ON AM.REF_ID = MAM.REF_ID AND MAM.APP_MAN_CODE IN ('P0006','P0016')
+       INNER JOIN TB_MAPP_TECH_CLS MCT ON AM.REF_ID = MCT.REF_ID
+  WHERE 1=1
+    AND AM.RIGHT_DIV IN ('10','20')
+    AND AM.APP_NO IS NOT NULL
+    AND AM.STATUS NOT IN ('10EXT-0083')
+    AND AM.ABD_YN != '1'
+    GROUP BY SUBSTR(MCT.TECH_CODE, 1, 1) ) TECH
+INNER JOIN TB_COM_TECH_CLS CTC ON TECH.TECH_CODE = CTC.TECH_CODE GROUP BY CTC.TECH_HNAME)
+ORDER BY CNT DESC
+]]></query>
+</root>

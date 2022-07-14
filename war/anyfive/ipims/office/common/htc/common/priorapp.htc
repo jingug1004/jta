@@ -1,0 +1,69 @@
+﻿<PUBLIC:COMPONENT tagName="PRIORAPP" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var ds_main;
+var ds_main_id;
+
+if (element.id.substr(0, 4) == "any_") {
+    ds_main_id = "ds_" + element.id.substr(4);
+} else {
+    ds_main_id = "ds_" + element.id;
+}
+
+var control_id = element.id + "_" + element.sourceIndex;
+
+var spn_link;
+var spn_link_id = "spn_" + control_id;
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    ds_main = element.document.createElement('<ANY:DS id="' + ds_main_id + '">');
+    element.document.appendChild(ds_main);
+
+    ds_main.OnLoad = function()
+    {
+        makeHTML();
+    }
+}
+
+function makeHTML()
+{
+    var html = new Array();
+
+    for (var i = 0; i < ds_main.rowCount; i++) {
+        html.push('<SPAN id="' + spn_link_id + '" REF_ID="' + ds_main.value(i, "REF_ID") + '">' + ds_main.value(i, "REF_NO") + ' (' + ds_main.value(i, "APP_NO") + ')</SPAN>');
+    }
+
+    element.innerHTML = html.join(" , ");
+
+    spn_link = element.document.getElementsByName(spn_link_id);
+
+    for (var i = 0; i < spn_link.length; i++) {
+        spn_link[i].style.color = "#0000FF";
+        spn_link[i].style.cursor = "hand";
+        spn_link[i].onmouseover = function()
+        {
+            this.style.textDecoration = "underline";
+        }
+        spn_link[i].onmouseout = function()
+        {
+            this.style.textDecoration = "";
+        }
+        spn_link[i].onclick = function()
+        {
+            var win = new any.window();
+            win.path = top.getRoot() + "/anyfive/ipims/office/reqreceipt/intapply/IntApplyReceiptU.jsp";
+            win.arg.REF_ID = this.REF_ID;
+            win.opt.width = 900;
+            win.opt.height = 700;
+            win.opt.resizable = "yes";
+            win.show();
+        }
+    }
+}
+</SCRIPT>

@@ -1,0 +1,12 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<c:set var="TS"><%= any.util.etc.NDateUtil.getTimestampWithoutSymbol() %>
+</c:set>
+<c:set var="AI">type="text/any-initialize"</c:set>
+<c:set var="PA" value='<%= request.getAttribute("programAuthority") %>'></c:set>
+<%
+    response.setDateHeader("Expires", 0);
+    response.setHeader("Pragma", "no-cache");
+    response.setHeader("Cache-Control", "no-cache");
+    out.clear();
+%>

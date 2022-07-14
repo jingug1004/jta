@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 진행서류 워크플로우관리 목록 조회 -->
+<query name="/retrievePaperWFList"><![CDATA[
+SELECT WF_CODE
+     , WF_ID
+     , {#codeData:WF_KIND:/systemmgt/wfKind} WF_KIND_NAME
+     , WF_NAME
+     , WF_DESC
+FROM   TB_PAPER_MGT_WF
+WHERE  1 = 1
+]]></query>
+<query name="/retrievePaperWFList/wfKind"><![CDATA[
+AND    WF_KIND = {@WF_KIND}
+]]></query>
+<query name="/retrievePaperWFList/searchText"><![CDATA[
+AND    (UPPER(WF_ID) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(WF_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(WF_DESC) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+       )
+]]></query>
+
+<!-- 진행서류 워크플로우관리 조회 -->
+<query name="/retrievePaperWF"><![CDATA[
+SELECT WF_ID
+     , WF_KIND
+     , WF_NAME
+     , WF_DESC
+FROM   TB_PAPER_MGT_WF
+WHERE  WF_CODE = {@WF_CODE}
+]]></query>
+
+<!-- 진행서류 워크플로우관리 코드 조회 -->
+<query name="/retrievePaperWFCode"><![CDATA[
+SELECT LPAD(NVL(MAX(TO_NUMBER(WF_CODE)), 0) + 1, 5, '0') WF_CODE
+FROM   TB_PAPER_MGT_WF
+]]></query>
+
+<!-- 진행서류 워크플로우관리 생성 -->
+<query name="/createPaperWF"><![CDATA[
+INSERT INTO TB_PAPER_MGT_WF (
+       WF_CODE
+     , WF_ID
+     , WF_KIND
+     , WF_NAME
+     , WF_DESC
+) VALUES (
+       {@WF_CODE}
+     , {@WF_ID}
+     , {@WF_KIND}
+     , {@WF_NAME}
+     , {@WF_DESC}
+)
+]]></query>
+
+<!-- 진행서류 워크플로우관리 수정 -->
+<query name="/updatePaperWF"><![CDATA[
+UPDATE TB_PAPER_MGT_WF SET
+       WF_ID = {@WF_ID}
+     , WF_KIND = {@WF_KIND}
+     , WF_NAME = {@WF_NAME}
+     , WF_DESC = {@WF_DESC}
+WHERE  WF_CODE = {@WF_CODE}
+]]></query>
+
+<!-- 진행서류 워크플로우관리 삭제 -->
+<query name="/deletePaperWF"><![CDATA[
+DELETE FROM TB_PAPER_MGT_WF A
+WHERE  WF_CODE = {@WF_CODE}
+AND    NOT EXISTS (SELECT 1
+                   FROM   TB_PAPER_MGT_WF_LIST B
+                   WHERE  B.WF_CODE = A.WF_CODE
+                  )
+]]></query>
+
+<!-- 진행서류 워크플로우별 진행서류 목록 조회 -->
+<query name="/retrievePaperWFPaperList"><![CDATA[
+SELECT A.LIST_SEQ
+     , FN_COM_CODE_NAME('PAPER_DIV', B.PAPER_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) PAPER_DIV_NAME
+     , FN_COM_CODE_NAME('INOUT_DIV', B.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , '[' || A.PAPER_CODE || '] ' || FN_PAPER_NAME(A.PAPER_CODE) PAPER_NAME
+     , '[' || A.PAPER_SUBCODE || '] ' || FN_PAPER_SUBNAME(A.PAPER_CODE, A.PAPER_SUBCODE) PAPER_SUBNAME
+FROM   TB_PAPER_MGT_WF_LIST A
+     , TB_PAPER_MGT_MST B
+WHERE  A.WF_CODE = {@WF_CODE}
+AND    A.PAPER_CODE = B.PAPER_CODE
+ORDER BY A.PAPER_CODE, A.PAPER_SUBCODE
+]]></query>
+
+<!-- 진행서류 워크플로우별 진행서류 조회 -->
+<query name="/retrievePaperWFPaper"><![CDATA[
+SELECT PAPER_CODE
+     , FN_PAPER_NAME(PAPER_CODE) PAPER_NAME
+     , PAPER_SUBCODE
+FROM   TB_PAPER_MGT_WF_LIST
+WHERE  WF_CODE = {@WF_CODE}
+AND    LIST_SEQ = {@LIST_SEQ}
+]]></query>
+
+<!-- 진행서류 워크플로우별 진행서류 생성 -->
+<query name="/createPaperWFPaper"><![CDATA[
+INSERT INTO TB_PAPER_MGT_WF_LIST (
+       WF_CODE
+     , LIST_SEQ
+     , PAPER_CODE
+     , PAPER_SUBCODE
+)
+SELECT {@WF_CODE}
+     , LPAD((SELECT NVL(MAX(TO_NUMBER(LIST_SEQ)), 0) FROM TB_PAPER_MGT_WF_LIST WHERE WF_CODE = {@WF_CODE}) + ROWNUM, 5, '0')
+     , PAPER_CODE
+     , PAPER_SUBCODE
+FROM   TB_PAPER_MGT_SUB A
+WHERE  PAPER_CODE = {@PAPER_CODE}
+AND    PAPER_SUBCODE = NVL({@PAPER_SUBCODE}, PAPER_SUBCODE)
+AND    NOT EXISTS (SELECT 1
+                   FROM   TB_PAPER_MGT_WF_LIST B
+                   WHERE  B.WF_CODE = {@WF_CODE}
+                   AND    B.PAPER_CODE = {@PAPER_CODE}
+                   AND    B.PAPER_SUBCODE = A.PAPER_SUBCODE
+                  )
+]]></query>
+
+<!-- 진행서류 워크플로우별 진행서류 수정 -->
+<query name="/updatePaperWFPaper"><![CDATA[
+UPDATE TB_PAPER_MGT_WF_LIST SET
+       PAPER_CODE = {@PAPER_CODE}
+     , PAPER_SUBCODE = {@PAPER_SUBCODE}
+WHERE  WF_CODE = {@WF_CODE}
+AND    LIST_SEQ = {@LIST_SEQ}
+]]></query>
+
+<!-- 진행서류 워크플로우별 진행서류 삭제 -->
+<query name="/deletePaperWFPaper"><![CDATA[
+DELETE FROM TB_PAPER_MGT_WF_LIST
+WHERE  WF_CODE = {@WF_CODE}
+AND    LIST_SEQ = {@LIST_SEQ}
+]]></query>
+
+</root>

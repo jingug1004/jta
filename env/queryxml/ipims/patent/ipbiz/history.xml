@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- History 목록 조회 -->
+<query name="/retrieveIpBizHistoryList"><![CDATA[
+SELECT HIST_SEQ
+     , HIST_DATE
+     , FN_COM_CODE_NAME('IPBIZ_HIST_DIV', HIST_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) HIST_DIV_NAME
+     , HIST_DIV
+     , HIST_TITLE
+     , HIST_FILE
+     , HIST_RECV
+     , HIST_CHARGE
+     , CRE_USER
+     , CRE_DATE
+FROM   TB_IPB_COM_HIST
+WHERE  REF_ID = {@REF_ID}
+ORDER BY HIST_SEQ DESC
+]]></query>
+
+<!-- History 상세조회 -->
+<query name="/retrieveIpBizHistory"><![CDATA[
+SELECT HIST_DATE
+     , HIST_DIV
+     , FN_COM_CODE_NAME('IPBIZ_HIST_DIV', HIST_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) HIST_DIV_NAME
+     , HIST_TITLE
+     , HIST_FILE
+     , HIST_RECV
+     , HIST_CHARGE
+FROM   TB_IPB_COM_HIST
+WHERE  REF_ID = {@REF_ID}
+AND    HIST_SEQ = {@HIST_SEQ}
+]]></query>
+
+<!-- History 생성 -->
+<query name="/createIpBizHistory"><![CDATA[
+INSERT INTO TB_IPB_COM_HIST(
+       REF_ID
+     , HIST_SEQ
+     , HIST_DATE
+     , HIST_DIV
+     , HIST_TITLE
+     , HIST_FILE
+     , CRE_USER
+     , CRE_DATE
+     , HIST_RECV
+     , HIST_CHARGE
+) VALUES (
+       {@REF_ID}
+     , {@HIST_SEQ}
+     , {@HIST_DATE}
+     , {@HIST_DIV}
+     , {@HIST_TITLE}
+     , {@HIST_FILE}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE,'YYYYMMDD')
+     , {@HIST_RECV}
+     , {@HIST_CHARGE}
+)
+]]></query>
+
+<!-- History 수정 -->
+<query name="/updateIpBizHistory"><![CDATA[
+UPDATE TB_IPB_COM_HIST SET
+       HIST_DATE  = {@HIST_DATE}
+     , HIST_DIV   = {@HIST_DIV}
+     , HIST_TITLE = {@HIST_TITLE}
+     , HIST_FILE  = {@HIST_FILE}
+     , HIST_RECV   = {@HIST_RECV}
+     , HIST_CHARGE = {@HIST_CHARGE}
+     , UPD_USER   = {@$USER_ID}
+     , UPD_DATE   = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  REF_ID   = {@REF_ID}
+AND    HIST_SEQ = {@HIST_SEQ}
+]]></query>
+
+<!-- History 삭제 -->
+<query name="/deleteIpBizHistory"><![CDATA[
+DELETE FROM TB_IPB_COM_HIST
+WHERE  REF_ID = {@REF_ID}
+AND    HIST_SEQ = {@HIST_SEQ}
+]]></query>
+
+<!-- History 전체삭제 -->
+<query name="/deleteIpBizHistoryAll"><![CDATA[
+DELETE FROM TB_IPB_COM_HIST
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

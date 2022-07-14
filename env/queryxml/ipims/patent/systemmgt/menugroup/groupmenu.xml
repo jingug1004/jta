@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 그룹별 메뉴 목록 조회 -->
+<query name="/retrieveGroupMenuList"><![CDATA[
+SELECT MENU_CODE_PRIOR
+     , MENU_CODE
+     , MENU_LEVEL
+     , (SELECT MENU_NAME FROM TB_MNU_MENU_NAME WHERE SYSTEM_TYPE = A.SYSTEM_TYPE AND MENU_CODE = A.MENU_CODE AND LANG_CODE = {@$DEFAULT_LANG_CODE}) MENU_NAME
+     , MENU_PATH
+     , MENU_ORD
+     , (SELECT COUNT(1) FROM TB_MNU_GROUP_MENU WHERE SYSTEM_TYPE = A.SYSTEM_TYPE AND GROUP_CODE = {@GROUP_CODE} AND MENU_CODE = A.MENU_CODE) CHECK_YN
+FROM   TB_MNU_MENU A
+WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+ORDER BY MENU_LEVEL, MENU_ORD
+]]></query>
+
+<!-- 그룹별 메뉴 생성 -->
+<query name="/createGroupMenuList"><![CDATA[
+INSERT INTO TB_MNU_GROUP_MENU (
+       SYSTEM_TYPE
+     , GROUP_CODE
+     , MENU_CODE
+) VALUES (
+       {@SYSTEM_TYPE}
+     , {@GROUP_CODE}
+     , {@MENU_CODE}
+)
+]]></query>
+
+<!-- 그룹별 메뉴 삭제 -->
+<query name="/deleteGroupMenu"><![CDATA[
+DELETE TB_MNU_GROUP_MENU
+WHERE  SYSTEM_TYPE  = {@SYSTEM_TYPE}
+AND    GROUP_CODE = {@GROUP_CODE}
+AND    MENU_CODE  = {@MENU_CODE}
+]]></query>
+
+</root>

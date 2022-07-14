@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 월별 비용통계 조회 -->
+<query name="/retrieveCostByMonthList"><![CDATA[
+SELECT SUBSTR(ANS_DATE, 1, 6) YEAR_MON
+     , SUM(PREPAID) PREPAID
+     , SUM(FEE) FEE
+     , SUM(INTEREST) INTEREST
+     , SUM(REFUSAL) REFUSAL
+     , SUM(OTHER) OTHER
+     , SUM(TOTAL) TOTAL
+     , COST_KIND
+FROM (SELECT APPR.ANS_DATE ANS_DATE
+           , CASE MST.COST_KIND WHEN '4' THEN WON_PRICE ELSE 0 END PREPAID
+           , CASE MST.COST_KIND WHEN '3' THEN WON_PRICE ELSE 0 END FEE
+           , CASE MST.COST_KIND WHEN '7' THEN WON_PRICE ELSE 0 END INTEREST
+           , CASE MST.COST_KIND WHEN '2' THEN WON_PRICE ELSE 0 END REFUSAL
+           , CASE MST.COST_KIND WHEN '1' THEN WON_PRICE ELSE 0 END OTHER
+           , WON_PRICE TOTAL
+           , MST.COST_KIND
+      FROM TB_COST_MST MST
+         , TB_COST_CONSULT CON
+         , TB_APPR_ANS APPR
+     WHERE MST.CONSULT_ID = CON.CONSULT_ID
+       AND CON.APPR_NO = APPR.APPR_NO
+       AND NVL(MST.CONFIRM_YN, '0') = DECODE(MST.COST_KIND, '4', '1', '3', '1', NVL(MST.CONFIRM_YN, '0'))
+       AND MST.COST_KIND IN ('3', '4', '7', '2', '1')) COST
+WHERE 1 = 1
+{#startDate}
+GROUP BY SUBSTR(ANS_DATE, 1, 6), COST_KIND
+
+]]></query>
+<query name="/retrieveCostByMonthList/ansDateStart" target="startDate"><![CDATA[
+AND    ANS_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveCostByMonthList/ansDateEnd" target="startDate"><![CDATA[
+AND    ANS_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 사무소별 비용통계 조회 -->
+<query name="/retrieveCostByOfficeList"><![CDATA[
+SELECT OFFICE_CODE, OFFICE_NAME, SUM(NVL(INT_GOV_PREPAID, 0)) INT_GOV_PREPAID, SUM(NVL(INT_GOV_FEE, 0)) INT_GOV_FEE, SUM(NVL(INT_OFF_PREPAID, 0)) INT_OFF_PREPAID
+       , SUM(NVL(INT_OFF_FEE, 0)) INT_OFF_FEE, SUM(NVL(INT_TOTAL, 0)) INT_TOTAL, SUM(NVL(EXT_GOV_PREPAID, 0)) EXT_GOV_PREPAID
+       , SUM(NVL(EXT_GOV_FEE, 0)) EXT_GOV_FEE, SUM(NVL(EXT_OFF_PREPAID, 0)) EXT_OFF_PREPAID
+       , SUM(NVL(EXT_OFF_FEE, 0)) EXT_OFF_FEE, SUM(NVL(EXT_TOTAL, 0)) EXT_TOTAL, SUM(NVL(TOTAL, 0)) TOTAL
+FROM
+    (SELECT CMST.OFFICE_CODE, FN_OFFICE_NAME(CMST.OFFICE_CODE) OFFICE_NAME,
+           CASE AMST.INOUT_DIV
+               WHEN 'INT' THEN
+                CASE DETAIL.TAX_YN
+               WHEN '0' THEN
+                CASE CMST.COST_KIND
+               WHEN '4' THEN
+                CMST.WON_PRICE
+           END END END INT_GOV_PREPAID,
+           CASE AMST.INOUT_DIV
+               WHEN 'INT' THEN
+                CASE DETAIL.TAX_YN
+               WHEN '0' THEN
+                CASE CMST.COST_KIND
+               WHEN '3' THEN
+                CMST.WON_PRICE
+           END END END INT_GOV_FEE,
+           CASE AMST.INOUT_DIV
+               WHEN 'INT' THEN
+                CASE DETAIL.TAX_YN
+               WHEN '1' THEN
+                CASE CMST.COST_KIND
+               WHEN '4' THEN
+                CMST.WON_PRICE
+           END END END INT_OFF_PREPAID,
+           CASE AMST.INOUT_DIV
+               WHEN 'INT' THEN
+                CASE DETAIL.TAX_YN
+               WHEN '1' THEN
+                CASE CMST.COST_KIND
+               WHEN '3' THEN
+                CMST.WON_PRICE
+           END END END INT_OFF_FEE,
+           CASE AMST.INOUT_DIV
+               WHEN 'INT' THEN
+                CMST.WON_PRICE
+           END INT_TOTAL,
+           CASE AMST.INOUT_DIV
+               WHEN 'EXT' THEN
+                CASE DETAIL.TAX_YN
+               WHEN '0' THEN
+                CASE CMST.COST_KIND
+               WHEN '4' THEN
+                CMST.WON_PRICE
+           END END END EXT_GOV_PREPAID,
+           CASE AMST.INOUT_DIV
+               WHEN 'EXT' THEN
+                CASE DETAIL.TAX_YN
+               WHEN '0' THEN
+                CASE CMST.COST_KIND
+               WHEN '3' THEN
+                CMST.WON_PRICE
+           END END END EXT_GOV_FEE,
+           CASE AMST.INOUT_DIV
+               WHEN 'EXT' THEN
+                CASE DETAIL.TAX_YN
+               WHEN '1' THEN
+                CASE CMST.COST_KIND
+               WHEN '4' THEN
+                CMST.WON_PRICE
+           END END END EXT_OFF_PREPAID,
+           CASE AMST.INOUT_DIV
+               WHEN 'EXT' THEN
+                CASE DETAIL.TAX_YN
+               WHEN '1' THEN
+                CASE CMST.COST_KIND
+               WHEN '3' THEN
+                CMST.WON_PRICE
+           END END END EXT_OFF_FEE,
+           CASE AMST.INOUT_DIV
+               WHEN 'EXT' THEN
+                CMST.WON_PRICE
+           END EXT_TOTAL,
+           CMST.WON_PRICE TOTAL,
+            APPR.ANS_DATE
+      FROM TB_APP_MST AMST, TB_COST_MST CMST, TB_COST_MGT_DETAILCODE DETAIL, TB_COST_CONSULT CON, TB_APPR_ANS APPR
+     WHERE AMST.REF_ID = CMST.REF_ID
+       AND CMST.CONSULT_ID = CON.CONSULT_ID
+       AND CON.APPR_NO = APPR.APPR_NO
+       AND CMST.GRAND_CODE = DETAIL.GRAND_CODE
+       AND CMST.DETAIL_CODE = DETAIL.DETAIL_CODE
+       AND CMST.COST_KIND IN ('3', '4')
+       AND CMST.CONFIRM_YN = '1'
+       {#startDate}
+       ) COST
+GROUP BY OFFICE_CODE, OFFICE_NAME
+
+]]></query>
+<query name="/retrieveCostByOfficeList/ansDateStart" target="startDate"><![CDATA[
+AND    ANS_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveCostByOfficeList/ansDateEnd" target="startDate"><![CDATA[
+AND    ANS_DATE <= {@DATE_END}
+]]></query>
+
+
+<!-- 연구소별 비용통계 조회 -->
+<query name="/retrieveCostByLabList"><![CDATA[
+SELECT LAB_CODE, LAB_NAME, SUM(NVL(INT_GOV, 0)) INT_GOV, SUM(NVL(INT_OFF, 0)) INT_OFF
+       , SUM(NVL(EXT_GOV, 0)) EXT_GOV, SUM(NVL(EXT_OFF, 0)) EXT_OFF, SUM(NVL(TOTAL, 0)) TOTAL
+FROM ( SELECT AMST.LAB_CODE, FN_LAB_NAME(AMST.LAB_CODE) LAB_NAME,
+               CASE AMST.INOUT_DIV
+                   WHEN 'INT' THEN
+                     CASE DETAIL.TAX_YN
+                       WHEN '0' THEN
+                         CMST.WON_PRICE
+                     END
+               END INT_GOV,
+               CASE AMST.INOUT_DIV
+                   WHEN 'INT' THEN
+                     CASE DETAIL.TAX_YN
+                       WHEN '1' THEN
+                         CMST.WON_PRICE
+                     END
+               END INT_OFF,
+               CASE AMST.INOUT_DIV
+                   WHEN 'EXT' THEN
+                     CASE DETAIL.TAX_YN
+                       WHEN '0' THEN
+                         CMST.WON_PRICE
+                     END
+               END EXT_GOV,
+               CASE AMST.INOUT_DIV
+                   WHEN 'EXT' THEN
+                     CASE DETAIL.TAX_YN
+                       WHEN '1' THEN
+                         CMST.WON_PRICE
+                     END
+               END EXT_OFF,
+               CMST.WON_PRICE TOTAL
+        FROM TB_APP_MST AMST, TB_COST_MST CMST, TB_COST_MGT_DETAILCODE DETAIL, TB_COST_CONSULT CON, TB_APPR_ANS APPR
+        WHERE AMST.REF_ID = CMST.REF_ID
+            AND CMST.CONSULT_ID = CON.CONSULT_ID
+            AND CON.APPR_NO = APPR.APPR_NO
+            AND CMST.GRAND_CODE = DETAIL.GRAND_CODE
+            AND CMST.DETAIL_CODE = DETAIL.DETAIL_CODE
+            AND CMST.COST_KIND IN ('3', '4')
+            AND CMST.CONFIRM_YN = '1'
+            AND AMST.INOUT_DIV = 'INT'
+       {#startDate}
+       UNION ALL
+       SELECT AMST.LAB_CODE, FN_LAB_NAME(AMST.LAB_CODE) LAB_NAME,
+               CASE AMST.INOUT_DIV
+                   WHEN 'INT' THEN
+                     CASE DETAIL.TAX_YN
+                       WHEN '0' THEN
+                         CMST.WON_PRICE
+                     END
+               END INT_GOV,
+               CASE AMST.INOUT_DIV
+                   WHEN 'INT' THEN
+                     CASE DETAIL.TAX_YN
+                       WHEN '1' THEN
+                         CMST.WON_PRICE
+                     END
+               END INT_OFF,
+               CASE AMST.INOUT_DIV
+                   WHEN 'EXT' THEN
+                     CASE DETAIL.TAX_YN
+                       WHEN '0' THEN
+                         CMST.WON_PRICE
+                     END
+               END EXT_GOV,
+               CASE AMST.INOUT_DIV
+                   WHEN 'EXT' THEN
+                     CASE DETAIL.TAX_YN
+                       WHEN '1' THEN
+                         CMST.WON_PRICE
+                     END
+               END EXT_OFF,
+               CMST.WON_PRICE TOTAL
+        FROM TB_APP_MST AMST, TB_APP_MST_EXT EXT, TB_APP_EXT_GRP GRP, TB_COST_MST CMST, TB_COST_MGT_DETAILCODE DETAIL, TB_COST_CONSULT CON, TB_APPR_ANS APPR
+        WHERE AMST.REF_ID = CMST.REF_ID
+            AND AMST.REF_ID = EXT.REF_ID
+            AND EXT.GRP_ID = GRP.GRP_ID
+            AND CMST.CONSULT_ID = CON.CONSULT_ID
+            AND CON.APPR_NO = APPR.APPR_NO
+            AND CMST.GRAND_CODE = DETAIL.GRAND_CODE
+            AND CMST.DETAIL_CODE = DETAIL.DETAIL_CODE
+            AND CMST.COST_KIND IN ('3', '4')
+            AND CMST.CONFIRM_YN = '1'
+            AND AMST.INOUT_DIV = 'EXT'
+       {#startDate}
+       ) COST
+GROUP BY LAB_CODE, LAB_NAME
+]]></query>
+<query name="/retrieveCostByLabList/ansDateStart" target="startDate"><![CDATA[
+AND    ANS_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveCostByLabList/ansDateEnd" target="startDate"><![CDATA[
+AND    ANS_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 프로젝트별 비용통계 조회 -->
+<query name="/retrieveCostByProjectList"><![CDATA[
+SELECT PJT_CODE, PJT_NAME, SUM(NVL(INT_GOV, 0)) INT_GOV, SUM(NVL(INT_OFF, 0)) INT_OFF
+       , SUM(NVL(EXT_GOV, 0)) EXT_GOV, SUM(NVL(EXT_OFF, 0)) EXT_OFF, SUM(NVL(TOTAL, 0)) TOTAL
+FROM ( SELECT PJT.PJT_CODE, PJT.PJT_NAME,
+               CASE AMST.INOUT_DIV
+                   WHEN 'INT' THEN
+                     CASE DETAIL.TAX_YN
+                       WHEN '0' THEN
+                         CMST.WON_PRICE
+                     END
+               END INT_GOV,
+               CASE AMST.INOUT_DIV
+                   WHEN 'INT' THEN
+                     CASE DETAIL.TAX_YN
+                       WHEN '1' THEN
+                         CMST.WON_PRICE
+                     END
+               END INT_OFF,
+               0 EXT_GOV,
+               0 EXT_OFF,
+               CMST.WON_PRICE TOTAL
+        FROM TB_APP_MST AMST, TB_COST_MST CMST, TB_COST_MGT_DETAILCODE DETAIL
+           , TB_COST_CONSULT CON, TB_APPR_ANS APPR, TB_COM_PJT PJT, TB_MAPP_PJT MPJT
+        WHERE AMST.REF_ID = CMST.REF_ID
+            AND CMST.CONSULT_ID = CON.CONSULT_ID
+            AND CON.APPR_NO = APPR.APPR_NO
+            AND MPJT.REF_ID = AMST.REF_ID
+            AND MPJT.PJT_CODE = PJT.PJT_CODE
+            AND CMST.GRAND_CODE = DETAIL.GRAND_CODE
+            AND CMST.DETAIL_CODE = DETAIL.DETAIL_CODE
+            AND CMST.COST_KIND IN ('3', '4')
+            AND CMST.CONFIRM_YN = '1'
+            AND CMST.COST_PROC_DIV = '2'
+            AND AMST.INOUT_DIV = 'INT'
+        {#startDate}
+        UNION ALL
+        SELECT PJT.PJT_CODE, PJT.PJT_NAME,
+        0 INT_GOV,
+        0 INT_OFF,
+        CASE AMST.INOUT_DIV
+                   WHEN 'EXT' THEN
+                     CASE DETAIL.TAX_YN
+                       WHEN '0' THEN
+                         CMST.WON_PRICE
+                     END
+               END EXT_GOV,
+               CASE AMST.INOUT_DIV
+                   WHEN 'EXT' THEN
+                     CASE DETAIL.TAX_YN
+                       WHEN '1' THEN
+                         CMST.WON_PRICE
+                     END
+               END EXT_OFF,
+               CMST.WON_PRICE TOTAL
+        FROM TB_APP_MST AMST
+              , TB_APP_MST_EXT EXT
+              , TB_APP_EXT_GRP GRP
+              , TB_COST_MST CMST
+              , TB_COST_CONSULT CON
+              , TB_APPR_ANS APPR
+              , TB_COM_PJT PJT
+              , TB_MAPP_PJT MPJT
+              , TB_COST_MGT_DETAILCODE DETAIL
+        WHERE AMST.REF_ID = EXT.REF_ID
+            AND EXT.GRP_ID = GRP.GRP_ID
+            AND AMST.REF_ID = CMST.REF_ID
+            AND CMST.CONSULT_ID = CON.CONSULT_ID
+            AND CON.APPR_NO = APPR.APPR_NO
+            AND GRP.GRP_ID = MPJT.REF_ID
+            AND MPJT.PJT_CODE = PJT.PJT_CODE
+            AND CMST.GRAND_CODE = DETAIL.GRAND_CODE
+            AND CMST.DETAIL_CODE = DETAIL.DETAIL_CODE
+            AND CMST.COST_KIND IN ('3', '4')
+            AND CMST.CONFIRM_YN = '1'
+            AND CMST.COST_PROC_DIV = '2'
+            AND AMST.INOUT_DIV = 'EXT'
+        {#startDate}
+       ) COST
+GROUP BY PJT_CODE, PJT_NAME
+
+]]></query>
+<query name="/retrieveCostByProjectList/ansDateStart" target="startDate"><![CDATA[
+AND    ANS_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveCostByProjectList/ansDateEnd" target="startDate"><![CDATA[
+AND    ANS_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 전체비용현황 조회 -->
+<query name="/retrieveCostByAllList"><![CDATA[
+SELECT AMST.REF_NO, AMST.KO_APP_TITLE, FN_COUNTRY_NAME(AMST.COUNTRY_CODE) COUNTRY_NAME,
+       FN_LAB_NAME(AMST.LAB_CODE) LAB_NAME, FN_OFFICE_NAME(AMST.OFFICE_CODE) OFFICE_NAME,
+       GRAND.GRAND_NAME, DETAIL.DETAIL_NAME, CMST.WON_PRICE, CMST.SLIP_ID, APPR.ANS_DATE,
+       {#codeData:NVL(APPR_MST.APPR_STATUS,'0'):/common/apprStatus} APPR_STATUS_NAME,
+       AMST.APP_NO, AMST.REG_NO, FN_USER_NAME(AMST.JOB_MAN) JOB_MAN, FN_DEPT_NAME(AMST.DEPT_CODE) DEPT_NAME,
+       FN_INVENTOR_NAMES(AMST.REF_ID) INVENTOR
+  FROM TB_APP_MST             AMST,
+       TB_COST_MST            CMST,
+       TB_COST_MGT_DETAILCODE DETAIL,
+       TB_COST_MGT_GRANDCODE  GRAND,
+       TB_COST_CONSULT        CON,
+       TB_APPR_ANS            APPR,
+       TB_APPR_MST            APPR_MST
+ WHERE AMST.REF_ID = CMST.REF_ID
+   AND CMST.CONSULT_ID = CON.CONSULT_ID(+)
+   AND CON.APPR_NO = APPR.APPR_NO(+)
+   AND CON.APPR_NO = APPR_MST.APPR_NO(+)
+   AND CMST.GRAND_CODE = DETAIL.GRAND_CODE
+   AND CMST.DETAIL_CODE = DETAIL.DETAIL_CODE
+   AND DETAIL.GRAND_CODE = GRAND.GRAND_CODE
+]]></query>
+<query name="/retrieveCostByAllList/searchNo"><![CDATA[
+AND    {#SEARCH_TYPE} LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrieveCostByAllList/costDiv"><![CDATA[
+AND    CMST.MST_DIV = {@COST_DIV}
+]]></query>
+<query name="/retrieveCostByAllList/rightDiv"><![CDATA[
+AND    AMST.RIGHT_DIV = {@RIGHT_DIV}
+]]></query>
+<query name="/retrieveCostByAllList/ansDateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveCostByAllList/ansDateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+<query name="/retrieveCostByAllList/apprStatus"><![CDATA[
+AND    NVL(APPR_MST.APPR_STATUS, 0) = {@APPR_STATUS}
+]]></query>
+<query name="/retrieveCostByAllList/officeCode"><![CDATA[
+AND    AMST.OFFICE_CODE = {@OFFICE_CODE}
+]]></query>
+
+
+<!-- 상세 비용현황 조회 -->
+<query name="/retrieveDetailCostList"><![CDATA[
+SELECT AMST.REF_NO, AMST.KO_APP_TITLE, FN_COUNTRY_NAME(AMST.COUNTRY_CODE) COUNTRY_NAME,
+       FN_LAB_NAME(AMST.LAB_CODE) LAB_NAME, FN_OFFICE_NAME(AMST.OFFICE_CODE) OFFICE_NAME,
+       GRAND.GRAND_NAME, DETAIL.DETAIL_NAME, CMST.WON_PRICE, CMST.SLIP_ID, APPR.ANS_DATE,
+       {#codeData:NVL(APPR_MST.APPR_STATUS,'0'):/common/apprStatus} APPR_STATUS_NAME,
+       AMST.APP_NO, AMST.REG_NO, FN_USER_NAME(AMST.JOB_MAN) JOB_MAN, FN_DEPT_NAME(AMST.DEPT_CODE) DEPT_NAME,
+       FN_INVENTOR_NAMES(AMST.REF_ID) INVENTOR
+  FROM TB_APP_MST             AMST,
+       TB_COST_MST            CMST,
+       TB_COST_MGT_DETAILCODE DETAIL,
+       TB_COST_MGT_GRANDCODE  GRAND,
+       TB_COST_CONSULT        CON,
+       TB_APPR_ANS            APPR,
+       TB_APPR_MST            APPR_MST,
+       TB_COM_PJT             PJT,
+       TB_MAPP_PJT            MPJT
+ WHERE AMST.REF_ID = CMST.REF_ID
+   AND CMST.CONSULT_ID = CON.CONSULT_ID
+   AND CON.APPR_NO = APPR.APPR_NO
+   AND CON.APPR_NO = APPR_MST.APPR_NO
+   AND CMST.GRAND_CODE = DETAIL.GRAND_CODE
+   AND CMST.DETAIL_CODE = DETAIL.DETAIL_CODE
+   AND DETAIL.GRAND_CODE = GRAND.GRAND_CODE
+   AND AMST.REF_ID = MPJT.REF_ID(+)
+   AND MPJT.PJT_CODE = PJT.PJT_CODE(+)
+   AND CMST.CONFIRM_YN = '1'
+   AND CMST.COST_KIND IN ('3', '4')
+   AND AMST.INOUT_DIV = 'INT'
+   {#startDate}
+UNION ALL
+SELECT AMST.REF_NO, AMST.KO_APP_TITLE, FN_COUNTRY_NAME(AMST.COUNTRY_CODE) COUNTRY_NAME,
+       FN_LAB_NAME(AMST.LAB_CODE) LAB_NAME, FN_OFFICE_NAME(AMST.OFFICE_CODE) OFFICE_NAME,
+       GRAND.GRAND_NAME, DETAIL.DETAIL_NAME, CMST.WON_PRICE, CMST.SLIP_ID, APPR.ANS_DATE,
+       {#codeData:NVL(APPR_MST.APPR_STATUS,'0'):/common/apprStatus} APPR_STATUS_NAME,
+       AMST.APP_NO, AMST.REG_NO, FN_USER_NAME(AMST.JOB_MAN) JOB_MAN, FN_DEPT_NAME(AMST.DEPT_CODE) DEPT_NAME,
+       FN_INVENTOR_NAMES(AMST.REF_ID) INVENTOR
+  FROM TB_APP_MST             AMST,
+       TB_APP_MST_EXT         EXT,
+       TB_APP_EXT_GRP         GRP,
+       TB_COST_MST            CMST,
+       TB_COST_MGT_DETAILCODE DETAIL,
+       TB_COST_MGT_GRANDCODE  GRAND,
+       TB_COST_CONSULT        CON,
+       TB_APPR_ANS            APPR,
+       TB_APPR_MST            APPR_MST,
+       TB_COM_PJT             PJT,
+       TB_MAPP_PJT            MPJT
+ WHERE AMST.REF_ID = CMST.REF_ID
+   AND AMST.REF_ID = EXT.REF_ID
+   AND EXT.GRP_ID = GRP.GRP_ID
+   AND CMST.CONSULT_ID = CON.CONSULT_ID
+   AND CON.APPR_NO = APPR.APPR_NO
+   AND CON.APPR_NO = APPR_MST.APPR_NO
+   AND CMST.GRAND_CODE = DETAIL.GRAND_CODE
+   AND CMST.DETAIL_CODE = DETAIL.DETAIL_CODE
+   AND DETAIL.GRAND_CODE = GRAND.GRAND_CODE
+   AND GRP.GRP_ID = MPJT.REF_ID(+)
+   AND MPJT.PJT_CODE = PJT.PJT_CODE(+)
+   AND CMST.CONFIRM_YN = '1'
+   AND CMST.COST_KIND IN ('3', '4')
+   AND AMST.INOUT_DIV = 'EXT'
+   {#startDate}
+]]></query>
+
+<query name="/retrieveDetailCostList/ansDateStart" target="startDate"><![CDATA[
+AND    APPR.ANS_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveDetailCostList/ansDateEnd" target="startDate"><![CDATA[
+AND    APPR.ANS_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveDetailCostList/costKind" target="startDate"><![CDATA[
+AND    CMST.COST_KIND = {@COST_KIND}
+]]></query>
+<query name="/retrieveDetailCostList/yearMon" target="startDate"><![CDATA[
+AND    SUBSTR(APPR.DATE_START, 1, 6) = {@YEAR_MON}
+]]></query>
+<query name="/retrieveDetailCostList/nationDiv" target="startDate"><![CDATA[
+AND    AMST.INOUT_DIV = {@NATION_DIV}
+]]></query>
+<query name="/retrieveDetailCostList/costDiv" target="startDate"><![CDATA[
+AND    DETAIL.TAX_YN = {@COST_DIV}
+]]></query>
+<query name="/retrieveDetailCostList/officeCode" target="startDate"><![CDATA[
+AND    CMST.OFFICE_CODE = {@OFFICE_CODE}
+]]></query>
+<query name="/retrieveDetailCostList/labCode" target="startDate"><![CDATA[
+AND    AMST.LAB_CODE = {@LAB_CODE}
+]]></query>
+<query name="/retrieveDetailCostList/pjtCode" target="startDate"><![CDATA[
+AND    MPJT.PJT_CODE = {@PJT_CODE}
+]]></query>
+<query name="/retrieveDetailCostList/procDiv" target="startDate"><![CDATA[
+AND    CMST.COST_PROC_DIV = {@COST_PROC_DIV}
+]]></query>
+
+<!-- 조회 -->
+<query name="/retrieveCostByAllListRT"><![CDATA[
+SELECT AMST.REF_NO, AMST.KO_APP_TITLE, FN_COUNTRY_NAME(AMST.COUNTRY_CODE) COUNTRY_NAME,
+       FN_LAB_NAME(AMST.LAB_CODE) LAB_NAME, FN_OFFICE_NAME(AMST.OFFICE_CODE) OFFICE_NAME,
+       GRAND.GRAND_NAME, DETAIL.DETAIL_NAME, CMST.WON_PRICE, CMST.SLIP_ID, APPR.ANS_DATE,
+       {#codeData:NVL(APPR_MST.APPR_STATUS,'0'):/common/apprStatus} APPR_STATUS_NAME,
+       AMST.APP_NO, AMST.REG_NO, FN_USER_NAME(AMST.JOB_MAN) JOB_MAN, FN_DEPT_NAME(AMST.DEPT_CODE) DEPT_NAME,
+       FN_INVENTOR_NAMES(AMST.REF_ID) INVENTOR
+  FROM TB_APP_MST             AMST,
+       TB_COST_MST            CMST,
+       TB_COST_MGT_DETAILCODE DETAIL,
+       TB_COST_MGT_GRANDCODE  GRAND,
+       TB_COST_CONSULT        CON,
+       TB_APPR_ANS            APPR,
+       TB_APPR_MST            APPR_MST,
+       TB_COM_PJT             PJT,
+       TB_MAPP_PJT            MPJT
+ WHERE AMST.REF_ID = CMST.REF_ID
+   AND CMST.CONSULT_ID = CON.CONSULT_ID
+   AND CON.APPR_NO = APPR.APPR_NO
+   AND CON.APPR_NO = APPR_MST.APPR_NO
+   AND CMST.GRAND_CODE = DETAIL.GRAND_CODE
+   AND CMST.DETAIL_CODE = DETAIL.DETAIL_CODE
+   AND DETAIL.GRAND_CODE = GRAND.GRAND_CODE
+   AND AMST.REF_ID = MPJT.REF_ID(+)
+   AND MPJT.PJT_CODE = PJT.PJT_CODE(+)
+   AND NVL(CMST.CONFIRM_YN, '0') = DECODE(CMST.COST_KIND, '4', '1', '3', '1', NVL(CMST.CONFIRM_YN, '0'))
+   AND CMST.COST_KIND = {@COST_KIND}
+   AND SUBSTR(APPR.ANS_DATE, 1, 6) = {@YEAR_MON}
+]]></query>
+</root>

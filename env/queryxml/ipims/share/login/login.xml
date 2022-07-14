@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 로그인 사용자정보 목록 조회 -->
+<query name="/retrieveLoginUserSearchList"><![CDATA[
+SELECT DECODE(D.USER_ID, NULL,B.EMP_NO, D.EMP_NO) EMP_NO
+     , FN_COM_CODE_NAME('SYSTEM_TYPE', A.SYSTEM_TYPE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) SYSTEM_TYPE_NAME
+     , A.EMP_HNAME
+     , FN_DIVISN_NAME(B.DIVISN_CODE) DIVISN_NAME
+     , DECODE(D.USER_ID, NULL,C.DEPT_NAME, FN_OFFICE_NAME(D.OFFICE_CODE)) DEPT_NAME
+     , A.EMP_ENAME
+     , A.LOGIN_ID
+     , A.LOGIN_PW
+     , FN_COM_CODE_NAME('HT_CODE', A.HT_CODE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) HT_CODE_NAME
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+     , TB_ORG_DEPT C
+     , TB_USR_OFFICE D
+WHERE  A.USER_ID = B.USER_ID(+)
+AND    B.DEPT_CODE = C.DEPT_CODE(+)
+AND    A.USER_ID = D.USER_ID(+)
+AND    A.USER_ID NOT IN (SELECT USER_ID FROM TB_USR_OUT_INVENTOR)
+]]></query>
+<query name="/retrieveLoginUserSearchList/systemType"><![CDATA[
+AND    A.SYSTEM_TYPE = {@SYSTEM_TYPE}
+]]></query>
+<query name="/retrieveLoginUserSearchList/searchText"><![CDATA[
+AND    (UPPER(A.LOGIN_ID) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(A.EMP_HNAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(B.EMP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(D.EMP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+       )
+]]></query>
+
+<!-- 로그인정보 조회 -->
+<query name="/retrieveLogin"><![CDATA[
+SELECT A.SYSTEM_TYPE
+     , A.USER_ID
+     , B.EMP_NO
+     , A.LOGIN_PW
+     , A.EMP_HNAME
+     , A.EMP_ENAME
+     , A.EMP_CNAME
+     , A.MAIL_ADDR
+     , A.PW_ERR_CNT
+     , A.HT_CODE
+     , B.DIVISN_CODE
+     , FN_DIVISN_NAME(B.DIVISN_CODE) DIVISN_NAME
+     , B.DEPT_CODE
+     , FN_DEPT_NAME(B.DEPT_CODE) DEPT_NAME
+     , C.OFFICE_CODE
+     , FN_OFFICE_NAME(C.OFFICE_CODE) OFFICE_NAME
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+     , TB_USR_OFFICE C
+WHERE  A.USER_ID = B.USER_ID(+)
+AND    A.USER_ID = C.USER_ID(+)
+AND    A.LOGIN_ID = {@LOGIN_ID}
+AND    A.SYSTEM_TYPE = NVL({@LOGIN_SYSTEM}, A.SYSTEM_TYPE)
+]]></query>
+
+<!-- 로그인 사용자의 메뉴그룹 목록 조회 -->
+<query name="/retrieveLoginUserMenuGroupList"><![CDATA[
+SELECT GROUP_CODE
+FROM   TB_MNU_GROUP_USER
+WHERE  USER_ID = {@USER_ID}
+UNION
+SELECT 'COM' GROUP_CODE
+FROM   DUAL
+]]></query>
+
+<!-- 마지막 로그인 일시 저장 -->
+<query name="/updateLastLoginDatetime"><![CDATA[
+UPDATE TB_USR_MST SET
+       LAST_LOGIN_DATETIME = SYSDATE
+WHERE  USER_ID = {@USER_ID}
+]]></query>
+
+</root>

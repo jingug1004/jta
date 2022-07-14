@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 평가코드 관리 목록 조회 -->
+<query name="/retrieveEvalCodeMgtList"><![CDATA[
+SELECT A.EVAL_CODE
+     , A.EVAL_TITLE
+     , (SELECT EVAL_SHEET_NAME FROM TB_EVAL_SHEET_MAIN T WHERE T.EVAL_SHEET_ID = A.INVDEPT_EVAL_SHEET_ID) INVDEPT_EVAL_SHEET_NAME
+     , (SELECT EVAL_SHEET_NAME FROM TB_EVAL_SHEET_MAIN T WHERE T.EVAL_SHEET_ID = A.PATDEPT_EVAL_SHEET_ID) PATDEPT_EVAL_SHEET_NAME
+     , A.EVAL_VIEW_PATH
+FROM   TB_EVAL_CODE A
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveEvalCodeMgtList/evalTitle"><![CDATA[
+AND    UPPER(A.EVAL_TITLE) LIKE '%'||UPPER({@EVAL_TITLE})||'%'
+]]></query>
+
+<!-- 평가코드 관리 조회 -->
+<query name="/retrieveEvalCodeMgt"><![CDATA[
+SELECT A.EVAL_CODE
+     , A.EVAL_TITLE
+     , A.INVDEPT_EVAL_SHEET_ID
+     , A.PATDEPT_EVAL_SHEET_ID
+     , A.EVAL_VIEW_PATH
+FROM   TB_EVAL_CODE A
+WHERE  A.EVAL_CODE = {@EVAL_CODE}
+]]></query>
+
+<!-- 평가코드 관리 생성 -->
+<query name="/createEvalCodeMgt"><![CDATA[
+INSERT INTO TB_EVAL_CODE (
+       EVAL_CODE
+     , EVAL_TITLE
+     , INVDEPT_EVAL_SHEET_ID
+     , PATDEPT_EVAL_SHEET_ID
+     , EVAL_VIEW_PATH
+)
+SELECT {@EVAL_CODE}
+     , {@EVAL_TITLE}
+     , {@INVDEPT_EVAL_SHEET_ID}
+     , {@PATDEPT_EVAL_SHEET_ID}
+     , {@EVAL_VIEW_PATH}
+FROM   DUAL
+WHERE  NOT EXISTS (SELECT 1
+                   FROM   TB_EVAL_CODE
+                   WHERE  EVAL_CODE = {@EVAL_CODE}
+                  )
+]]></query>
+
+<!-- 평가코드 관리 수정 -->
+<query name="/updateEvalCodeMgt"><![CDATA[
+UPDATE TB_EVAL_CODE SET
+       EVAL_TITLE = {@EVAL_TITLE}
+     , INVDEPT_EVAL_SHEET_ID = {@INVDEPT_EVAL_SHEET_ID}
+     , PATDEPT_EVAL_SHEET_ID = {@PATDEPT_EVAL_SHEET_ID}
+     , EVAL_VIEW_PATH = {@EVAL_VIEW_PATH}
+WHERE  EVAL_CODE = {@EVAL_CODE}
+]]></query>
+
+<!-- 평가코드 관리 삭제 -->
+<query name="/deleteEvalCodeMgt"><![CDATA[
+DELETE FROM TB_EVAL_CODE
+WHERE  EVAL_CODE = {@EVAL_CODE}
+]]></query>
+
+</root>

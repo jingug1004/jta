@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 메일마스터 생성 -->
+<query name="/createMail"><![CDATA[
+INSERT INTO TB_MAIL_MST (
+       MAIL_ID
+     , FROM_ADDR
+     , FROM_NAME
+     , SUBJECT
+     , BODY
+     , CRE_USER
+     , CRE_DATE
+     , CRE_TIME
+) VALUES (
+       {@MAIL_ID:NUMBER}
+     , {@FROM_ADDR}
+     , {@FROM_NAME}
+     , {@SUBJECT}
+     , EMPTY_CLOB()
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , TO_CHAR(SYSDATE, 'HH24MISS')
+)
+]]></query>
+
+<!-- 메일내용 저장 -->
+<query name="/updateMailBody"><![CDATA[
+SELECT BODY
+FROM   TB_MAIL_MST
+WHERE  MAIL_ID = {@MAIL_ID:NUMBER}
+FOR    UPDATE
+]]></query>
+
+<!-- 받는사람 목록 생성 -->
+<query name="/createMailRecvList"><![CDATA[
+INSERT INTO TB_MAIL_RECV (
+       MAIL_ID
+     , RECV_SEQ
+     , RECV_TYPE
+     , RECV_ADDR
+     , RECV_NAME
+) VALUES (
+       {@MAIL_ID:NUMBER}
+     , {@RECV_SEQ:NUMBER}
+     , {@RECV_TYPE}
+     , {@RECV_ADDR}
+     , {@RECV_NAME}
+)
+]]></query>
+
+<!-- 메일로그 생성 -->
+<query name="/createMailLog"><![CDATA[
+INSERT INTO TB_MAIL_LOG (
+       MAIL_ID
+     , LOG_SEQ
+     , CRE_USER
+)
+SELECT {@MAIL_ID:NUMBER}
+     , (SELECT NVL(MAX(LOG_SEQ), 0) + 1 FROM TB_MAIL_LOG WHERE MAIL_ID = {@MAIL_ID:NUMBER})
+     , {@$USER_ID}
+FROM   TB_MAIL_MST
+WHERE  MAIL_ID = {@MAIL_ID:NUMBER}
+AND    NOT EXISTS (SELECT MAIL_ID
+                   FROM   TB_MAIL_LOG
+                   WHERE  MAIL_ID = {@MAIL_ID:NUMBER}
+                   AND    STATUS = '0'
+                  )
+]]></query>
+
+</root>

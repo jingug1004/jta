@@ -1,0 +1,558 @@
+﻿﻿<PUBLIC:COMPONENT tagName="DS" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false" internalname="gIsReady">
+    <PUBLIC:PROPERTY name="colCount" get="getColCount">
+    <PUBLIC:PROPERTY name="rowCount" get="getRowCount">
+    <PUBLIC:PROPERTY name="colId" get="getColId">
+    <PUBLIC:PROPERTY name="colIndex" get="getColIndex">
+    <PUBLIC:PROPERTY name="value" get="getValue" put="setValue">
+    <PUBLIC:PROPERTY name="valueRow" get="getValueRow">
+    <PUBLIC:PROPERTY name="rowData" get="getRowData" put="setRowData">
+    <PUBLIC:PROPERTY name="jobType" get="getJobType" put="setJobType">
+    <PUBLIC:PROPERTY name="useNull">
+    <PUBLIC:PROPERTY name="bindFunction">
+    <PUBLIC:METHOD name="init">
+    <PUBLIC:METHOD name="load">
+    <PUBLIC:METHOD name="addCol">
+    <PUBLIC:METHOD name="addRow">
+    <PUBLIC:METHOD name="deleteRow">
+    <PUBLIC:METHOD name="getXML">
+    <PUBLIC:METHOD name="setKeys">
+    <PUBLIC:METHOD name="addBind">
+    <PUBLIC:METHOD name="resetBind">
+    <PUBLIC:METHOD name="clearJobType">
+    <PUBLIC:EVENT name="OnInit" id="OnInitEvent">
+    <PUBLIC:EVENT name="OnLoad" id="OnLoadEvent">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var gIsReady = false;
+
+var gDs;
+var gBinder;
+var gKeys;
+
+eval(function()
+{
+    if (element.document.readyState == "complete") {
+        gIsReady = true;
+    } else if (element.document.media != "print") {
+        element.document.attachEvent("onreadystatechange", function()
+        {
+            if (element.document.readyState == "complete") setReady();
+        });
+    }
+
+    if (element.document.media == "print") return;
+
+    init();
+
+    window.attachEvent("onload", function()
+    {
+        setReady();
+    });
+})();
+
+function document_onready()
+{
+    any.event.call(element, "OnInit");
+    /* OnInitEvent.fire(element.document.createEventObject()); */
+}
+
+function setReady()
+{
+    if (gIsReady == true) return;
+
+    for (var i = 0, elements = element.getElementsByTagName("*"); i < elements.length; i++) {
+        if (elements[i].tagName == "SCRIPT" || elements[i].tagName == "COMMENT") eval(elements[i].text);
+    }
+
+    gIsReady = true;
+}
+
+function init()
+{
+    gDs = { header:[], data:[] };
+    gBinder = new Object();
+}
+
+function load(obj)
+{
+    gDs = obj;
+
+    bindDatasetToControl();
+
+    try {
+        any.event.call(element, "OnLoad");
+        /* OnLoadEvent.fire(element.document.createEventObject()); */
+    } catch(ex) {
+    }
+}
+
+function getColCount()
+{
+    return gDs.header.length;
+}
+
+function getRowCount()
+{
+    return gDs.data.length;
+}
+
+function getColId(colIndex)
+{
+    if (colIndex < 0) return null;
+    if (colIndex >= getColCount()) return null;
+
+    return gDs.header[colIndex].id;
+}
+
+function getColIndex(colId)
+{
+    for (var c = 0; c < gDs.header.length; c++) {
+        if (gDs.header[c].id == colId) return c;
+    }
+
+    return -1;
+}
+
+function getValue(row, col)
+{
+    var colId;
+    var val;
+
+    if (typeof(col) == "string") {
+        colId = col;
+    } else {
+        colId = getColId(col);
+    }
+
+    if (colId == null) return;
+
+    bindControlToDataset(getControlIndex(row), colId);
+
+    if (gDs.data[row] == null) return null;
+
+    val = gDs.data[row].data[colId];
+
+    if (val == null && element.useNull != true) return "";
+
+    return val;
+}
+
+function setValue(row, col, val)
+{
+    var colId;
+
+    if (typeof(col) == "string") {
+        colId = col;
+    } else {
+        colId = getColId(col);
+    }
+
+    if (colId == null) return;
+
+    addCol(colId);
+
+    if (row == 0 && getRowCount() == 0) addRow();
+
+    if (gDs.data[row] == null) return;
+
+    gDs.data[row].data[colId] = val;
+
+    if (getJobType(row) == "") {
+        setJobType(row, "U");
+    }
+
+    bindDatasetToControl(row, colId);
+}
+
+function getValueRow()
+{
+    var arg = arguments;
+
+    for (var r = 0; r < getRowCount(); r++) {
+        if (checkRow(r) == true) return r;
+    }
+
+    return -1;
+
+    function checkRow(row)
+    {
+        for (var i = 0; i < arg.length; i++) {
+            if (typeof(arg[i]) != "object") return false;
+            if (getValue(row, arg[i][0]) != arg[i][1]) return false;
+        }
+        return true;
+    }
+}
+
+function getRowData(row)
+{
+    var obj = gDs.data[row].data;
+
+    if (element.useNull != true) {
+        var colId;
+        for (var c = 0; c < getColCount(); c++) {
+            colId = getColId(c);
+            if (obj[colId] == null) obj[colId] = "";
+        }
+    }
+
+    return obj;
+}
+
+function setRowData(row, obj)
+{
+    for (var item in obj) {
+        setValue(row, item, obj[item]);
+    }
+}
+
+function getJobType(row)
+{
+    if (row == -1) return;
+
+    var jobType = gDs.data[row].jobType;
+
+    return nvl(jobType, "");
+}
+
+function setJobType(row, val)
+{
+    if (row == -1) return;
+
+    gDs.data[row].jobType = val;
+}
+
+function setJobType(row, val)
+{
+    if (row == -1) return;
+
+    gDs.data[row].jobType = val;
+}
+
+function addCol(colId)
+{
+    if (getColIndex(colId) != -1) return;
+
+    gDs.header.push({ id:colId });
+}
+
+function addRow(row)
+{
+    var data = { jobType:"C", data:{} };
+
+    if (row == null) {
+        gDs.data.push(data);
+        row = gDs.data.length - 1;
+    } else {
+        gDs.data.splice(row, 0, data);
+    }
+
+    return row;
+}
+
+function deleteRow(row)
+{
+    if (getJobType(row) == "C") {
+        gDs.data.splice(row, 1);
+    } else {
+        setJobType(row, "D");
+    }
+}
+
+function getXML(withHeader, forTransfer, datasetId)
+{
+    if (element.bindFunction == null) {
+        bindControlToDataset();
+    } else {
+        eval(element.bindFunction)();
+    }
+
+    var xml = new Array();
+
+    if (withHeader == true) {
+        xml.push('<?xml version="1.0" encoding="utf-8"?>');
+    }
+
+    xml.push('<dataset id="' + (datasetId == null ? element.id : datasetId) + '">');
+
+    xml.push('<header>');
+    for (var c = 0; c < gDs.header.length; c++) {
+        xml.push('<col id="' + gDs.header[c].id + '" />');
+    }
+    xml.push('</header>');
+
+    xml.push('<data>');
+    for (var r = 0; r < gDs.data.length; r++) {
+        xml.push('<row' + (gDs.data[r].jobType == null || gDs.data[r].jobType == "" ? '' : ' jobType="' + gDs.data[r].jobType + '"') + '>');
+        for (var c = 0; c < gDs.header.length; c++) {
+            if (gDs.data[r].data[gDs.header[c].id] == null) continue;
+            xml.push('<col' + c + '><![CDATA[' + String(gDs.data[r].data[gDs.header[c].id]).replace(new RegExp("]]>", "gi"), "]]]]><![CDATA[>") + ']]></col' + c + '>');
+        }
+        xml.push('</row>');
+    }
+    xml.push('</data>');
+
+    xml.push('</dataset>');
+
+    if (forTransfer == true) {
+        return encodeURIComponent(xml.join(""));
+    }
+
+    return xml.join("\n");
+}
+
+function setKeys()
+{
+    if (gKeys == null) gKeys = new Array();
+
+    for (var i = 0; i < arguments.length; i++) {
+        gKeys.push(arguments[i]);
+    }
+}
+
+function addBind(colId, ctrlId, paramName)
+{
+    if (colId == null) return;
+
+    addCol(colId);
+
+    if (gKeys == null && getRowCount() == 0) addRow();
+
+    if (ctrlId == null) ctrlId = colId;
+
+    if (gKeys == null && element.document.getElementById(ctrlId) == null) {
+        alert('다음 컨트롤을 찾을 수 없습니다.\n\n' + ctrlId);
+        return;
+    }
+
+    gBinder[colId] = new Object();
+    gBinder[colId].controls = element.document.getElementsByName(ctrlId);
+    gBinder[colId].parameter = paramName;
+}
+
+function resetBind(colId, ctrlId, paramName)
+{
+    bindControlToDataset(null, colId);
+    addBind(colId, ctrlId, paramName);
+    bindDatasetToControl(null, colId);
+}
+
+function getControlIndex(dsRow)
+{
+    if (gKeys == null) return dsRow;
+
+    var maxRow = -1;
+
+    for (var c = 0; c < gKeys.length; c++) {
+        if (gBinder[gKeys[c]] != null && gBinder[gKeys[c]].controls.length > maxRow) maxRow = gBinder[gKeys[c]].controls.length;
+    }
+
+    for (var r = 0; r < maxRow; r++) {
+        if (checkRow(r) == true) return r;
+    }
+
+    return -1;
+
+    function checkRow(ctrlRow)
+    {
+        for (var c = 0; c < gKeys.length; c++) {
+            if (gBinder[gKeys[c]] == null) return false;
+            if (gBinder[gKeys[c]].controls[ctrlRow][getBindParameter(ctrlRow, gKeys[c])] != gDs.data[dsRow].data[gKeys[c]]) return false;
+        }
+        return true;
+    }
+}
+
+function getDatasetIndex(ctrlRow)
+{
+    if (gKeys == null) return ctrlRow;
+
+    var arg = arguments;
+
+    for (var r = 0; r < getRowCount(); r++) {
+        if (checkRow(r) == true) return r;
+    }
+
+    return -1;
+
+    function checkRow(dsRow)
+    {
+        for (var c = 0; c < gKeys.length; c++) {
+            if (gBinder[gKeys[c]] == null) return false;
+            if (gBinder[gKeys[c]].controls[ctrlRow][getBindParameter(ctrlRow, gKeys[c])] != gDs.data[dsRow].data[gKeys[c]]) return false;
+        }
+        return true;
+    }
+}
+
+function bindDatasetToControl(row, colId)
+{
+    if (row == -1) return;
+
+    if (colId == null) {
+        for (var item in gBinder) {
+            bindCol(item);
+        }
+    } else {
+        bindCol(colId);
+    }
+
+    function bindCol(colId)
+    {
+        if (gBinder[colId] == null) return;
+
+        addCol(colId);
+
+        var ctrls = gBinder[colId].controls;
+
+        if (row == null) {
+            for (var r = 0; r < getRowCount(); r++) {
+                bindRow(r);
+            }
+        } else {
+            bindRow(row);
+        }
+
+        function bindRow(dsRow)
+        {
+            var ctrlRow = getControlIndex(dsRow);
+
+            if (ctrlRow == -1) {
+                deleteRow(ctrlRow);
+                return;
+            }
+
+            if (ctrls[ctrlRow] == null) return;
+
+            ctrls[ctrlRow][getBindParameter(ctrlRow, colId)] = function()
+            {
+                switch (ctrls[ctrlRow].scopeName + ":" + ctrls[ctrlRow].tagName) {
+                case "ANY:SEARCH":
+                    return getRowData(dsRow);
+                case "HTML:IMG":
+                    return any.getServletPath(nvl(gDs.data[dsRow].data[colId], ""));
+                default:
+                    return nvl(gDs.data[dsRow].data[colId], "");
+                }
+            }();
+        }
+    }
+}
+
+function bindControlToDataset(row, colId)
+{
+    if (row == -1) return;
+
+    if (colId == null) {
+        for (var item in gBinder) {
+            bindCol(item);
+        }
+    } else {
+        bindCol(colId);
+    }
+
+    function bindCol(colId)
+    {
+        if (gBinder[colId] == null) return;
+
+        addCol(colId);
+
+        var ctrls = gBinder[colId].controls;
+
+        if (row == null) {
+            for (var r = 0; r < getRowCount(); r++) {
+                if (getControlIndex(r) == -1) deleteRow(r);
+            }
+            for (var r = 0; r < ctrls.length; r++) {
+                bindRow(r);
+            }
+        } else {
+            bindRow(row);
+        }
+
+        function bindRow(ctrlRow)
+        {
+            var dsRow = getDatasetIndex(ctrlRow);
+            var isAdded = false;
+
+            if (dsRow == -1 || getRowCount() <= dsRow) {
+                dsRow = addRow();
+                isAdded = true;
+            }
+
+            if (ctrls[ctrlRow].disabled == true || isVisible(ctrls[ctrlRow]) != true) {
+                gDs.data[dsRow].data[colId] = "";
+            } else {
+                gDs.data[dsRow].data[colId] = ctrls[ctrlRow][getBindParameter(ctrlRow, colId)];
+            }
+
+            if (isAdded == true && gKeys != null) {
+                for (var c = 0; c < gKeys.length; c++) {
+                    if (gBinder[gKeys[c]] == null) continue;
+                    setValue(dsRow, gKeys[c], gBinder[gKeys[c]].controls[ctrlRow][getBindParameter(ctrlRow, gKeys[c])]);
+                }
+            }
+
+            if (getJobType(dsRow) == "" || getJobType(dsRow) == "D") {
+                setJobType(dsRow, "U");
+            }
+        }
+    }
+}
+
+function getBindParameter(row, colId)
+{
+    if (gBinder[colId].parameter != null) return gBinder[colId].parameter;
+
+    var ctrl = gBinder[colId].controls[row];
+
+    switch (ctrl.scopeName + ":" + ctrl.tagName) {
+    case "HTML:INPUT":
+        return "value2";
+    case "HTML:TD":
+    case "HTML:SPAN":
+    case "HTML:DIV":
+    case "HTML:PRE":
+    case "HTML:XMP":
+        return "innerText";
+    case "HTML:IMG":
+        return "src";
+    case "ANY:FILE":
+        return "fileId";
+    default:
+        return "value";
+    }
+}
+
+function clearJobType()
+{
+    for (var r = 0; r < gDs.data.length; r++) {
+        if (gDs.data[r].jobType == "D") {
+            gDs.data.splice(r, 1);
+        } else {
+            gDs.data[r].jobType = null;
+        }
+    }
+}
+
+function isVisible(obj)
+{
+    if (obj.style.display == "none") return false;
+    if (obj.style.visibility == "hidden") return false;
+
+    if (obj.parentElement == null) return true;
+
+    return isVisible(obj.parentElement);
+}
+
+function nvl(checkExpression, replacementValue)
+{
+    if (checkExpression == null) return replacementValue;
+
+    return checkExpression;
+}
+</SCRIPT>

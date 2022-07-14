@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- OA검토현황 조회 -->
+<query name="/retrieveOAList"><![CDATA[
+SELECT A.REF_ID
+     , A.OA_SEQ
+     , B.INOUT_DIV
+     , B.REF_NO
+     , B.APP_NO
+     , A.START_PAPER_SEQ
+     , FN_PAPER_NAME(C.PAPER_CODE) START_PAPER_NAME
+     , D.LIST_SEQ LAST_PAPER_SEQ
+     , FN_PAPER_NAME((SELECT S1.PAPER_CODE FROM TB_PAPER_LIST S1 WHERE S1.REF_ID = D.REF_ID AND S1.LIST_SEQ = D.LIST_SEQ)) LAST_PAPER_NAME
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , C.PAPER_DATE START_PAPER_DATE
+     , A.DUE_DATE
+     , FN_OFFICE_NAME(B.OFFICE_CODE) OFFICE_NAME
+     , FN_USER_NAME(B.JOB_MAN) JOB_MAN_NAME
+     , FN_COM_CODE_NAME('YES_NO', A.END_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) END_YN_NAME
+FROM   TB_OA_HIST A
+     , TB_APP_MST B
+     , TB_PAPER_LIST C
+     , (SELECT X.REF_ID
+             , X.OA_SEQ
+             , MAX(X.LIST_SEQ) LIST_SEQ
+        FROM   TB_PAPER_LIST X
+        WHERE  X.PAPER_CODE IN (SELECT PAPER_CODE FROM TB_PAPER_MGT_MST WHERE PAPER_STEP = 'OA')
+        GROUP BY X.REF_ID, X.OA_SEQ
+       ) D
+WHERE  A.REF_ID = B.REF_ID
+AND    A.REF_ID = C.REF_ID
+AND    A.START_PAPER_SEQ = C.LIST_SEQ
+AND    A.REF_ID = D.REF_ID(+)
+AND    A.OA_SEQ = D.OA_SEQ(+)
+]]></query>
+<query name="/retrieveOAList/oaPaperCode"><![CDATA[
+AND    C.PAPER_CODE = {@OA_PAPER_CODE}
+]]></query>
+<query name="/retrieveOAList/jobMan"><![CDATA[
+AND    B.JOB_MAN = {@JOB_MAN}
+]]></query>
+<query name="/retrieveOAList/endYn"><![CDATA[
+AND    A.END_YN = {@END_YN}
+]]></query>
+
+</root>

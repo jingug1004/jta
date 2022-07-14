@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 국내디자인출원 품의서 업데이트 -->
+<query name="/updateDesignIntConsult"><![CDATA[
+UPDATE TB_APP_INT_CONSULT A SET (
+       RIGHT_DIV
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , DIVISN_CODE
+     , DEPT_CODE
+     , LAB_CODE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+) = (
+SELECT RIGHT_DIV
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , DIVISN_CODE
+     , DEPT_CODE
+     , LAB_CODE
+     , APP_IMMED_YN
+     , APP_IMMED_REASON
+FROM   TB_APP_INT_REQ
+WHERE  REF_ID = {@REF_ID}
+)
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 국내디자인출원 특허팀의뢰일 업데이트 -->
+<query name="/updateDesignIntPatteamReqDate"><![CDATA[
+UPDATE TB_APP_INT_REQ SET
+       PATTEAM_REQ_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

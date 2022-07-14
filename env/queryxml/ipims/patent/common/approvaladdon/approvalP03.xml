@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 오더레터 출원국가 목록 조회 -->
+<query name="/retrieveExtNewOLCountryList"><![CDATA[
+SELECT COUNTRY_CODE
+FROM   TB_APP_EXT_OL_COUNTRY
+WHERE  OL_ID = {@OL_ID}
+]]></query>
+
+<!-- 신규 REF-NO 조회 -->
+<query name="/retrieveNewMasterRefNo"><![CDATA[
+SELECT CASE WHEN A.DIVISION_TYPE IS NULL THEN
+            B.GRP_NO || '-' || {@COUNTRY_CODE}
+       ELSE
+            FN_REF_NO(A.DIVISION_PRIOR_REF_ID) || A.DIVISION_CODE
+       END REF_NO
+FROM   TB_APP_EXT_OL A
+     , TB_APP_EXT_GRP B
+WHERE  A.OL_ID = {@OL_ID}
+AND    A.GRP_ID = B.GRP_ID
+]]></query>
+
+<!-- 특허마스터 생성 -->
+<query name="/createPatentMaster"><![CDATA[
+INSERT INTO TB_APP_MST (
+       REF_ID
+     , REF_NO
+     , RIGHT_DIV
+     , INOUT_DIV
+     , COUNTRY_CODE
+     , KO_APP_TITLE
+     , DIVISN_CODE
+     , DEPT_CODE
+     , LAB_CODE
+     , JOB_MAN
+     , OFFICE_CONTACT_YN
+     , OFFICE_CODE
+     , OFFICE_SEND_DATE
+     , CORGT_YN
+     , CORGT_MAN
+     , COSTSHARE_YN
+     , COSTSHARE_RATIO
+     , EXAMREQ_YN
+     , DIVISION_PRIOR_REF_ID
+     , DIVISION_TYPE
+     , DIVISION_CODE
+     , DIVISION_LEVEL
+     , COSTSHARE_OWNER
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@REF_ID}
+     , {@REF_NO}
+     , C.RIGHT_DIV
+     , 'EXT'
+     , A.COUNTRY_CODE
+     , C.KO_APP_TITLE
+     , C.DIVISN_CODE
+     , C.DEPT_CODE
+     , C.LAB_CODE
+     , C.JOB_MAN
+     , '1'
+     , C.OFFICE_CODE
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , C.CORGT_YN
+     , C.CORGT_MAN
+     , C.COSTSHARE_YN
+     , C.COSTSHARE_RATIO
+     , A.EXAMREQ_YN
+     , B.DIVISION_PRIOR_REF_ID
+     , B.DIVISION_TYPE
+     , B.DIVISION_CODE
+     , DECODE(B.DIVISION_PRIOR_REF_ID, NULL,'01', LPAD(NVL(TO_NUMBER(D.DIVISION_LEVEL), 0) + 1, 2, '0'))
+     , C.COSTSHARE_OWNER
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_EXT_OL_COUNTRY A
+     , TB_APP_EXT_OL B
+     , TB_APP_EXT_GRP C
+     , TB_APP_MST D
+     , TB_APP_MST_EXT E
+WHERE  A.OL_ID = {@OL_ID}
+AND    A.COUNTRY_CODE = {@COUNTRY_CODE}
+AND    A.OL_ID = B.OL_ID
+AND    B.GRP_ID = C.GRP_ID
+AND    B.DIVISION_PRIOR_REF_ID = D.REF_ID(+)
+AND    B.DIVISION_PRIOR_REF_ID = E.REF_ID(+)
+]]></query>
+
+<!-- 특허마스터 생성 - 해외 -->
+<query name="/createPatentMasterExt"><![CDATA[
+INSERT INTO TB_APP_MST_EXT (
+       REF_ID
+     , GRP_ID
+     , EXT_OFFICE_CODE
+     , PRIORITY_CLAIM_YN
+     , PRIORITY_CLAIM_COUNTRY
+)
+SELECT {@REF_ID}
+     , B.GRP_ID
+     , A.EXT_OFFICE_CODE
+     , B.PRIORITY_CLAIM_YN
+     , B.PRIORITY_CLAIM_COUNTRY
+FROM   TB_APP_EXT_OL_COUNTRY A
+     , TB_APP_EXT_OL B
+WHERE  A.OL_ID = {@OL_ID}
+AND    A.COUNTRY_CODE = {@COUNTRY_CODE}
+AND    A.OL_ID = B.OL_ID
+]]></query>
+
+<!-- 오더레터 출원국가 업데이트(REF_ID) -->
+<query name="/updateExtNewOLCountry"><![CDATA[
+UPDATE TB_APP_EXT_OL_COUNTRY SET
+       REF_ID = {@REF_ID}
+WHERE  OL_ID = {@OL_ID}
+AND    COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+
+<!-- 오더레터 업데이트(사무소송부일) -->
+<query name="/updateExtNewOrderLetter"><![CDATA[
+UPDATE TB_APP_EXT_OL SET
+       OFFICE_SEND_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  OL_ID = {@OL_ID}
+]]></query>
+
+</root>

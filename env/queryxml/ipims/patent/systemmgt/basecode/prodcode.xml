@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 제품코드 목록 조회 -->
+<query name="/retrieveProdCodeList"><![CDATA[
+SELECT PROD_CODE
+     , PROD_NAME
+     , PROD_DESC
+     , FN_COM_CODE_NAME('USE_YN', USE_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) USE_YN_NAME
+FROM   TB_COM_PROD_CODE
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveProdCodeList/prodCode"><![CDATA[
+AND    UPPER(PROD_CODE) LIKE '%'||UPPER({@PROD_CODE})||'%'
+]]></query>
+<query name="/retrieveProdCodeList/searchText"><![CDATA[
+AND    (UPPER(PROD_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(PROD_DESC) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+       )
+]]></query>
+
+<!-- 제품코드 생성 -->
+<query name="/createProdCode"><![CDATA[
+INSERT INTO TB_COM_PROD_CODE (
+       PROD_CODE
+     , PROD_NAME
+     , PROD_DESC
+     , USE_YN
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT
+       {@PROD_CODE}
+     , {@PROD_NAME}
+     , {@PROD_DESC}
+     , {@USE_YN}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM DUAL
+]]></query>
+
+<!-- 제품코드 조회 -->
+<query name="/retrieveProdCode"><![CDATA[
+SELECT PROD_CODE
+     , PROD_NAME
+     , PROD_DESC
+     , USE_YN
+FROM   TB_COM_PROD_CODE
+WHERE  PROD_CODE = {@PROD_CODE}
+]]></query>
+
+<!-- 제품코드 수정 -->
+<query name="/updateProdCode"><![CDATA[
+UPDATE TB_COM_PROD_CODE SET
+       PROD_NAME = {@PROD_NAME}
+     , PROD_DESC = {@PROD_DESC}
+     , USE_YN ={@USE_YN}
+     , UPD_USER = {@$USER_ID}
+     , UPD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  PROD_CODE = {@PROD_CODE}
+]]></query>
+
+<!-- 제품코드 삭제 -->
+<query name="/deleteProdCode"><![CDATA[
+DELETE TB_COM_PROD_CODE A
+WHERE  PROD_CODE = {@PROD_CODE}
+]]></query>
+
+</root>

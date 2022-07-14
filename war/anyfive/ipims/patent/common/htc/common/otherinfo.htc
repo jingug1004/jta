@@ -1,0 +1,329 @@
+<PUBLIC:COMPONENT tagName="OTHERINFO" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="mode" get="getMode" put="setMode">
+    <PUBLIC:PROPERTY name="rowCount" get="getRowCount">
+    <PUBLIC:EVENT  NAME="OnAddRow" ID="OnAddRowEvent">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var ds_main;
+var ds_main_id;
+
+if (element.id.substr(0, 4) == "any_") {
+    ds_main_id = "ds_" + element.id.substr(4);
+} else {
+    ds_main_id = "ds_" + element.id;
+}
+
+var control_id = element.id + "_" + element.sourceIndex;
+
+var btn_add;
+var btn_add_id = "btn_add_" + control_id;
+
+var btn_del;
+var btn_del_id = "btn_del_" + control_id;
+
+var chk_all;
+var chk_all_id = "chk_all_" + control_id;
+
+var tbd_main;
+var tbd_main_id = "tbd_main_" + control_id;
+
+var tr_main;
+var tr_main_id = "tr_main_" + control_id;
+
+var chk_del;
+var chk_del_id = "chk_del_" + control_id;
+
+var txt_invTitle;
+var txt_invTitle_id = "txt_invTitle_" + control_id;
+
+var txt_appNo;
+var txt_appNo_id = "txt_appNo_" + control_id;
+
+var txt_appDate;
+var txt_appDate_id = "txt_appDate_" + control_id;
+
+var txt_regNo;
+var txt_regNo_id = "txt_regNo_" + control_id;
+
+var txt_regDate;
+var txt_regDate_id = "txt_regDate_" + control_id;
+
+var txt_noticeNo;
+var txt_noticeNo_id = "txt_noticeNo_" + control_id;
+
+var txt_noticeDate;
+var txt_noticeDate_id = "txt_noticeDate_" + control_id;
+
+var gMode = "R";
+var gMode2 = "R";
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    ds_main = element.document.createElement('<ANY:DS id="' + ds_main_id + '">');
+    element.document.appendChild(ds_main);
+
+    ds_main.bindFunction = function()
+    {
+        ds_main.init();
+
+        var row;
+
+        for (var i = 0; i < txt_invTitle.length; i++) {
+            if (check() != true) continue;
+
+            row = ds_main.addRow();
+
+            ds_main.value(row, "SEQ_NO")      = i + 1;
+            ds_main.value(row, "INV_TITLE")   = txt_invTitle[i].value;
+            ds_main.value(row, "APP_NO")      = txt_appNo[i].value;
+            ds_main.value(row, "APP_DATE")    = txt_appDate[i].value;
+            ds_main.value(row, "REG_NO")      = txt_regNo[i].value;
+            ds_main.value(row, "REG_DATE")    = txt_regDate[i].value;
+            ds_main.value(row, "NOTICE_NO")   = txt_noticeNo[i].value;
+            ds_main.value(row, "NOTICE_DATE") = txt_noticeDate[i].value;
+        }
+
+        function check()
+        {
+            if (txt_invTitle[i].value != "") return true;
+            if (txt_appNo[i].value != "") return true;
+            if (txt_appDate[i].value != "") return true;
+            if (txt_regNo[i].value != "") return true;
+            if (txt_regDate[i].value != "") return true;
+            if (txt_noticeNo[i].value != "") return true;
+            if (txt_noticeDate[i].value != "") return true;
+
+            return false;
+        }
+    }
+
+    ds_main.OnLoad = function()
+    {
+        makeHTML();
+    }
+
+    makeHTML();
+
+    element.isReady = true;
+}
+
+function makeHTML()
+{
+    var html = new Array();
+
+    if (gMode2 != "R") {
+        html.push('<TABLE border="0" cellspacing="0" cellpadding="0" width="100%" style="margin-bottom:1px;">');
+        html.push('    <TR>');
+        html.push('        <TD noWrap align="right">');
+        html.push('            <BUTTON id="' + btn_add_id + '" text="Add"    width="50px" space="left:2">');
+        html.push('            <BUTTON id="' + btn_del_id + '" text="Delete" width="50px" space="left:2">');
+        html.push('        </TD>');
+        html.push('    </TR>');
+        html.push('</TABLE>');
+    }
+
+    html.push('<TABLE border="0" cellspacing="1" cellpadding="0" class="main">');
+    html.push('    <TR style="cursor:default;">');
+    if (gMode2 != "R") {
+        html.push('        <TD class="listhead" noWrap width="20px" title="삭제대상 전체선택"><INPUT type="checkbox" id="' + chk_all_id + '" onFocus="this.blur();"></TD>');
+    }
+    html.push('        <TD class="listhead" width="25%">발명의 명칭</TD>');
+    html.push('        <TD class="listhead" width="15%">출원번호</TD>');
+    html.push('        <TD class="listhead" width="10%">출원일자</TD>');
+    html.push('        <TD class="listhead" width="15%">공개번호</TD>');
+    html.push('        <TD class="listhead" width="10%">공개일자</TD>');
+    html.push('        <TD class="listhead" width="15%">등록번호</TD>');
+    html.push('        <TD class="listhead" width="10%">등록일자</TD>');
+
+    html.push('    </TR>');
+    html.push('    <COLGROUP>');
+    for (var i = 0; i < 5; i++) {
+        html.push('        <COL class="listdata">');
+    }
+    html.push('    </COLGROUP>');
+    html.push('    <TBODY id="' + tbd_main_id + '"></TBODY>');
+
+    html.push('</TABLE>');
+
+    element.innerHTML = html.join("\n");
+
+    btn_add = element.document.getElementById(btn_add_id);
+    btn_del = element.document.getElementById(btn_del_id);
+    chk_all = element.document.getElementById(chk_all_id);
+    tbd_main = element.document.getElementById(tbd_main_id);
+    tr_main = element.document.getElementsByName(tr_main_id);
+    chk_del = element.document.getElementsByName(chk_del_id);
+
+    txt_invTitle = element.document.getElementsByName(txt_invTitle_id);
+    txt_appNo = element.document.getElementsByName(txt_appNo_id);
+    txt_appDate = element.document.getElementsByName(txt_appDate_id);
+    txt_regNo = element.document.getElementsByName(txt_regNo_id);
+    txt_regDate = element.document.getElementsByName(txt_regDate_id);
+    txt_noticeNo = element.document.getElementsByName(txt_noticeNo_id);
+    txt_noticeDate = element.document.getElementsByName(txt_noticeDate_id);
+
+    if (gMode2 != "R") {
+        btn_add.onclick = addHTML;
+        btn_del.onclick = doDelete;
+
+        chk_all.onclick = function()
+        {
+            for (var i = 0; i < chk_del.length; i++) {
+                if (chk_del[i].disabled == true) continue;
+                chk_del[i].checked = chk_all.checked;
+            }
+        }
+    }
+
+    for (var r = 0; r < ds_main.rowCount; r++) {
+        addHTML(ds_main.rowData(r));
+    }
+}
+
+function getMode()
+{
+    return gMode;
+}
+
+function setMode(val)
+{
+    if (gMode == val) return;
+
+    gMode = val;
+    gMode2 = gMode.substr(0, 1);
+
+    if (element.isReady == true) {
+        makeHTML();
+    }
+}
+
+function getRowCount()
+{
+    return tr_main.length;
+}
+
+function doDelete()
+{
+    for (var i = chk_del.length - 1; i >= 0; i--) {
+        if (chk_del[i].checked != true) continue;
+        tbd_main.deleteRow(i);
+    }
+
+    chk_all.checked = false;
+}
+
+function addHTML(obj)
+{
+    var row = tbd_main.rows.length;
+
+    var tr, td;
+
+    tr = element.document.createElement('<TR id="' + tr_main_id + '">');
+    tbd_main.appendChild(tr);
+
+    if (gMode2 == "R") {
+        //발명의 명칭
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerText = obj.INV_TITLE;
+        tr.appendChild(td);
+
+        //출원번호
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerText = obj.APP_NO;
+        tr.appendChild(td);
+
+        //출원일
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerText = cfGetFormatDate(obj.APP_DATE);
+        td.align = "center";
+        tr.appendChild(td);
+
+        //공개번호
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerText = obj.NOTICE_NO;
+        tr.appendChild(td);
+
+        //공개일자
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerText = cfGetFormatDate(obj.NOTICE_DATE);
+        td.align = "center";
+        tr.appendChild(td);
+
+        //등록번호
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerText = obj.REG_NO;
+        tr.appendChild(td);
+
+        //등록일
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerText = cfGetFormatDate(obj.REG_DATE);
+        td.align = "center";
+        tr.appendChild(td);
+
+    } else {
+        //삭제 체크박스
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerHTML = '<INPUT type="checkbox" id="' + chk_del_id + '" onFocus="this.blur();">';
+        td.align = "center";
+        tr.appendChild(td);
+
+        //발명의 명칭
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerHTML = '<INPUT type="text" id="' + txt_invTitle_id + '" class="text" maxByte="1000">';
+        td.align = "center";
+        tr.appendChild(td);
+
+        //출원번호
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerHTML = '<INPUT type="text" id="' + txt_appNo_id + '" class="text" maxByte="30">';
+        tr.appendChild(td);
+
+        //출원일
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerHTML = '<ANY:DATE id="' + txt_appDate_id + '" />';
+        td.align = "center";
+        tr.appendChild(td);
+
+        //공개번호
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerHTML = '<INPUT type="text" id="' + txt_noticeNo_id + '" class="text" maxByte="30">';
+        tr.appendChild(td);
+
+        //공개일
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerHTML = '<ANY:DATE id="' + txt_noticeDate_id + '" />';
+        td.align = "center";
+        tr.appendChild(td);
+
+        //등록번호
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerHTML = '<INPUT type="text" id="' + txt_regNo_id + '" class="text" maxByte="30">';
+        tr.appendChild(td);
+
+        //등록일
+        td = element.document.createElement('<TD class="listdata">');
+        td.innerHTML = '<ANY:DATE id="' + txt_regDate_id + '" />';
+        td.align = "center";
+        tr.appendChild(td);
+
+
+        if (obj != null) {
+            txt_invTitle[row].value = obj.INV_TITLE;
+            txt_appNo[row].value = obj.APP_NO;
+            txt_appDate[row].value = obj.APP_DATE;
+            txt_regNo[row].value = obj.REG_NO;
+            txt_regDate[row].value = obj.REG_DATE;
+            txt_noticeNo[row].value = obj.NOTICE_NO;
+            txt_noticeDate[row].value = obj.NOTICE_DATE;
+        }
+    }
+
+    OnAddRowEvent.fire(element.document.createEventObject());
+}
+</SCRIPT>

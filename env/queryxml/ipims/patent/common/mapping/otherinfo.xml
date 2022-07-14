@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 상대정보  맵핑목록 조회 -->
+<query name="/retrieveOtherInfoList"><![CDATA[
+SELECT SEQ_NO
+     , INV_TITLE
+     , APP_NO
+     , APP_DATE
+     , REG_NO
+     , REG_DATE
+     , NOTICE_NO
+     , NOTICE_DATE
+FROM   TB_IPB_COM_OTHER_INFO
+WHERE  REF_ID = {@REF_ID}
+ORDER BY SEQ_NO
+]]></query>
+
+<!-- 상대정보  맵핑 생성 -->
+<query name="/createOtherInfo"><![CDATA[
+INSERT INTO TB_IPB_COM_OTHER_INFO (
+       REF_ID
+     , SEQ_NO
+     , INV_TITLE
+     , APP_NO
+     , APP_DATE
+     , REG_NO
+     , REG_DATE
+     , NOTICE_NO
+     , NOTICE_DATE
+) VALUES (
+       {@REF_ID}
+     , LPAD({@SEQ_NO}, 5, '0')
+     , {@INV_TITLE}
+     , {@APP_NO}
+     , {@APP_DATE}
+     , {@REG_NO}
+     , {@REG_DATE}
+     , {@NOTICE_NO}
+     , {@NOTICE_DATE}
+)
+]]></query>
+
+<!-- 상대정보  맵핑 삭제 -->
+<query name="/deleteOtherInfo"><![CDATA[
+DELETE FROM TB_IPB_COM_OTHER_INFO
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

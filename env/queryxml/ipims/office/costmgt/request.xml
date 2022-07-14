@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 비용청구 목록 조회 -->
+<query name="/retrieveCostRequestList"><![CDATA[
+SELECT A.REQ_ID
+     , A.INOUT_DIV
+     , A.REQ_YN
+     , FN_COM_CODE_NAME('YES_NO', A.REQ_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) REQ_YN_NAME
+     , A.REQ_SUBJECT
+     , B.CNT_CNF_NULL
+     , B.CNT_CNF_YES
+     , B.CNT_CNF_NO
+     , C.REQ_WON_PRICE
+     , C.REQ_PRICE
+     , A.OFFICE_CODE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , FN_USER_NAME(A.REQ_USER) REQ_USER_NAME
+     , A.REQ_DATE
+     , FN_COM_CODE_NAME('RETURN_KIND', A.RETURN_KIND, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RETURN_NAME
+FROM   TB_COST_REQ_MST A
+     , (SELECT REQ_ID
+             , SUM(DECODE(CONFIRM_YN, NULL,1, 0)) CNT_CNF_NULL
+             , SUM(DECODE(CONFIRM_YN, '1',1, 0)) CNT_CNF_YES
+             , SUM(DECODE(CONFIRM_YN, '9',1, 0)) CNT_CNF_NO
+        FROM   TB_COST_MST
+        WHERE  REQ_ID IS NOT NULL
+        GROUP BY REQ_ID
+       ) B
+     , (SELECT REQ_ID
+             , SUM(WON_PRICE) REQ_WON_PRICE
+             , SUM(PRICE) REQ_PRICE
+        FROM   TB_COST_MST
+        WHERE  REQ_ID IS NOT NULL
+        GROUP BY REQ_ID
+       ) C
+WHERE  A.CONSULT_ID IS NULL
+AND    A.REQ_ID = B.REQ_ID(+)
+AND    A.REQ_ID = C.REQ_ID(+)
+AND    A.OFFICE_CODE = {@$OFFICE_CODE}
+]]></query>
+<query name="/retrieveCostRequestList/inoutDiv"><![CDATA[
+AND   A.INOUT_DIV = {@INOUT_DIV}
+]]></query>
+<query name="/retrieveCostRequestList/reqSubject"><![CDATA[
+AND   A.REQ_SUBJECT LIKE '%'||{@REQ_SUBJECT}||'%'
+]]></query>
+<query name="/retrieveCostRequestList/dateStart"><![CDATA[
+AND   {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveCostRequestList/dateEnd"><![CDATA[
+AND   {#DATE_GUBUN} <= {@DATE_START}
+]]></query>
+
+</root>

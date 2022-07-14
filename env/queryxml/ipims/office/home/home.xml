@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 게시판 목록 조회 -->
+<query name="/retrieveHomeBoardList"><![CDATA[
+SELECT * FROM (
+SELECT BRD_ID
+     , BRD_NO
+     , CRE_DATE
+     , SUBJECT
+     , RE_LEVEL
+FROM   TB_BRD_LIST
+WHERE  BRD_ID = {@BRD_ID}
+ORDER BY RE_PARENT DESC, RE_ORDER ASC
+) A
+WHERE  ROWNUM <= 5
+]]></query>
+
+<!-- 신규 목록 조회 - 신규요청 -->
+<query name="/retrieveHomeRecentList_NEW_PAPER"><![CDATA[
+SELECT * FROM (
+SELECT A.REF_ID
+     , A.LIST_SEQ
+     , A.PAPER_DATE LIST_DATE
+     , B.KO_APP_TITLE || ' - ' || FN_PAPER_NAME(A.PAPER_CODE) LIST_TITLE
+FROM   TB_PAPER_LIST A
+     , TB_APP_MST B
+WHERE  A.REF_ID = B.REF_ID(+)
+AND    A.OFFICE_DISP_YN = '1'
+AND    B.OFFICE_CODE = {@$OFFICE_CODE}
+AND    B.OFFICE_RCPT_DATE IS NOT NULL
+AND    FN_PAPER_CONFIRM_OWNER(A.REF_ID, A.LIST_SEQ) = 'OFF'
+AND    (A.REF_ID, A.LIST_SEQ) IN (SELECT X.REF_ID, MAX(X.LIST_SEQ)
+                                  FROM   TB_PAPER_LIST X
+                                  GROUP BY X.REF_ID
+                                 )
+ORDER BY LIST_DATE DESC
+) A
+WHERE  ROWNUM <= 5
+]]></query>
+
+<!-- 신규 목록 조회 - 국내출원의뢰접수 -->
+<query name="/retrieveHomeRecentList_INT_RECEIPT"><![CDATA[
+SELECT * FROM (
+SELECT A.REF_ID
+     , A.OFFICE_SEND_DATE LIST_DATE
+     , DECODE(A.OFFICE_RCPT_DATE, NULL , '미접수', '접수') LIST_STATUS
+     , A.KO_APP_TITLE LIST_TITLE
+FROM   TB_APP_MST A
+     , TB_APP_INT_CONSULT B
+WHERE  A.REF_ID = B.REF_ID(+)
+AND    A.INOUT_DIV = 'INT'
+AND    A.OFFICE_CODE = {@$OFFICE_CODE}
+AND    A.OFFICE_CONTACT_YN = '1'
+AND    B.EXAM_RESULT = '1'
+AND    A.OFFICE_SEND_DATE IS NOT NULL
+ORDER BY LIST_DATE DESC
+) A
+WHERE  ROWNUM <= 5
+]]></query>
+
+<!-- 신규 목록 조회 - 해외출원의뢰접수 -->
+<query name="/retrieveHomeRecentList_EXT_RECEIPT"><![CDATA[
+SELECT * FROM (
+SELECT A.OL_ID
+     , C.GRP_ID
+     , A.OFFICE_SEND_DATE LIST_DATE
+     , DECODE(A.OFFICE_RCPT_DATE, NULL , '미접수', '접수') LIST_STATUS
+     , C.KO_APP_TITLE LIST_TITLE
+FROM   TB_APP_EXT_OL A
+     , TB_APP_EXT_GRP C
+WHERE  A.GRP_ID = C.GRP_ID(+)
+AND    C.OFFICE_CODE = {@$OFFICE_CODE}
+AND    A.OFFICE_SEND_DATE IS NOT NULL
+ORDER BY LIST_DATE DESC
+) A
+WHERE  ROWNUM <= 5
+]]></query>
+
+</root>

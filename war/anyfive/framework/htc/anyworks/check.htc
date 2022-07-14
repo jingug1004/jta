@@ -1,0 +1,155 @@
+﻿<PUBLIC:COMPONENT tagName="CHECK" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="text" get="getText" put="setText">
+    <PUBLIC:PROPERTY name="checkValue" get="getCheckValue" put="setCheckValue">
+    <PUBLIC:PROPERTY name="readOnly" get="getReadOnly" put="setReadOnly">
+    <PUBLIC:PROPERTY name="checked" get="getChecked" put="setChecked">
+    <PUBLIC:PROPERTY name="value" get="getValue" put="setValue">
+    <PUBLIC:EVENT name="OnChange" id="OnChangeEvent">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var chk_main;
+var chk_main_id = "chk_" + element.id + "_" + element.sourceIndex;
+
+var textSpan;
+
+var myText;
+var myCheckValue = { "true" : "1", "false" : "0" };
+var myChecked = false;
+var myReadOnly = false;
+
+eval(function()
+{
+    if (element.document.media == "print") return;
+
+    var html = new Array();
+
+    html.push('<LABEL for="' + chk_main_id + '" disabled>');
+    html.push('<INPUT type="checkbox" id="' + chk_main_id + '" onFocus="javascript:this.blur();">');
+    html.push('<SPAN id="' + chk_main_id + 'Span"></SPAN>');
+    html.push('</LABEL>');
+
+    element.innerHTML = html.join("");
+
+    chk_main = element.document.getElementById(chk_main_id);
+    textSpan = element.document.getElementById(chk_main_id + "Span");
+
+    chk_main.attachEvent("onclick", function()
+    {
+        if (myReadOnly == true) {
+            setChecked(chk_main.parentElement.disabled != true);
+        }
+
+        doCheck();
+    });
+
+    setText(myText);
+    setReadOnly(myReadOnly);
+})();
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    element.isReady = true;
+}
+
+function getText()
+{
+    return myText;
+}
+
+function setText(val)
+{
+    myText = val;
+
+    if (myText == null) return;
+    if (textSpan == null) return;
+
+    textSpan.innerHTML = myText;
+}
+
+function getCheckValue()
+{
+    return myCheckValue["true"] + "|" + myCheckValue["false"];
+}
+
+function setCheckValue(val)
+{
+    myCheckValue = { "true" : "", "false" : "" };
+
+    if (val == null) return;
+
+    var vals = val.split("|");
+
+    myCheckValue["true"] = vals[0];
+
+    if (vals.length == 2) {
+        myCheckValue["false"] = vals[1];
+    }
+}
+
+function getReadOnly()
+{
+    return myReadOnly;
+}
+
+function setReadOnly(val)
+{
+    myReadOnly = (String(val) == "" || String(val) == "true");
+
+    if (chk_main == null) return;
+
+    chk_main.parentElement.style.cursor = (myReadOnly == true ? "default" : "hand");
+    setDisabled();
+}
+
+function getChecked()
+{
+    if (chk_main == null) return null;
+
+    return chk_main.checked;
+}
+
+function setChecked(val)
+{
+    if (chk_main == null) return;
+
+    doCheck(String(val) == "" || String(val).toLowerCase() == "true");
+}
+
+function getValue()
+{
+    return myCheckValue[String(chk_main.checked)];
+}
+
+function setValue(val)
+{
+    doCheck(myCheckValue["true"] == val);
+}
+
+function setDisabled()
+{
+    chk_main.parentElement.disabled = (myReadOnly == true && chk_main.checked != true);
+}
+
+function doCheck(bool)
+{
+    if (bool != null) {
+        chk_main.checked = bool;
+        setDisabled();
+    }
+
+    if (chk_main.checked != myChecked) {
+        try {
+            OnChangeEvent.fire(element.document.createEventObject());
+        } catch(ex) {
+        }
+    }
+
+    myChecked = chk_main.checked;
+}
+</SCRIPT>

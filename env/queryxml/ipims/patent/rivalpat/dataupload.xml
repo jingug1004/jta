@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- Data업로드 목록 조회 -->
+<query name="/retrieveRivalPatDataUploadList"><![CDATA[
+SELECT MGT_ID
+     , STATE
+     , DR_IMAGES
+     , WIPS_KEY
+     , OWN_APP_MAN
+     , COUNTRY_CODE
+     , PAT_DIV
+     , APP_NO
+     , APP_DATE
+     , TITLE
+     , PRIORITY_NO
+     , PRIORITY_CLAIM_DATE
+     , I_APP_NO
+     , IPC
+     , I_APP_DATE
+     , PUB_NO
+     , PUB_DATE
+     , APP_MAN
+     , APP_MAN_IDENTIFY_MARK
+     , INVENTOR
+     , AGENT
+     , FN_RIVALPAT_IPC_NAMES(MGT_ID) IPC_NAMES
+     , FI
+     , THEME_CODE
+     , F_TERM
+     , US_REFER_PAT
+     , SUMMARY
+     , CRE_DATE
+     , REQ_RANGE
+     , REQCNT
+     , REG_NO
+     , REG_DATE
+     , PRIORITY_COUNTRY
+     , APP_MAN_NATIONALITY
+     , INVENTOR_NATIONALITY
+     , SPEC_COUNTRY
+     , OWN_US_CLS_CURR
+     , US_CLS_CURR
+     , OWN_US_CLS_ORG
+     , US_CLS_ORG
+     , I_PUB_NO
+     , I_PUB_DATE
+     , JUDGE
+     , STATUS_CODE
+FROM   TB_RIVALPAT_MST
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveRivalPatDataUploadList/appMan"><![CDATA[
+AND    UPPER(APP_MAN) LIKE '%'||UPPER({@APP_MAN})||'%'
+]]></query>
+<query name="/retrieveRivalPatDataUploadList/title"><![CDATA[
+AND    UPPER(TITLE) LIKE '%'||UPPER({@TITLE})||'%'
+]]></query>
+<query name="/retrieveRivalPatDataUploadList/dateStart"><![CDATA[
+AND    NVL(UPD_DATE, CRE_DATE) >= {@DATE_START}
+]]></query>
+<query name="/retrieveRivalPatDataUploadList/dateEnd"><![CDATA[
+AND    NVL(UPD_DATE, CRE_DATE) <= {@DATE_END}
+]]></query>
+
+<!-- 자사 Data업로드 목록 조회 -->
+<query name="/patDataUploadList"><![CDATA[
+SELECT REF_ID
+     , PAT_APP_NO
+     , KO_APP_TITLE
+     , IPC_CLS_CODE
+FROM   TB_APP_MST
+WHERE  1 = 1
+]]></query>
+<query name="/patDataUploadList/appNo"><![CDATA[
+AND    UPPER(PAT_APP_NO) LIKE '%'||UPPER({@PAT_APP_NO})||'%'
+]]></query>
+<query name="/patDataUploadList/title"><![CDATA[
+AND    UPPER(KO_APP_TITLE) LIKE '%'||UPPER({@KO_APP_TITLE})||'%'
+]]></query>
+<query name="/patDataUploadList/icpCode"><![CDATA[
+AND    UPPER(IPC_CLS_CODE) LIKE '%'||UPPER({@IPC_CLS_CODE})||'%'
+]]></query>
+
+<!-- Data 생성여부확인 -->
+<query name="/retrievePatExist"><![CDATA[
+SELECT MGT_ID
+FROM   TB_RIVALPAT_MST
+WHERE  APP_NO = {@출원번호}
+]]></query>
+
+<!--  자사 Data 생성여부확인 -->
+<query name="/retrieveInPatExist"><![CDATA[
+SELECT REF_ID
+FROM   TB_APP_MST
+WHERE  PAT_APP_NO = {@출원번호}
+]]></query>
+
+<!-- Data 생성 -->
+<query name="/createRivalPatData"><![CDATA[
+INSERT INTO TB_RIVALPAT_MST (
+       MGT_ID
+     , DR_IMAGES
+     , STATE
+     , COUNTRY_CODE
+     , STATUS_CODE
+     , APP_NO
+     , APP_DATE
+     , TITLE
+     , IPC
+     , APP_MAN
+     , SUMMARY
+     , REQ_RANGE
+     , REQCNT
+     , PUB_NO
+     , PUB_DATE
+     , REG_NO
+     , REG_DATE
+     , PRIORITY_CLAIM_DATE
+     , PRIORITY_NO
+     , PRIORITY_COUNTRY
+     , AGENT
+     , APP_MAN_IDENTIFY_MARK
+     , APP_MAN_NATIONALITY
+     , OWN_APP_MAN
+     , INVENTOR
+     , INVENTOR_NATIONALITY
+     , SPEC_COUNTRY
+     , NOTICE_NO
+     , NOTICE_DATE
+     , OWN_US_CLS_CURR
+     , US_CLS_CURR
+     , OWN_US_CLS_ORG
+     , US_CLS_ORG
+     , I_APP_NO
+     , I_APP_DATE
+     , I_PUB_NO
+     , I_PUB_DATE
+     , THEME_CODE
+     , US_REFER_PAT
+     , JUDGE
+     , F_TERM
+     , FI
+     , PAT_DIV
+     , WIPS_KEY
+     , CRE_USER
+     , CRE_DATE
+
+) VALUES (
+       {@MGT_ID}
+     , {@대표도면}
+     , {@상태}
+     , {@국가}
+     , {@특허구분}
+     , {@출원번호}
+     , REPLACE({@출원일}, '-', '')
+     , {@명칭}
+     , {@IPC}
+     , {@출원인}
+     , {@요약}
+     , {@청구범위}
+     , {@청구항 수}
+     , {@공개번호}
+     , REPLACE({@공개일}, '-', '')
+     , {@등록번호}
+     , REPLACE({@등록일}, '-', '')
+     , REPLACE({@우선권주장일}, '-', '')
+     , {@우선권번호}
+     , {@우선권국가}
+     , {@대리인}
+     , {@출원인식별기호}
+     , {@출원인국적}
+     , {@대표출원인}
+     , {@발명자}
+     , {@발명자국적}
+     , {@지정국}
+     , {@공고번호}
+     , REPLACE({@공고일}, '-', '')
+     , {@대표미국분류(Curr)}
+     , {@미국분류(Curr)}
+     , {@대표미국분류(Org)}
+     , {@미국분류(Org)}
+     , {@국제출원번호}
+     , REPLACE({@국제출원일}, '-', '')
+     , {@국제공개번호}
+     , REPLACE({@국제공개일}, '-', '')
+     , {@테마코드}
+     , {@미국인용특허}
+     , {@심사관}
+     , {@F-Term}
+     , {@FI}
+     , {@특실구분}
+     , {@WipsKey}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- Data 수정(by excel data) -->
+<query name="/updateRivalPatData"><![CDATA[
+UPDATE TB_RIVALPAT_MST SET
+      COUNTRY_CODE          =  {@국가}
+     , STATUS_CODE           =  {@특허구분}
+     , APP_NO                =  {@출원번호}
+     , APP_DATE               =  REPLACE({@출원일}, '-', '')
+     , TITLE                 =  {@명칭}
+     , IPC                   =  {@IPC}
+     , APP_MAN               =  {@출원인}
+     , SUMMARY               =  {@요약}
+     , REQ_RANGE             =  {@청구범위}
+     , REQCNT                =  {@청구항 수}
+     , PUB_NO                =  {@공개번호}
+     , PUB_DATE              =  REPLACE({@공개일}, '-', '')
+     , REG_NO                =  {@등록번호}
+     , REG_DATE              =  REPLACE({@등록일}, '-', '')
+     , PRIORITY_CLAIM_DATE   =  REPLACE({@우선권주장일}, '-', '')
+     , PRIORITY_NO           =  {@우선권번호}
+     , PRIORITY_COUNTRY      =  {@우선권국가}
+     , AGENT                 =  {@대리인}
+     , APP_MAN_IDENTIFY_MARK =  {@출원인식별기호}
+     , APP_MAN_NATIONALITY   =  {@출원인국적}
+     , OWN_APP_MAN           =  {@대표출원인}
+     , INVENTOR              =  {@발명자}
+     , INVENTOR_NATIONALITY  =  {@발명자국적}
+     , SPEC_COUNTRY          =  {@지정국}
+     , NOTICE_NO             =  {@공고번호}
+     , NOTICE_DATE           =  REPLACE({@공고일}, '-', '')
+     , OWN_US_CLS_CURR       =  {@대표미국분류(Curr)}
+     , US_CLS_CURR           =  {@미국분류(Curr)}
+     , OWN_US_CLS_ORG        =  {@대표미국분류(Org)}
+     , US_CLS_ORG            =  {@미국분류(Org)}
+     , I_APP_NO              =  {@국제출원번호}
+     , I_APP_DATE            =  REPLACE({@국제출원일}, '-', '')
+     , I_PUB_NO              =  {@국제공개번호}
+     , I_PUB_DATE            =  REPLACE({@국제공개일}, '-', '')
+     , THEME_CODE            =  {@테마코드}
+     , US_REFER_PAT          =  {@미국인용특허}
+     , JUDGE                 =  {@심사관}
+     , F_TERM                =  {@F-Term}
+     , FI                    =  {@FI}
+     , PAT_DIV               =  {@특실구분}
+     , WIPS_KEY              =  {@WipsKey}
+     , UPD_USER              =  {@$USER_ID}
+     , UPD_DATE              =  TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , DR_IMAGES             = {@대표도면}
+     , STATE                 = {@상태}
+WHERE  MGT_ID = {@MGT_ID}
+]]></query>
+
+<!-- Data 수정(by excel data) -->
+<query name="/updateInPatData"><![CDATA[
+UPDATE TB_APP_MST SET
+       PAT_APP_NO                = {@출원번호}
+     , IPC_CLS_CODE              = {@IPC}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- IPC분류코드 전체 삭제 -->
+<query name="/deleteRivalPatIpcCodeAll"><![CDATA[
+DELETE FROM TB_RIVALPAT_MAPP_IPC_CLS
+WHERE  MGT_ID = {@MGT_ID}
+]]></query>
+
+<!-- IPC분류코드 생성 -->
+<query name="/createRivalPatIpcCode"><![CDATA[
+INSERT INTO TB_RIVALPAT_MAPP_IPC_CLS (
+       MGT_ID
+     , IPC_CODE
+     , MAIN_CLS_YN
+) VALUES (
+       {@MGT_ID}
+     , {@IPC}
+     , '0'
+)
+]]></query>
+
+<!-- IPC분류코드 주분류 설정 -->
+<query name="/updateRivalPatIpcCode"><![CDATA[
+UPDATE TB_RIVALPAT_MAPP_IPC_CLS SET
+       MAIN_CLS_YN = '1'
+WHERE  MGT_ID = {@MGT_ID}
+AND    ROWNUM = 1
+]]></query>
+
+</root>

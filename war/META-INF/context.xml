@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The contents of this file will be loaded for each web application -->
+<Context>
+
+    <Environment name="any.home" value="D:\AnyBuilder\workspace\JavaEE\JuSung_IPIMS\any" type="java.lang.String" />
+
+    <!-- 애니파이브 개발서버 -->
+    <Resource name="jdbc/default" auth="Container" type="javax.sql.DataSource"
+        maxActive="100" maxIdle="30" maxWait="-1"
+        removeAbandoned="true" removeAbandonedTimeout="60" logAbandoned="true"
+        driverClassName="oracle.jdbc.OracleDriver"
+        url="jdbc:oracle:thin:@//192.168.1.7:1521/orcl"
+        username="JuSung_IPIMS" password="JuSung_IPIMS"
+        validationQuery="SELECT 1 FROM DUAL"
+    />
+
+
+    <!-- Default set of monitored resources -->
+    <WatchedResource>WEB-INF/web.xml</WatchedResource>
+
+</Context>

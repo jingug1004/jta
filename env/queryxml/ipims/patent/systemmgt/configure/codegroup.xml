@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 코드그룹 목록 조회 -->
+<query name="/retrieveCodeGroupList"><![CDATA[
+SELECT CODE_GRP
+     , CODE_GRP_ID
+     , CODE_GRP_NAME
+     , (SELECT COUNT(1) FROM TB_COM_CODE_VALUE T WHERE T.CODE_GRP = A.CODE_GRP) CODE_CNT
+     , FN_COM_CODE_NAME('USE_YN', USE_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) USE_YN_NAME
+     , CODE_GRP_DESC
+FROM   TB_COM_CODE_GRP A
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveCodeGroupList/searchText"><![CDATA[
+AND    (UPPER(CODE_GRP_ID) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(CODE_GRP_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(CODE_GRP_DESC) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        EXISTS (SELECT 1
+                FROM   TB_COM_CODE_VALUE T1
+                WHERE  T1.CODE_GRP = A.CODE_GRP
+                AND    (UPPER(CODE_VALUE) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+                        UPPER(CODE_DESC) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+                       )
+               ) OR
+        EXISTS (SELECT 1
+                FROM   TB_COM_CODE_NAME T1
+                WHERE  T1.CODE_GRP = A.CODE_GRP
+                AND    UPPER(CODE_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+               )
+       )
+]]></query>
+<query name="/retrieveCodeGroupList/useYn"><![CDATA[
+AND    USE_YN = {@USE_YN}
+]]></query>
+
+<!-- 코드그룹 조회 -->
+<query name="/retrieveCodeGroup"><![CDATA[
+SELECT CODE_GRP_ID
+     , CODE_GRP_NAME
+     , CODE_GRP_DESC
+     , USE_YN
+FROM   TB_COM_CODE_GRP
+WHERE  CODE_GRP = {@CODE_GRP}
+]]></query>
+
+<!-- 코드그룹 중복여부 조회 -->
+<query name="/retrieveCodeGroupExists"><![CDATA[
+SELECT COUNT(1) CNT
+FROM   TB_COM_CODE_GRP
+WHERE  CODE_GRP_ID = {@CODE_GRP_ID}
+]]></query>
+
+<!-- 코드그룹(MAX) 조회 -->
+<query name="/retrieveMaxCodeGroup"><![CDATA[
+SELECT LPAD(NVL(MAX(TO_NUMBER(CODE_GRP)), 0) + 1, 5, '0') CODE_GRP
+FROM   TB_COM_CODE_GRP
+]]></query>
+
+<!-- 코드그룹 생성 -->
+<query name="/createCodeGroup"><![CDATA[
+INSERT INTO TB_COM_CODE_GRP (
+       CODE_GRP
+     , CODE_GRP_ID
+     , CODE_GRP_NAME
+     , CODE_GRP_DESC
+     , USE_YN
+) VALUES (
+       {@CODE_GRP}
+     , {@CODE_GRP_ID}
+     , {@CODE_GRP_NAME}
+     , {@CODE_GRP_DESC}
+     , '1'
+)
+]]></query>
+
+<!-- 코드그룹 수정 -->
+<query name="/updateCodeGroup"><![CDATA[
+UPDATE TB_COM_CODE_GRP SET
+       CODE_GRP_ID   = {@CODE_GRP_ID}
+     , CODE_GRP_NAME = {@CODE_GRP_NAME}
+     , CODE_GRP_DESC = {@CODE_GRP_DESC}
+     , USE_YN        = {@USE_YN}
+WHERE  CODE_GRP = {@CODE_GRP}
+]]></query>
+
+<!-- 코드그룹 삭제 -->
+<query name="/deleteCodeGroup"><![CDATA[
+DELETE TB_COM_CODE_GRP
+WHERE  CODE_GRP = {@CODE_GRP}
+]]></query>
+
+</root>

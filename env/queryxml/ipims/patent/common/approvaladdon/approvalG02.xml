@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 프로그램 마스터 수정 -->
+<query name="/updateProgramMaster"><![CDATA[
+UPDATE TB_PROG_MST T SET (
+       PROG_TITLE
+     , PATTEAM_REQ_DATE
+     , PATTEAM_RCPT_DATE
+     , RIGHT_TYPE
+     , REGULAR_DIV
+     , PROG_CONTENTS
+     , PROG_LANG
+     , APPLY_FIELD
+     , MAIN_FUNCTION
+     , FEATURE
+     , USE_METHOD
+     , SALE_DIV
+     , USE_MACHINETYPE
+     , USE_OS
+     , USE_LANG
+     , NEED_PROG
+     , SCALE
+     , ETC_MEMO
+     , UPD_USER
+     , UPD_DATE
+) = (
+SELECT
+       B.PROG_TITLE
+     , A.PATTEAM_RCPT_DATE
+     , B.PATTEAM_REQ_DATE
+     , B.RIGHT_TYPE
+     , B.REGULAR_DIV
+     , B.PROG_CONTENTS
+     , B.PROG_LANG
+     , A.APPLY_FIELD
+     , A.MAIN_FUNCTION
+     , A.FEATURE
+     , A.USE_METHOD
+     , A.SALE_DIV
+     , A.USE_MACHINETYPE
+     , A.USE_OS
+     , A.USE_LANG
+     , A.NEED_PROG
+     , A.SCALE
+     , A.ETC_MEMO
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM TB_PROG_CONSULT A
+     ,TB_PROG_REQ B
+WHERE  A.REF_ID = {@REF_ID}
+   AND A.REF_ID = B.REF_ID
+)
+WHERE  T.REF_ID = {@REF_ID}
+]]></query>
+
+</root>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 제품코드  맵핑목록 조회 -->
+<query name="/retrieveProdCodeList"><![CDATA[
+SELECT A.PROD_CODE
+     , B.PROD_NAME
+FROM   TB_MAPP_PROD_CODE A
+     , TB_COM_PROD_CODE B
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.MAPP_DIV = {@MAPP_DIV}
+AND    A.PROD_CODE = B.PROD_CODE
+ORDER BY PROD_CODE
+]]></query>
+
+<!-- 제품코드  맵핑 생성 -->
+<query name="/createProdCode"><![CDATA[
+INSERT INTO TB_MAPP_PROD_CODE (
+       REF_ID
+     , MAPP_DIV
+     , PROD_CODE
+) VALUES (
+       {@REF_ID}
+     , {@MAPP_DIV}
+     , {@PROD_CODE}
+)
+]]></query>
+
+<!-- 제품코드  맵핑 삭제 -->
+<query name="/deleteProdCode"><![CDATA[
+DELETE FROM TB_MAPP_PROD_CODE
+WHERE  REF_ID = {@REF_ID}
+AND    MAPP_DIV = {@MAPP_DIV}
+AND    PROD_CODE = {@PROD_CODE}
+]]></query>
+
+<!-- 제품코드  맵핑목록 전체 삭제 -->
+<query name="/deleteProdCodeListAll"><![CDATA[
+DELETE FROM TB_MAPP_PROD_CODE
+WHERE  REF_ID = {@REF_ID}
+AND    MAPP_DIV = {@MAPP_DIV}
+]]></query>
+
+<!-- 제품코드 맵핑목록 복제 -->
+<query name="/duplicateProdCodeList"><![CDATA[
+INSERT INTO TB_MAPP_PROD_CODE (
+       REF_ID
+     , MAPP_DIV
+     , PROD_CODE
+)
+SELECT {@NEW_REF_ID}
+     , {@NEW_MAPP_DIV}
+     , PROD_CODE
+FROM   TB_MAPP_PROD_CODE
+WHERE  REF_ID = {@OLD_REF_ID}
+AND    MAPP_DIV = {@OLD_MAPP_DIV}
+]]></query>
+
+</root>

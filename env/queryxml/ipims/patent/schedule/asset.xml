@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 자산번호 정보 수정 -->
+<query name="/updateAssetInfo"><![CDATA[
+UPDATE (
+        SELECT AM.ASSET_NO AM_ASSET_NO
+              ,IF.ASSET_NO IF_ASSET_NO
+              ,AM.ASSET_PROC_DATE
+        FROM   TB_APP_MST AM
+              ,IF_ASSET_NO IF
+        WHERE IF.FLAG = 'S'
+          AND IF.END_YN = '0'
+          AND AM.ASSET_NO IS NULL
+          AND AM.REF_ID = IF.ASSET_ID
+       )
+SET AM_ASSET_NO = IF_ASSET_NO
+  , ASSET_PROC_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+]]></query>
+
+<query name="/updateIfAssetResult"><![CDATA[
+UPDATE (
+        SELECT IF.END_YN
+        FROM   TB_APP_MST AM
+              ,IF_ASSET_NO IF
+        WHERE IF.FLAG = 'S'
+          AND IF.END_YN = '0'
+          AND AM.ASSET_NO IS NOT NULL
+          AND AM.REF_ID = IF.ASSET_ID
+       )
+SET END_YN = '1'
+]]></query>
+
+
+</root>

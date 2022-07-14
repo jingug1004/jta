@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 특허팀 사용자 검색 -->
+<query name="/retrievePatentUserSearchList"><![CDATA[
+SELECT A.USER_ID
+     , B.EMP_NO
+     , A.EMP_HNAME
+     , FN_DIVISN_NAME(B.DIVISN_CODE) DIVISN_NAME
+     , FN_DEPT_NAME(B.DEPT_CODE) DEPT_NAME
+     , A.EMP_ENAME
+     , A.EMP_CNAME
+     , A.MAIL_ADDR
+     , B.MOBILE_PHONE
+     , B.OFFICE_TEL
+     , B.POSITION_NAME
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+WHERE  A.USER_ID = B.USER_ID
+AND    A.USE_YN = '1'
+AND    A.HT_CODE = 'C'
+]]></query>
+<query name="/retrievePatentUserSearchList/searchText"><![CDATA[
+AND    (UPPER(A.EMP_HNAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR UPPER(B.EMP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+]]></query>
+<query name="/retrievePatentUserSearchList/userId"><![CDATA[
+AND    A.USER_ID ={@USER_ID}
+]]></query>
+
+<!-- 사무소 사용자 검색 -->
+<query name="/retrieveOfficeUserSearchList"><![CDATA[
+SELECT A.USER_ID
+     , B.EMP_NO
+     , A.EMP_HNAME
+     , C.FIRM_HNAME
+     , B.DEPT_NAME
+     , A.EMP_ENAME
+     , A.EMP_CNAME
+     , A.MAIL_ADDR
+     , C.TELNO
+FROM   TB_USR_MST A
+     , TB_USR_OFFICE B
+     , TB_ORG_OFFICE C
+WHERE  A.USER_ID = B.USER_ID
+AND    B.OFFICE_CODE = C.OFFICE_CODE
+AND    A.USE_YN = '1'
+AND    A.HT_CODE = 'C'
+]]></query>
+<query name="/retrieveOfficeUserSearchList/searchText"><![CDATA[
+AND    (UPPER(A.EMP_HNAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR UPPER(B.EMP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+]]></query>
+<query name="/retrieveOfficeUserSearchList/userId"><![CDATA[
+AND   A.USER_ID ={@USER_ID}
+]]></query>
+
+<!-- 발명자 검색 -->
+<query name="/retrieveInventorSearchList"><![CDATA[
+SELECT A.USER_ID
+     , B.EMP_NO
+     , A.EMP_HNAME
+     , FN_DIVISN_NAME(B.DIVISN_CODE) DIVISN_NAME
+     , FN_DEPT_NAME(B.DEPT_CODE) DEPT_NAME
+     , FN_COM_CODE_NAME('HT_CODE', A.HT_CODE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) HT_CODE_NAME
+     , '1' IN_INVENTOR_YN
+     , '내부' INOUT_NAME
+     , A.MAIL_ADDR
+     , A.EMP_ENAME
+     , A.EMP_CNAME
+     , B.POSITION_NAME
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+--WHERE  A.USE_YN = '1'
+--AND    A.HT_CODE = 'C'
+WHERE    A.USER_ID = B.USER_ID
+]]></query>
+<query name="/retrieveInventorSearchList/searchText"><![CDATA[
+AND    (UPPER(A.EMP_HNAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR UPPER(B.EMP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+]]></query>
+<query name="/retrieveInventorSearchList/out"><![CDATA[
+UNION ALL
+SELECT A.USER_ID
+     , B.EMP_NO
+     , A.EMP_HNAME
+     , NULL DIVISN_NAME
+     , CASE WHEN B.COMPANY_NAME IS NOT NULL
+            THEN B.COMPANY_NAME || ' (' || NVL(B.DEPT_NAME,'') || ')'
+            ELSE ''
+       END DEPT_NAME
+     , NULL HT_CODE_NAME
+     , '0' IN_INVENTOR_YN
+     , '외부' INOUT_NAME
+     , A.MAIL_ADDR
+     , A.EMP_ENAME
+     , A.EMP_CNAME
+     , B.POSITION_NAME
+FROM   TB_USR_MST A
+     , TB_USR_OUT_INVENTOR B
+WHERE  A.USE_YN = '1'
+AND    A.HT_CODE = 'C'
+AND    A.USER_ID = B.USER_ID
+]]></query>
+<query name="/retrieveInventorSearchList/out/searchText"><![CDATA[
+AND    (UPPER(A.EMP_HNAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR UPPER(B.EMP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+]]></query>
+
+<!-- REF-NO 검색 -->
+<query name="/retrieveRefNoSearchList"><![CDATA[
+SELECT REF_ID
+     , RIGHT_DIV
+     , INOUT_DIV
+     , REF_NO
+     , FN_COM_CODE_NAME('RIGHT_DIV', RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_USER_NAME(JOB_MAN) JOB_MAN_NAME
+     , KO_APP_TITLE
+     , APP_NO
+     , APP_DATE
+     , REG_NO
+     , REG_DATE
+FROM   TB_APP_MST
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveRefNoSearchList/rightDiv"><![CDATA[
+AND    RIGHT_DIV IN ({@RIGHT_DIV})
+]]></query>
+<query name="/retrieveRefNoSearchList/inoutDiv"><![CDATA[
+AND    INOUT_DIV IN ({@INOUT_DIV})
+]]></query>
+<query name="/retrieveRefNoSearchList/abdYn"><![CDATA[
+AND    ABD_YN = {@ABD_YN}
+]]></query>
+<query name="/retrieveRefNoSearchList/appNoNotNull"><![CDATA[
+AND    APP_NO IS NOT NULL
+]]></query>
+<query name="/retrieveRefNoSearchList/searchTextLike"><![CDATA[
+AND   (UPPER(REF_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+       UPPER(APP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+       UPPER(REG_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+      )
+]]></query>
+<query name="/retrieveRefNoSearchList/searchText"><![CDATA[
+AND   (UPPER(REF_NO) = UPPER({@SEARCH_TEXT}) OR
+       UPPER(APP_NO) = UPPER({@SEARCH_TEXT}) OR
+       UPPER(REG_NO) = UPPER({@SEARCH_TEXT})
+      )
+]]></query>
+
+<!-- 부서 검색 -->
+<query name="/retrieveDeptCodeSearchList"><![CDATA[
+SELECT DEPT_CODE
+     , DEPT_NAME
+     , FN_DIVISN_NAME(DIVISN_CODE) DEVISN_NAME
+FROM   TB_ORG_DEPT
+WHERE  USE_YN = '1'
+]]></query>
+<query name="/retrieveDeptCodeSearchList/searchText"><![CDATA[
+AND    (UPPER(DEPT_CODE) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(DEPT_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+       )
+]]></query>
+
+<!-- 국가 검색 -->
+<query name="/retrieveCountrySearchList"><![CDATA[
+SELECT COUNTRY_CODE
+     , COUNTRY_NAME
+     , DISP_ORD
+FROM   TB_COM_COUNTRY A
+WHERE  USE_YN = '1'
+]]></query>
+<query name="/retrieveCountrySearchList/searchText"><![CDATA[
+AND    (UPPER(COUNTRY_CODE) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR UPPER(COUNTRY_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+]]></query>
+<query name="/retrieveCountrySearchList/olGrpId"><![CDATA[
+AND    NOT EXISTS (SELECT 1
+                   FROM   TB_APP_EXT_OL_COUNTRY T1
+                        , TB_APP_EXT_OL T2
+                   WHERE  T1.OL_ID = T2.OL_ID
+                   AND    T1.COUNTRY_CODE = A.COUNTRY_CODE
+                   AND    T2.GRP_ID = {@OL_GRP_ID}
+                  )
+]]></query>
+<query name="/retrieveCountrySearchList/orderBy"><![CDATA[
+ORDER  BY DISP_ORD, COUNTRY_CODE
+]]></query>
+
+<!-- 프로젝트 검색 -->
+<query name="/retrieveProjectSearchList"><![CDATA[
+SELECT A.PJT_CODE
+     , A.PJT_NAME
+     , A.PJT_CORE
+     , A.PJT_LAB
+     , A.PJT_DEPT
+     , A.PJT_MGT
+     , A.PJT_NO
+     , A.PJT_OWNER
+     , (A.PJT_START_DATE ||'~'||A.PJT_END_DATE) PJT_DATE
+FROM   TB_COM_PJT A
+]]></query>
+<query name="/retrieveProjectSearchList/searchText"><![CDATA[
+WHERE    (UPPER(A.PJT_CODE) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR UPPER(A.PJT_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+]]></query>
+
+
+<!-- 선행기술조사 검색 -->
+<query name="/retrievePrschSearchList"><![CDATA[
+SELECT A.PRSCH_ID
+     , A.PRSCH_NO
+     , A.PRSCH_SUBJECT
+     , FN_COM_CODE_NAME('PRSCH_TYPE', B.PRSCH_TYPE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) PRSCH_TYPE_NAME
+     , FN_BIZ_CODE_NAME(Z.STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) BIZ_STATUS_NAME
+     , C.INFORM_DATE
+FROM   TB_APP_PRSCH_REQ A
+     , TB_APP_PRSCH_CONSULT B
+     , TB_APP_PRSCH_RESULT C
+     , TB_BIZ_COM_MST Z
+WHERE  A.PRSCH_ID = B.PRSCH_ID
+AND    A.PRSCH_ID = C.PRSCH_ID
+AND    A.PRSCH_ID = Z.REF_ID(+)
+AND    C.PRSCH_ID IS NOT NULL
+]]></query>
+<query name="/retrievePrschSearchList/searchText"><![CDATA[
+AND   (UPPER(PRSCH_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR UPPER(PRSCH_SUBJECT) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+]]></query>
+<query name="/retrievePrschSearchList/prschDiv"><![CDATA[
+AND    A.PRSCH_DIV = {@PRSCH_DIV}
+]]></query>
+
+<!-- 분쟁/소송 검색 -->
+<query name="/retrieveDisputeSearchList"><![CDATA[
+SELECT DISPUTE_ID
+     , MGT_NO
+     , DISPUTE_NO
+     , DISPUTE_SUBJECT
+     , DISPUTE_DIV
+     , FN_COM_CODE_NAME('DISPUTE_DIV', DISPUTE_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) DISPUTE_DIV_NAME
+FROM   TB_IPB_DISPUTE
+]]></query>
+<query name="/retrieveDisputeSearchList/searchText"><![CDATA[
+AND   (UPPER(MGT_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR UPPER(DISPUTE_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+]]></query>
+
+<!-- IP Biz. 분석자료 검색 -->
+<query name="/retrieveIpBizAnalySearchList"><![CDATA[
+SELECT ANALY_ID
+     , MGT_NO
+     , ANALY_DIV
+     , FN_COM_CODE_NAME('DISPUTE_DIV', ANALY_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) ANALY_DIV_NAME
+     , ANALY_NAME
+     , COMPETITOR
+FROM   TB_IPB_ANALY
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveIpBizAnalySearchList/searchText"><![CDATA[
+AND   (UPPER(MGT_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR UPPER(ANALY_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+]]></query>
+
+<!-- 기술분류코드 트리 검색 -->
+<query name="/retrieveTechCodeSearchTree"><![CDATA[
+SELECT TECH_CODE
+     , PRIOR_TECH_CODE
+     , TECH_HNAME
+     , TECH_LEVEL
+     , FN_TECH_PATHNAME(TECH_CODE, ' > ') TECH_PATHNAME
+FROM   TB_COM_TECH_CLS
+WHERE  USE_YN = '1'
+ORDER  BY TECH_LEVEL, TECH_HNAME
+]]></query>
+
+<!-- IPC분류코드 트리 검색 -->
+<query name="/retrieveIpcCodeSearchTree"><![CDATA[
+SELECT IPC_CODE
+     , PRIOR_IPC_CODE
+     , IPC_HNAME
+     , IPC_LEVEL
+     , FN_IPC_PATHNAME(IPC_CODE, ' > ') IPC_PATHNAME
+FROM TB_COM_IPC_CLS
+WHERE USE_YN = '1'
+ORDER BY IPC_LEVEL, IPC_HNAME
+]]></query>
+
+<!-- 제품코드 검색 -->
+<query name="/retrieveProdCodeSearchList"><![CDATA[
+SELECT PROD_CODE
+     , PROD_NAME
+     , PROD_DESC
+FROM   TB_COM_PROD_CODE
+WHERE  USE_YN = '1'
+]]></query>
+<query name="/retrieveProdCodeSearchList/searchText"><![CDATA[
+AND    (UPPER(PROD_CODE) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(PROD_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(PROD_DESC) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+       )
+]]></query>
+
+<!-- 진행서류 검색 -->
+<query name="/retrievePaperSearchList"><![CDATA[
+SELECT PAPER_CODE
+     , FN_COM_CODE_NAME('PAPER_DIV', PAPER_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) PAPER_DIV_NAME
+     , FN_COM_CODE_NAME('PAPER_INOUT_DIV', INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , PAPER_NAME
+FROM   TB_PAPER_MGT_MST
+WHERE  1 = 1
+]]></query>
+<query name="/retrievePaperSearchList/searchText"><![CDATA[
+AND    UPPER(PAPER_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+<query name="/retrievePaperSearchList/paperDiv"><![CDATA[
+AND    PAPER_DIV = {@PAPER_DIV}
+]]></query>
+<query name="/retrievePaperSearchList/inoutDiv"><![CDATA[
+AND    INOUT_DIV = {@INOUT_DIV}
+]]></query>
+
+<!-- REF별 진행서류 검색 -->
+<query name="/retrievePaperSearchByRefList"><![CDATA[
+SELECT A.PAPER_CODE
+     , A.PAPER_NAME
+     , FN_COM_CODE_NAME('PAPER_STEP', A.PAPER_STEP, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) PAPER_STEP_NAME
+     , DECODE(A.PATTEAM_INPUT_YN, '1','O') PATTEAM_INPUT_YN
+     , DECODE(A.OFFICE_INPUT_YN, '1','O') OFFICE_INPUT_YN
+     , DECODE(A.INVENTOR_INPUT_YN, '1','O') INVENTOR_INPUT_YN
+     , A.OA_MGT_STEP
+FROM   TB_PAPER_MGT_MST A
+     , V_MASTER_ALL B
+WHERE  A.PAPER_DIV = DECODE(B.RIGHT_DIV, '20','10', B.RIGHT_DIV)
+AND    A.INOUT_DIV IN (B.INOUT_DIV, 'COM')
+AND    A.USE_YN = '1'
+AND    B.REF_ID = {@REF_ID}
+]]></query>
+<query name="/retrievePaperSearchByRefList/paperStep"><![CDATA[
+AND    A.PAPER_STEP = {@PAPER_STEP}
+]]></query>
+<query name="/retrievePaperSearchByRefList/paperInputAvail"><![CDATA[
+AND    A.{#PAPER_INPUT_AVAIL}_INPUT_YN = '1'
+]]></query>
+<query name="/retrievePaperSearchByRefList/searchText"><![CDATA[
+AND    UPPER(A.PAPER_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+
+<!-- 메뉴코드 트리 검색 -->
+<query name="/retrieveMenuCodeSearchTree"><![CDATA[
+SELECT MENU_CODE_PRIOR
+     , MENU_CODE
+     , MENU_LEVEL
+     , (SELECT MENU_NAME FROM TB_MNU_MENU_NAME WHERE SYSTEM_TYPE = A.SYSTEM_TYPE AND MENU_CODE = A.MENU_CODE AND LANG_CODE = {@$LANG_CODE}) MENU_NAME
+     , MENU_PATH
+     , MENU_ORD
+FROM   TB_MNU_MENU A
+WHERE  SYSTEM_TYPE = {@SYSTEM_TYPE}
+ORDER  BY MENU_LEVEL, MENU_ORD
+]]></query>
+
+<!-- IP Biz. 당사정보 검색 -->
+<query name="/retrieveOurInfoSearchList"><![CDATA[
+SELECT REF_ID
+     , RIGHT_DIV
+     , INOUT_DIV
+     , REF_NO
+     , FN_COM_CODE_NAME('RIGHT_DIV', RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_USER_NAME(JOB_MAN) JOB_MAN_NAME
+     , KO_APP_TITLE
+     , APP_NO
+     , APP_DATE
+     , REG_NO
+     , REG_DATE
+     , PUB_NO
+     , PUB_DATE
+     , PAT_APP_NO
+FROM   TB_APP_MST
+WHERE  REG_NO IS NOT NULL
+]]></query>
+<query name="/retrieveOurInfoSearchList/searchText"><![CDATA[
+AND   (UPPER(REF_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+       UPPER(REG_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+       UPPER(PAT_APP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+      )
+]]></query>
+
+<!-- IP Biz. kipris검색 -->
+<query name="/retrieveKiprisSearchList"><![CDATA[
+SELECT APP_NO AS K_APP_NO
+     , APP_MAN
+     , REG_NO
+     ,'서지사항' AS LINK_PT_ADDR
+      ,APP_DATE
+      ,REG_DATE
+      ,PUB_NO
+      ,PUB_DATE
+     , MGT_ID
+FROM   TB_RIVALPAT_MST
+WHERE 1=1
+
+]]></query>
+<query name="/retrieveKiprisSearchList/searchText"><![CDATA[
+AND   (UPPER(APP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'  OR UPPER(APP_MAN) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR UPPER(REG_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+
+]]></query>
+
+
+<!-- 출원인 검색 -->
+<query name="/retrieveApplicantSearchList"><![CDATA[
+SELECT APP_MAN_CODE
+     , APP_MAN_NAME
+FROM TB_APP_MAN
+WHERE USE_YN = '1'
+]]></query>
+<query name="/retrieveApplicantSearchList/searchText"><![CDATA[
+AND    (UPPER(APP_MAN_CODE) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR UPPER(APP_MAN_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%')
+]]></query>
+
+<!-- 심의대상 검색 -->
+<query name="/retrieveRvtgSearchList"><![CDATA[
+SELECT RIGHT_DIV
+     , INOUT_DIV
+     , REF_NO
+     , REF_ID
+     , FN_COM_CODE_NAME('RIGHT_DIV', RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_USER_NAME(JOB_MAN) JOB_MAN_NAME
+     , KO_APP_TITLE
+     , APP_NO
+     , APP_DATE
+     , REG_NO
+     , REG_DATE
+     , CRE_USER
+FROM  TB_APP_MST A
+WHERE REVIEW_RESULT = '1'
+AND   RIGHT_DIV IN ('10', '20')
+AND   ABD_YN = '0'
+AND   NOT EXISTS (
+                    SELECT REF_ID
+                      FROM TB_MAPP_REVIEW_TARGET B
+                     WHERE A.REF_ID = B.REF_ID
+                   )
+]]></query>
+<query name="/retrieveRvtgSearchList/inoutDiv"><![CDATA[
+AND    INOUT_DIV IN ({@INOUT_DIV})
+]]></query>
+<query name="/retrieveRvtgSearchList/appNoNotNull"><![CDATA[
+AND    APP_NO IS NOT NULL
+]]></query>
+<query name="/retrieveRvtgSearchList/searchTextLike"><![CDATA[
+AND   (UPPER(REF_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+       UPPER(APP_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+       UPPER(REG_NO) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+      )
+]]></query>
+<query name="/retrieveRefNoSearchList/searchText"><![CDATA[
+AND   (UPPER(REF_NO) = UPPER({@SEARCH_TEXT}) OR
+       UPPER(APP_NO) = UPPER({@SEARCH_TEXT}) OR
+       UPPER(REG_NO) = UPPER({@SEARCH_TEXT})
+      )
+]]></query>
+
+
+</root>

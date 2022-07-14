@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- OL국가 맵핑목록 조회 -->
+<query name="/retrieveOLCountryList"><![CDATA[
+SELECT A.REF_ID
+     , C.REF_NO
+     , A.COUNTRY_CODE
+     , B.COUNTRY_NAME
+     , A.EXAMREQ_YN
+     , A.APP_IMMED_YN
+     , C.OFFICE_REF_NO
+     , FN_USER_NAME(C.OFFICE_JOB_MAN) OFFICE_JOB_MAN_NAME
+     , D.EXT_OFFICE_CODE
+     , FN_OFFICE_NAME(D.EXT_OFFICE_CODE) EXT_OFFICE_NAME
+     , D.EXT_OFFICE_REF_NO
+FROM   TB_APP_EXT_OL_COUNTRY A
+     , TB_COM_COUNTRY B
+     , TB_APP_MST C
+     , TB_APP_MST_EXT D
+WHERE  A.OL_ID = {@OL_ID}
+AND    A.COUNTRY_CODE = B.COUNTRY_CODE
+AND    A.REF_ID = C.REF_ID(+)
+AND    A.REF_ID = D.REF_ID(+)
+ORDER BY B.DISP_ORD
+]]></query>
+
+<!-- OL국가  맵핑 생성 -->
+<query name="/createOLCountry"><![CDATA[
+INSERT INTO TB_APP_EXT_OL_COUNTRY (
+       OL_ID
+     , COUNTRY_CODE
+     , EXAMREQ_YN
+     , APP_IMMED_YN
+     , EXT_OFFICE_CODE
+)
+SELECT {@OL_ID}
+     , {@COUNTRY_CODE}
+     , {@EXAMREQ_YN}
+     , {@APP_IMMED_YN}
+     , {@EXT_OFFICE_CODE}
+FROM   DUAL
+WHERE  NOT EXISTS (SELECT 1
+                   FROM   TB_APP_EXT_OL_COUNTRY A
+                        , TB_APP_EXT_OL B
+                   WHERE  A.OL_ID = B.OL_ID
+                   AND    A.COUNTRY_CODE = {@COUNTRY_CODE}
+                   AND    B.GRP_ID = {@GRP_ID}
+                  )
+]]></query>
+
+<!-- OL국가  맵핑 수정 -->
+<query name="/updateOLCountry"><![CDATA[
+UPDATE TB_APP_EXT_OL_COUNTRY SET
+       EXAMREQ_YN      = {@EXAMREQ_YN}
+     , APP_IMMED_YN    = {@APP_IMMED_YN}
+     , EXT_OFFICE_CODE = {@EXT_OFFICE_CODE}
+WHERE  OL_ID = {@OL_ID}
+AND    COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+
+<!-- OL국가  맵핑 삭제 -->
+<query name="/deleteOLCountry"><![CDATA[
+DELETE FROM TB_APP_EXT_OL_COUNTRY
+WHERE  OL_ID = {@OL_ID}
+AND    COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+
+<!-- OL국가  맵핑목록 전체 삭제 -->
+<query name="/deleteOLCountryListAll"><![CDATA[
+DELETE FROM TB_APP_EXT_OL_COUNTRY
+WHERE  OL_ID = {@OL_ID}
+]]></query>
+
+</root>

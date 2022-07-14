@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 회사정보 -->
+<company-info>
+    <name>주성엔지니어링</name>
+    <address>경기도 광주 오포읍</address>
+</company-info>
+
+<!-- 사용자 로그 -->
+<user-log>
+    <enable>true</enable>
+    <skip-path-list>
+        <skip path="/anyfive.framework.*">true</skip>
+        <skip path="/anyfive.ipims.patent.systemmgt.log.user.act.*">true</skip>
+        <skip path="/anyfive.ipims.patent.systemmgt.configure.refresh.act.RetrieveMemoryInfo.do">true</skip>
+    </skip-path-list>
+</user-log>
+
+<!-- 로그인 시스템 -->
+<login-system></login-system>
+
+<!-- 통합인증 연계 -->
+<combine>
+    <enable>true</enable>
+</combine>
+
+<!-- HR -->
+<hr>
+    <enable>false</enable>
+</hr>
+
+<!-- 로그아웃 경로 -->
+<logout-path></logout-path>
+
+<!-- 업데이트 설정 -->
+<update>
+    <source>
+        <root><![CDATA[ {#home}/update ]]></root>
+    </source>
+    <target>
+        <root><![CDATA[ {#home}/update/test ]]></root>
+        <update name="/"><![CDATA[ / ]]></update>
+    </target>
+</update>
+<!-- SAP 접속정보-->
+<SAP-INFO>
+    <client>650</client>
+    <user>INF_IPS</user>
+    <passwd>infips</passwd>
+    <lang>KO</lang>
+    <ashost>ERP</ashost>
+    <sysnr>00</sysnr>
+</SAP-INFO>
+
+<!-- SAP RFCNAME-->
+<RFC-NAME>
+    <!-- 연차료 -->
+    <A>Z19IP_INTERFACE_01</A>
+    <A-CANCEL>Z19IP_INTERFACE_02</A-CANCEL>
+    <!-- 선급금 -->
+    <C>Z19IP_INTERFACE_03</C>
+    <C-CANCEL>Z19IP_INTERFACE_04</C-CANCEL>
+    <!-- 자산-->
+    <S>Z19IP_INTERFACE_05</S>
+    <S-CANCEL>Z19IP_INTERFACE_06</S-CANCEL>
+    <!-- 자본적지출 -->
+    <I>Z19IP_INTERFACE_05</I>
+    <I-CANCEL>Z19IP_INTERFACE_06</I-CANCEL>
+    <!-- 출원포기-->
+    <R>Z19IP_INTERFACE_07</R>
+    <R-CANCEL>Z19IP_INTERFACE_08</R-CANCEL>
+    <!-- 자산번호생성-->
+    <ASSET_NO>Z19IP_INTERFACE_09</ASSET_NO>
+    <!-- 수수료-->
+    <T>Z19IP_INTERFACE_10</T>
+    <T-CANCEL>Z19IP_INTERFACE_11</T-CANCEL>
+</RFC-NAME>
+
+
+<!-- E-Mail -->
+<!-- E-Mail -->
+<e-mail>
+    <default-from-addr>yr_kim@jseng.com</default-from-addr>
+    <default-from-name>주성엔지니어링(주)</default-from-name>
+    <default-host-name></default-host-name>
+    <test-mode>false</test-mode>
+    <test-addr>khkim@anyfive.com</test-addr>
+    <test-name>Anyfive</test-name>
+
+    <max-count>1</max-count>
+</e-mail>
+
+<!-- 자사특허 검색엔진 접속정보 -->
+<our-search>
+    <host>localhost</host>
+    <port>5555</port>
+</our-search>
+
+<!-- FTP 연계-->
+<ftp>
+    <enable>false</enable>
+</ftp>
+
+<!-- DRM 연계-->
+<drm>
+    <enable>false</enable>
+    <fsd-dir>C:/DRM/fsdinit_fsd</fsd-dir>
+    <fse-dir>C:/DRM/fsdinit_fse</fse-dir>
+    <fsn-dir>C:/DRM/fsdinit_fsn</fsn-dir>
+    <nx-dir>C:/DRM/fsdinit_nx</nx-dir>
+</drm>
+
+<!-- KIPRIS 연계 -->
+<kipris>
+    <search-url>http://link.kipris.or.kr/link/search/XTOTAL.jsp</search-url>
+    <fulldoc-url>http://link.kipris.or.kr/link/main/FullDoc.jsp</fulldoc-url>
+</kipris>
+
+<!-- WIPS 연계 -->
+<wips>
+    <login-url>http://search.wips.co.kr/Kor_Login/Login_OK.asp</login-url>
+    <login-id><![CDATA[ rndit ]]></login-id>
+    <login-pw><![CDATA[ rndit ]]></login-pw>
+    <search-url>http://search.wips.co.kr/kor_search/search/ex_search.asp</search-url>
+</wips>
+
+</root>

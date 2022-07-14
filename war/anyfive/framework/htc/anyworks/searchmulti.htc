@@ -1,0 +1,323 @@
+﻿<PUBLIC:COMPONENT tagName="MSEARCH" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="mode" get="getMode" put="setMode">
+    <PUBLIC:PROPERTY name="prx" get="getPrx">
+    <PUBLIC:PROPERTY name="win" get="getWin">
+    <PUBLIC:PROPERTY name="codeColumn" put="setCodeColumn">
+    <PUBLIC:PROPERTY name="nameExpr" put="setNameExpr">
+    <PUBLIC:PROPERTY name="size" get="getSize" put="setSize">
+    <PUBLIC:PROPERTY name="rowCount" get="getRowCount">
+    <PUBLIC:METHOD name="addList">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var ds_main;
+var ds_main_id;
+
+if (element.id.substr(0, 4) == "any_") {
+    ds_main_id = "ds_" + element.id.substr(4);
+} else {
+    ds_main_id = "ds_" + element.id;
+}
+
+var control_id = element.id + "_" + element.sourceIndex;
+
+var ds_search;
+var ds_search_id = "ds_search_"  + control_id;
+
+var tbd_main;
+var tbd_main_id = "tbd_main_" + control_id;
+
+var sel_main;
+var sel_main_id = "sel_main_" + control_id;
+
+var opt_main;
+var opt_main_id = "opt_main_" + control_id;
+
+var txt_search;
+var txt_search_id = "txt_search_" + control_id;
+
+var btn_add;
+var btn_add_id = "btn_add_" + control_id;
+
+var btn_del;
+var btn_del_id = "btn_del_" + control_id;
+
+var gPrx;
+var gWin;
+var gCodeColumn;
+var gNameExpr;
+
+var gDiv;
+var gMode = "R";
+var gMode2 = "R";
+var gSize = 5;
+
+eval(function()
+{
+    if (element.document.media == "print") return;
+
+    gPrx = new any.proxy();
+
+    gWin = new any.window();
+    gWin.opt.width = 500;
+    gWin.opt.height = 500;
+
+    gColumns = new Array();
+
+    if (element.document.media == "print") return;
+
+    gDiv = element.document.createElement('DIV');
+    element.appendChild(gDiv);
+})();
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    for (var i = 0, elements = element.getElementsByTagName("*"); i < elements.length; i++) {
+        if (elements[i].tagName == "SCRIPT" || elements[i].tagName == "COMMENT") eval(elements[i].text);
+    }
+
+    ds_main = element.document.createElement('<ANY:DS id="' + ds_main_id + '">');
+    element.document.appendChild(ds_main);
+
+    ds_main.OnInit = function()
+    {
+        ds_main.setKeys(gCodeColumn);
+        ds_main.addBind(gCodeColumn, opt_main_id);
+    }
+
+    ds_main.OnLoad = function()
+    {
+        makeHTML();
+    }
+
+    ds_search = element.document.createElement('<ANY:DS id="' + ds_search_id + '">');
+    element.document.appendChild(ds_search);
+
+    makeHTML();
+
+    element.isReady = true;
+}
+
+function makeHTML()
+{
+    var html = new Array();
+    if (gMode2 == "R") {
+        html.push('<DIV style="width:100%;">');
+        html.push('<TABLE border="0" cellspacing="0" cellpadding="0" width="100%">');
+        html.push('    <TBODY id="' + tbd_main_id + '"></TBODY>');
+        html.push('</TABLE>');
+        html.push('</DIV>');
+    } else {
+        html.push('<TABLE border="0" cellspacing="0" cellpadding="0" width="100%">');
+        html.push('    <TR>');
+        html.push('        <TD style="padding-bottom:1px;">');
+        html.push('            <TABLE border="0" cellspacing="0" cellpadding="0" width="100%">');
+        html.push('                <TR>');
+        if (gPrx.path != null) {
+            html.push('                    <TD width="100%">');
+            html.push('                        <INPUT type="text" id="' + txt_search_id + '" class="text">');
+            html.push('                    </TD>');
+        }
+        html.push('                    <TD noWrap align="right">');
+        if (gPrx.path == null) {
+            html.push('                        <BUTTON id="' + btn_add_id + '" text="Add"    width="50px" height="18px" space="none">');
+            html.push('                        <BUTTON id="' + btn_del_id + '" text="Delete" width="50px" height="18px" space="left:2">');
+        } else {
+            html.push('                        <BUTTON id="' + btn_add_id + '" text="Add"    width="50px" space="left:2">');
+            html.push('                        <BUTTON id="' + btn_del_id + '" text="Delete" width="50px" space="left:2">');
+        }
+        html.push('                    </TD>');
+        html.push('                </TR>');
+        html.push('            </TABLE>');
+        html.push('        </TD>');
+        html.push('    </TR>');
+        html.push('    <TR>');
+        html.push('        <TD>');
+        html.push('            <SELECT id="' + sel_main_id + '" size="' + gSize + '" multiple style="width:100%;">');
+        html.push('            </SELECT>');
+        html.push('        </TD>');
+        html.push('    </TR>');
+        html.push('</TABLE>');
+    }
+
+    gDiv.innerHTML = html.join("\n");
+
+    tbd_main = element.document.getElementById(tbd_main_id);
+    sel_main = element.document.getElementById(sel_main_id);
+    opt_main = element.document.getElementsByName(opt_main_id);
+    txt_search = element.document.getElementById(txt_search_id);
+    btn_add = element.document.getElementById(btn_add_id);
+    btn_del = element.document.getElementById(btn_del_id);
+
+    if (txt_search != null) {
+        txt_search.onkeypress = function()
+        {
+            if (event.keyCode != 13) return;
+            event.keyCode = 0;
+            doSearch();
+        }
+    }
+
+    if (btn_add != null) btn_add.onclick = doSearch;
+    if (btn_del != null) btn_del.onclick = doDelete;
+
+    for (var r = 0; r < ds_main.rowCount; r++) {
+        addHTML(ds_main.rowData(r));
+    }
+}
+
+function getSize()
+{
+    return gSize;
+}
+
+function setSize(val)
+{
+    gSize = Number(val);
+
+    if (element.isReady != true) return;
+
+    if (gMode2 == "R") {
+        makeHTML();
+    } else {
+        sel_main.size = gSize;
+    }
+}
+
+function getRowCount()
+{
+    return sel_main.options.length;
+}
+
+function addHTML(obj)
+{
+    var code = obj[gCodeColumn];
+    var name = cfGetExprValue(obj, gNameExpr);
+
+    if (gMode2 != "R") {
+        var opt = new Option(name, code);
+        opt.id = opt_main_id;
+        sel_main.add(opt);
+        return;
+    }
+
+    var tr, td;
+
+    tr = element.document.createElement('TR');
+    tbd_main.appendChild(tr);
+
+    td = element.document.createElement('TD');
+    td.innerHTML = tbd_main.rows.length + '.&nbsp;';
+    td.align = "right";
+    td.vAlign = "top";
+    td.noWrap = true;
+    tr.appendChild(td);
+
+    td = element.document.createElement('TD');
+    td.innerText = name;
+    td.vAlign = "top";
+    td.width = "100%";
+    tr.appendChild(td);
+}
+
+function getMode()
+{
+    return gMode;
+}
+
+function setMode(val)
+{
+    if (gMode == val) return;
+
+    gMode = val;
+    gMode2 = gMode.substr(0, 1);
+
+    if (element.isReady == true) {
+        makeHTML();
+    }
+}
+
+function getPrx()
+{
+    return gPrx;
+}
+
+function getWin()
+{
+    return gWin;
+}
+
+function setCodeColumn(val)
+{
+    gCodeColumn = val;
+}
+
+function setNameExpr(val)
+{
+    gNameExpr = val;
+}
+
+function doSearch()
+{
+    var ps = new cfPopupSearch();
+    ps.prx = gPrx;
+    ps.win = gWin;
+    ps.searchText = txt_search;
+    ps.resultFunc = addData;
+    ps.multiCheck = true;
+    ps.closePopup = true;
+    ps.search();
+}
+
+function doDelete()
+{
+    while (sel_main.options.selectedIndex >= 0) {
+        sel_main.options[sel_main.options.selectedIndex] = null;
+    }
+}
+
+function addList(keys, action)
+{
+    var prx = new any.proxy();
+    prx.path = action;
+    prx.addParam("_DS_ID_", ds_search_id);
+    for (var i = 0; i < keys.length; i++) {
+        prx.addParam(keys[i].name, keys[i].value);
+    }
+
+    prx.onSuccess = function()
+    {
+        for (var i = 0; i < ds_search.rowCount; i++) {
+            addData(ds_search.rowData(i));
+        }
+    }
+
+    prx.onFail = function()
+    {
+        this.error.show();
+    }
+
+    prx.execute();
+}
+
+function addData(obj)
+{
+    if (getExistsRow() != -1) return "exists";
+
+    addHTML(obj);
+
+    function getExistsRow()
+    {
+        if (opt_main == null) return -1;
+        for (var i = 0; i < opt_main.length; i++) {
+            if (opt_main[i].value == obj[gCodeColumn]) return i;
+        }
+        return -1;
+    }
+}
+</SCRIPT>

@@ -1,0 +1,518 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 국내출원관리목록 -->
+<query name="/retrieveStatisticList_001"><![CDATA[
+SELECT  A.REF_NO                       "REF_NO"
+      , FN_USER_NAME(A.JOB_MAN)        "담당자"
+      , FN_INVENTOR_NAMES(A.REF_ID)    "발명자"
+      , FN_OFFICE_NAME(A.OFFICE_CODE)  "사무소명"
+      , FN_USER_NAME(A.OFFICE_JOB_MAN) "사무소담당자"
+      , ''                             "사무소명세서작성자"
+      , ''                             "긴급여부"
+      , B.INV_GRADE                    "등급"
+      , B.CONVEY_DATE                  "양도일"
+      , A.OFFICE_RCPT_DATE             "위임일"
+      , TO_CHAR(TO_DATE(A.OFFICE_RCPT_DATE)+40,'YYYYMMDD') "출원기한"
+      , TO_DATE(A.OFFICE_RCPT_DATE)+40 - TO_DATE(TO_CHAR(SYSDATE,'YYYYMMDD')) "출원잔여일"
+      , ''                             "초안발송일"
+      , ''                             "출원지시일"
+      , A.APP_DATE                     "출원일"
+      , A.APP_NO                       "출원번호"
+      , A.APP_DATE - A.OFFICE_RCPT_DATE "출원소요일"
+      , FN_COM_CODE_NAME('EXAMREQ_YN', A.EXAMREQ_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) "심사청구여부"
+      , A.EXAMREQ_DATE                 "심사청구일"
+      , A.ABD_DATE                     "위임철회일"
+      , DECODE(B.UNION_REF_ID,NULL,'N','Y') "병합여부"
+      , B.UNION_REF_ID                 "피병합관리번호"
+      , ''                             "국내우선권주장여부"
+      , ''                             "우선권선출원번호"
+      , ''                             "분할출원여부"
+      , ''                             "분할모출원번호"
+      , ''                             "이중출원여부"
+      , ''                             "이중모출원번호"
+FROM    TB_APP_MST A
+      , TB_APP_MST_INT B
+WHERE   A.REF_ID = B.REF_ID
+]]></query>
+<query name="/retrieveStatisticList_001/dateStart"><![CDATA[
+AND    A.APP_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveStatisticList_001/dateEnd"><![CDATA[
+AND    A.APP_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveStatisticList_001/bottomQuery"><![CDATA[
+]]></query>
+
+
+<!-- 특허관련 비용 집행실적 - 특허비 -->
+<query name="/retrieveStatisticList_002"><![CDATA[
+SELECT A.GRAND_NAME "내역"
+     , SUM(A.PRICE_TOT) "금액"
+     , SUM(A.COST_CNT) "건수"
+     , DECODE(SUM(A.COST_CNT),'0','0',ROUND(SUM(A.PRICE_TOT)/SUM(A.COST_CNT),2)) "건별평균"
+FROM  (SELECT A.GRAND_CODE
+            , B.GRAND_NAME
+            , C.ACCOUNT_PROC_DATE
+            , COUNT(A.COST_SEQ) COST_CNT
+            , SUM(A.WON_PRICE) PRICE_TOT
+       FROM   TB_COST_MST A
+            , TB_COST_MGT_GRANDCODE B
+            , TB_COST_SLIP C
+       WHERE  A.GRAND_CODE(+) = B.GRAND_CODE
+       AND    A.SLIP_ID = C.SLIP_ID
+       AND    A.SLIP_STATUS = '9'
+       AND    A.COST_KIND IN ('3','4','7')
+]]></query>
+<query name="/retrieveStatisticList_002/dateStart"><![CDATA[
+       AND    C.ACCOUNT_PROC_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveStatisticList_002/dateEnd"><![CDATA[
+       AND    C.ACCOUNT_PROC_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveStatisticList_002/bottomQuery"><![CDATA[
+       GROUP BY A.GRAND_CODE, B.GRAND_NAME, C.ACCOUNT_PROC_DATE
+       UNION ALL
+       SELECT GRAND_CODE
+            , GRAND_NAME
+            , '' ACCOUNT_PROC_DATE
+            , 0 COST_CNT
+            , 0 PRICE_TOT
+       FROM   TB_COST_MGT_GRANDCODE
+       WHERE  GRAND_CODE < 30 ) A
+GROUP BY A.GRAND_NAME
+]]></query>
+
+
+<!-- 특허관련 비용 집행실적 - 보상금 -->
+<query name="/retrieveStatisticList_003"><![CDATA[
+SELECT FN_COM_CODE_NAME('REWARD_DIV', A.REWARD_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) "내역"
+     , SUM(A.PRICE_TOT) "금액"
+     , SUM(A.COST_CNT) "건수"
+     , DECODE(SUM(A.COST_CNT),'0','0',ROUND(SUM(A.PRICE_TOT)/SUM(A.COST_CNT),2)) "건별평균"
+FROM  (SELECT B.REWARD_DIV
+            , COUNT(A.COST_SEQ) COST_CNT
+            , SUM(A.PRICE) PRICE_TOT
+       FROM   TB_COST_MST A
+            , TB_COST_MST_REWARD B
+            , TB_COST_SLIP C
+       WHERE  A.COST_SEQ = B.COST_SEQ
+       AND    A.SLIP_ID  = C.SLIP_ID
+       AND    A.SLIP_STATUS = '9'
+]]></query>
+<query name="/retrieveStatisticList_003/dateStart"><![CDATA[
+       AND    C.ACCOUNT_PROC_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveStatisticList_003/dateEnd"><![CDATA[
+       AND    C.ACCOUNT_PROC_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveStatisticList_003/bottomQuery"><![CDATA[
+       GROUP  BY B.REWARD_DIV
+       UNION ALL
+       SELECT REWARD_DIV
+            , 0 COST_CNT
+            , 0 PRICE_TOT
+       FROM   TB_COST_MGT_REWARD
+       GROUP BY REWARD_DIV )A
+GROUP BY A.REWARD_DIV
+]]></query>
+
+
+<!-- 출원보상금 리스트 -->
+<query name="/retrieveStatisticList_004"><![CDATA[
+SELECT A.REF_NO "REF-NO"
+     , A.KO_APP_TITLE "발명의 명칭"
+     , FN_LAB_NAME(A.LAB_CODE) "연구소"
+     , FN_DIVISN_NAME(A.DIVISN_CODE) "부서"
+     , FN_COM_CODE_NAME('INOUT_DIV' ,A.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) "국가"
+     , FN_COM_CODE_NAME('RIGHT_DIV' ,A.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) "권리"
+     , A.APP_NO "출원번호"
+     , A.APP_DATE "출원일"
+     , A.REG_NO "등록번호"
+     , A.REG_DATE "등록일"
+     , FN_USER_NAME(C.INV_USER) "발명자"
+     , B.PRICE "보상금액"
+FROM   TB_APP_MST A
+     , TB_COST_MST B
+     , TB_COST_MST_REWARD C
+     , TB_COST_SLIP D
+WHERE  A.REF_ID = B.REF_ID
+AND    B.COST_SEQ = C.COST_SEQ
+AND    B.SLIP_ID = D.SLIP_ID
+AND    D.ACCOUNT_PROC_YN = '1'
+AND    B.COST_KIND = '6'
+AND    C.REWARD_DIV = 'PAT'
+]]></query>
+<query name="/retrieveStatisticList_004/dateStart"><![CDATA[
+AND    D.ACCOUNT_PROC_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveStatisticList_004/dateEnd"><![CDATA[
+AND    D.ACCOUNT_PROC_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveStatisticList_004/bottomQuery"><![CDATA[
+ORDER BY A.REF_NO
+]]></query>
+
+
+<!-- 등록보상금 리스트 -->
+<query name="/retrieveStatisticList_005"><![CDATA[
+SELECT A.REF_NO "REF-NO"
+     , A.KO_APP_TITLE "발명의 명칭"
+     , FN_LAB_NAME(A.LAB_CODE) "연구소"
+     , FN_DIVISN_NAME(A.DIVISN_CODE) "부서"
+     , FN_COM_CODE_NAME('INOUT_DIV' ,A.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) "국가"
+     , FN_COM_CODE_NAME('RIGHT_DIV' ,A.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) "권리"
+     , A.APP_NO "출원번호"
+     , A.APP_DATE "출원일"
+     , A.REG_NO "등록번호"
+     , A.REG_DATE "등록일"
+     , FN_USER_NAME(C.INV_USER) "발명자"
+     , B.PRICE "보상금액"
+FROM   TB_APP_MST A
+     , TB_COST_MST B
+     , TB_COST_MST_REWARD C
+     , TB_COST_SLIP D
+WHERE  A.REF_ID = B.REF_ID
+AND    B.COST_SEQ = C.COST_SEQ
+AND    B.SLIP_ID = D.SLIP_ID
+AND    D.ACCOUNT_PROC_YN = '1'
+AND    B.COST_KIND = '6'
+AND    C.REWARD_DIV = 'REG'
+]]></query>
+<query name="/retrieveStatisticList_005/dateStart"><![CDATA[
+AND    D.ACCOUNT_PROC_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveStatisticList_005/dateEnd"><![CDATA[
+AND    D.ACCOUNT_PROC_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveStatisticList_005/bottomQuery"><![CDATA[
+ORDER BY A.REF_NO
+]]></query>
+
+
+<!-- 직무발명보상 상세내역 -->
+<query name="/retrieveStatisticList_006"><![CDATA[
+]]></query>
+<query name="/retrieveStatisticList_006/bottomQuery"><![CDATA[
+]]></query>
+
+
+<!-- 연도별 국내출원현황 -->
+<query name="/retrieveStatisticList_007"><![CDATA[
+SELECT SUBSTR(A.APP_DATE, 1, 4) "출원년도"
+     , NVL(MAX(B.C_COUNT),0)    "특허"
+     , NVL(MAX(C.C_COUNT),0)    "실용신안"
+     , NVL(MAX(D.C_COUNT),0)    "의장"
+     , NVL(MAX(E.C_COUNT),0)    "상표"
+     , NVL(MAX(F.C_COUNT),0)    "논문"
+     , NVL(MAX(G.C_COUNT),0)    "합계"
+FROM   TB_APP_MST A
+     , (SELECT SUBSTR(APP_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '10' AND INOUT_DIV = 'INT' GROUP BY SUBSTR(APP_DATE, 1, 4)) B
+     , (SELECT SUBSTR(APP_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '20' AND INOUT_DIV = 'INT' GROUP BY SUBSTR(APP_DATE, 1, 4)) C
+     , (SELECT SUBSTR(APP_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '30' AND INOUT_DIV = 'INT' GROUP BY SUBSTR(APP_DATE, 1, 4)) D
+     , (SELECT SUBSTR(APP_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '40' AND INOUT_DIV = 'INT' GROUP BY SUBSTR(APP_DATE, 1, 4)) E
+     , (SELECT SUBSTR(APP_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '50' AND INOUT_DIV = 'INT' GROUP BY SUBSTR(APP_DATE, 1, 4)) F
+     , (SELECT SUBSTR(APP_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE INOUT_DIV = 'INT' GROUP BY SUBSTR(APP_DATE, 1, 4)) G
+WHERE  B.C_YEAR(+) = SUBSTR(A.APP_DATE, 1, 4)
+AND    C.C_YEAR(+) = SUBSTR(A.APP_DATE, 1, 4)
+AND    D.C_YEAR(+) = SUBSTR(A.APP_DATE, 1, 4)
+AND    E.C_YEAR(+) = SUBSTR(A.APP_DATE, 1, 4)
+AND    F.C_YEAR(+) = SUBSTR(A.APP_DATE, 1, 4)
+AND    G.C_YEAR(+) = SUBSTR(A.APP_DATE, 1, 4)
+AND    SUBSTR(A.APP_DATE, 1, 4) IS NOT NULL
+]]></query>
+<query name="/retrieveStatisticList_007/bottomQuery"><![CDATA[
+GROUP BY SUBSTR(A.APP_DATE, 1, 4)
+]]></query>
+
+
+<!-- 연도별 국내등록현황 -->
+<query name="/retrieveStatisticList_008"><![CDATA[
+SELECT SUBSTR(A.REG_DATE, 1, 4) "등록년도"
+     , NVL(MAX(B.C_COUNT),0)    "특허"
+     , NVL(MAX(C.C_COUNT),0)    "실용신안"
+     , NVL(MAX(D.C_COUNT),0)    "디자인"
+     , NVL(MAX(E.C_COUNT),0)    "상표"
+     , NVL(MAX(F.C_COUNT),0)    "논문"
+     , NVL(MAX(G.C_COUNT),0)    "합계"
+FROM   TB_APP_MST A
+     , (SELECT SUBSTR(REG_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '10' AND INOUT_DIV = 'INT' GROUP BY SUBSTR(REG_DATE, 1, 4)) B
+     , (SELECT SUBSTR(REG_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '20' AND INOUT_DIV = 'INT' GROUP BY SUBSTR(REG_DATE, 1, 4)) C
+     , (SELECT SUBSTR(REG_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '30' AND INOUT_DIV = 'INT' GROUP BY SUBSTR(REG_DATE, 1, 4)) D
+     , (SELECT SUBSTR(REG_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '40' AND INOUT_DIV = 'INT' GROUP BY SUBSTR(REG_DATE, 1, 4)) E
+     , (SELECT SUBSTR(REG_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '50' AND INOUT_DIV = 'INT' GROUP BY SUBSTR(REG_DATE, 1, 4)) F
+     , (SELECT SUBSTR(REG_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE INOUT_DIV = 'INT' GROUP BY SUBSTR(REG_DATE, 1, 4)) G
+WHERE  B.C_YEAR(+) = SUBSTR(A.REG_DATE, 1, 4)
+AND    C.C_YEAR(+) = SUBSTR(A.REG_DATE, 1, 4)
+AND    D.C_YEAR(+) = SUBSTR(A.REG_DATE, 1, 4)
+AND    E.C_YEAR(+) = SUBSTR(A.REG_DATE, 1, 4)
+AND    F.C_YEAR(+) = SUBSTR(A.REG_DATE, 1, 4)
+AND    G.C_YEAR(+) = SUBSTR(A.REG_DATE, 1, 4)
+AND    SUBSTR(A.REG_DATE, 1, 4) IS NOT NULL
+]]></query>
+<query name="/retrieveStatisticList_008/bottomQuery"><![CDATA[
+GROUP BY SUBSTR(A.REG_DATE, 1, 4)
+]]></query>
+
+
+<!-- 연도별 해외출원현황 -->
+<query name="/retrieveStatisticList_009"><![CDATA[
+SELECT SUBSTR(A.APP_DATE, 1, 4) "출원년도"
+     , NVL(MAX(B.C_COUNT),0)    "특허"
+     , NVL(MAX(C.C_COUNT),0)    "실용신안"
+     , NVL(MAX(D.C_COUNT),0)    "의장"
+     , NVL(MAX(E.C_COUNT),0)    "상표"
+     , NVL(MAX(F.C_COUNT),0)    "논문"
+     , NVL(MAX(G.C_COUNT),0)    "합계"
+FROM   TB_APP_MST A
+     , (SELECT SUBSTR(APP_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '10' AND INOUT_DIV = 'EXT' GROUP BY SUBSTR(APP_DATE, 1, 4)) B
+     , (SELECT SUBSTR(APP_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '20' AND INOUT_DIV = 'EXT' GROUP BY SUBSTR(APP_DATE, 1, 4)) C
+     , (SELECT SUBSTR(APP_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '30' AND INOUT_DIV = 'EXT' GROUP BY SUBSTR(APP_DATE, 1, 4)) D
+     , (SELECT SUBSTR(APP_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '40' AND INOUT_DIV = 'EXT' GROUP BY SUBSTR(APP_DATE, 1, 4)) E
+     , (SELECT SUBSTR(APP_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '50' AND INOUT_DIV = 'EXT' GROUP BY SUBSTR(APP_DATE, 1, 4)) F
+     , (SELECT SUBSTR(APP_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE INOUT_DIV = 'EXT' GROUP BY SUBSTR(APP_DATE, 1, 4)) G
+WHERE  B.C_YEAR(+) = SUBSTR(A.APP_DATE, 1, 4)
+AND    C.C_YEAR(+) = SUBSTR(A.APP_DATE, 1, 4)
+AND    D.C_YEAR(+) = SUBSTR(A.APP_DATE, 1, 4)
+AND    E.C_YEAR(+) = SUBSTR(A.APP_DATE, 1, 4)
+AND    F.C_YEAR(+) = SUBSTR(A.APP_DATE, 1, 4)
+AND    G.C_YEAR(+) = SUBSTR(A.APP_DATE, 1, 4)
+AND    SUBSTR(A.APP_DATE, 1, 4) IS NOT NULL
+]]></query>
+<query name="/retrieveStatisticList_009/bottomQuery"><![CDATA[
+GROUP BY SUBSTR(A.APP_DATE, 1, 4)
+]]></query>
+
+
+<!-- 연도별 해외등록현황 -->
+<query name="/retrieveStatisticList_010"><![CDATA[
+SELECT SUBSTR(A.REG_DATE, 1, 4) "등록년도"
+     , NVL(MAX(B.C_COUNT),0)    "특허"
+     , NVL(MAX(C.C_COUNT),0)    "실용신안"
+     , NVL(MAX(D.C_COUNT),0)    "디자인"
+     , NVL(MAX(E.C_COUNT),0)    "상표"
+     , NVL(MAX(F.C_COUNT),0)    "논문"
+     , NVL(MAX(G.C_COUNT),0)    "합계"
+FROM   TB_APP_MST A
+     , (SELECT SUBSTR(REG_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '10' AND INOUT_DIV = 'EXT' GROUP BY SUBSTR(REG_DATE, 1, 4)) B
+     , (SELECT SUBSTR(REG_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '20' AND INOUT_DIV = 'EXT' GROUP BY SUBSTR(REG_DATE, 1, 4)) C
+     , (SELECT SUBSTR(REG_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '30' AND INOUT_DIV = 'EXT' GROUP BY SUBSTR(REG_DATE, 1, 4)) D
+     , (SELECT SUBSTR(REG_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '40' AND INOUT_DIV = 'EXT' GROUP BY SUBSTR(REG_DATE, 1, 4)) E
+     , (SELECT SUBSTR(REG_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE RIGHT_DIV = '50' AND INOUT_DIV = 'EXT' GROUP BY SUBSTR(REG_DATE, 1, 4)) F
+     , (SELECT SUBSTR(REG_DATE, 1, 4) C_YEAR, COUNT(*) C_COUNT FROM TB_APP_MST WHERE INOUT_DIV = 'EXT' GROUP BY SUBSTR(REG_DATE, 1, 4)) G
+WHERE  B.C_YEAR(+) = SUBSTR(A.REG_DATE, 1, 4)
+AND    C.C_YEAR(+) = SUBSTR(A.REG_DATE, 1, 4)
+AND    D.C_YEAR(+) = SUBSTR(A.REG_DATE, 1, 4)
+AND    E.C_YEAR(+) = SUBSTR(A.REG_DATE, 1, 4)
+AND    F.C_YEAR(+) = SUBSTR(A.REG_DATE, 1, 4)
+AND    G.C_YEAR(+) = SUBSTR(A.REG_DATE, 1, 4)
+AND    SUBSTR(A.REG_DATE, 1, 4) IS NOT NULL
+]]></query>
+<query name="/retrieveStatisticList_010/bottomQuery"><![CDATA[
+GROUP BY SUBSTR(A.REG_DATE, 1, 4)
+]]></query>
+
+
+<!-- 건담당자 사무소별 실적현황(분할계속제외) -->
+<query name="/retrieveStatisticList_011"><![CDATA[
+SELECT FN_OFFICE_NAME(A.OFFICE_CODE) "사무소"
+     , FN_USER_NAME(A.JOB_MAN) "건담당자"
+     , FN_COM_CODE_NAME('INOUT_DIV', A.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) "국내외"
+     , COUNT(A.APP_NO) "실적"
+FROM   TB_APP_MST A
+WHERE  NOT EXISTS (SELECT 1
+                  FROM   TB_APP_MST B
+                  WHERE  A.REF_ID = B.REF_ID
+                  AND    B.APP_NO IS NULL
+                  AND    B.ABD_YN='1')
+AND    A.DIVISION_CODE IS NULL
+AND    A.OFFICE_RCPT_DATE IS NOT NULL
+]]></query>
+<query name="/retrieveStatisticList_011/dateStart"><![CDATA[
+AND    A.OFFICE_RCPT_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveStatisticList_011/dateEnd"><![CDATA[
+AND    A.OFFICE_RCPT_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveStatisticList_011/bottomQuery"><![CDATA[
+GROUP BY A.INOUT_DIV, A.OFFICE_CODE, A.JOB_MAN
+]]></query>
+
+
+<!-- 건담당자_국내품의처리현황 -->
+<query name="/retrieveStatisticList_012"><![CDATA[
+SELECT FN_USER_NAME(A.JOB_MAN) "담당자명"
+     , FN_PAPER_NAME(A.STATUS) "작업상태"
+     , COUNT(*) "건수"
+FROM   TB_APP_MST A
+     , TB_APP_INT_CONSULT B
+WHERE  A.REF_ID = B.REF_ID
+]]></query>
+<query name="/retrieveStatisticList_012/dateStart"><![CDATA[
+AND    B.CRE_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveStatisticList_012/dateEnd"><![CDATA[
+AND    B.CRE_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveStatisticList_012/bottomQuery"><![CDATA[
+GROUP  BY A.JOB_MAN, A.STATUS
+]]></query>
+
+
+<!-- 해외국가_출원등록현황 -->
+<query name="/retrieveStatisticList_013"><![CDATA[
+SELECT E.COUNTRY_CODE "국가코드"
+     , E.COUNTRY_NAME "국가명"
+     , SUM(A.APP_CNT) "출원건수"
+     , SUM(B.REG_CNT) "등록건수"
+FROM   (SELECT A.REF_ID
+             , A.APP_DATE
+             , A.COUNTRY_CODE
+             , COUNT(APP_NO) APP_CNT
+        FROM   TB_APP_MST A
+             , TB_APP_MST_EXT B
+        WHERE A.REF_ID = B.REF_ID
+        GROUP BY A.COUNTRY_CODE, A.REF_ID, A.APP_DATE) A
+     , (SELECT A.REF_ID
+             , A.REG_DATE
+             , A.COUNTRY_CODE
+             , COUNT(A.REG_NO) REG_CNT
+        FROM   TB_APP_MST A
+             , TB_APP_MST_EXT B
+        WHERE  A.REF_ID = B.REF_ID
+        GROUP BY A.COUNTRY_CODE, A.REF_ID, A.REG_DATE) B
+     , TB_APP_MST C
+     , TB_COM_COUNTRY E
+WHERE  A.REF_ID = B.REF_ID
+AND    A.REF_ID = C.REF_ID
+AND    A.COUNTRY_CODE = E.COUNTRY_CODE
+AND    B.COUNTRY_CODE = E.COUNTRY_CODE
+AND    C.INOUT_DIV = 'EXT'
+]]></query>
+<query name="/retrieveStatisticList_013/dateStart"><![CDATA[
+AND    C.APP_DATE >= {@DATE_START}
+AND    C.REG_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveStatisticList_013/dateEnd"><![CDATA[
+AND    C.APP_DATE <= {@DATE_END}
+AND    C.REG_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveStatisticList_013/bottomQuery"><![CDATA[
+GROUP BY E.COUNTRY_CODE, E.COUNTRY_NAME
+]]></query>
+
+
+<!-- 담당자별 해외사무소 위임현황(분할계속제외) -->
+<query name="/retrieveStatisticList_014"><![CDATA[
+SELECT FN_OFFICE_NAME(B.EXT_OFFICE_CODE) "해외사무소"
+     , FN_USER_NAME(A.JOB_MAN) "건담당자"
+     , COUNT(A.APP_NO) "현황"
+FROM   TB_APP_MST A
+     , TB_APP_MST_EXT B
+WHERE  NOT EXISTS (SELECT 1
+                    FROM   TB_APP_MST_EXT C
+                    WHERE  B.REF_ID = C.REF_ID
+                    AND    A.APP_NO IS NULL
+                    AND    A.ABD_YN='1')
+AND    A.DIVISION_CODE IS NULL
+AND    A.OFFICE_RCPT_DATE IS NOT NULL
+AND    A.REF_ID = B.REF_ID
+]]></query>
+<query name="/retrieveStatisticList_014/dateStart"><![CDATA[
+AND    A.OFFICE_RCPT_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveStatisticList_014/dateEnd"><![CDATA[
+AND    A.OFFICE_RCPT_DATE >= {@DATE_END}
+]]></query>
+<query name="/retrieveStatisticList_014/bottomQuery"><![CDATA[
+GROUP BY B.EXT_OFFICE_CODE, A.JOB_MAN
+]]></query>
+
+
+<!-- 발명자별 개인실적조회(분할계속제외) -->
+<query name="/retrieveStatisticList_015"><![CDATA[
+SELECT FN_USER_NAME(E.USER_ID)          "발명자"
+     , SUBSTR(MAX(A.CRE_DATE),1,4)      "작성년도"
+     , NVL(ROUND(SUM(A.A_CNT)/100,2),0) "제안건"
+     , NVL(ROUND(SUM(B.B_CNT)/100,2),0) "보완"
+     , NVL(ROUND(SUM(C.C_CNT)/100,2),0) "미처리"
+     , NVL(ROUND(SUM(D.D_CNT)/100,2),0) "실적"
+FROM  (SELECT B.USER_ID
+            , A.CRE_DATE
+            , COUNT(*) A_CNT
+       FROM   TB_APP_MST A
+            , TB_USR_MST B
+            , TB_MAPP_INVENTOR C
+       WHERE  A.REF_ID  = C.REF_ID
+       AND    B.USER_ID = C.INV_USER
+       GROUP BY B.USER_ID, A.CRE_DATE) A
+     , (SELECT  B.USER_ID
+              , A.CRE_DATE
+              , COUNT(*) B_CNT
+        FROM    TB_APP_MST A
+              , TB_USR_MST B
+              , TB_MAPP_INVENTOR C
+        WHERE   A.REF_ID  = C.REF_ID
+        AND     B.USER_ID = C.INV_USER
+        AND     A.STATUS  = 'S00005'
+        GROUP BY B.USER_ID, A.CRE_DATE) B
+     , (SELECT  B.USER_ID
+            , A.CRE_DATE
+            , COUNT(*) C_CNT
+       FROM   TB_APP_MST A
+            , TB_USR_MST B
+            , TB_MAPP_INVENTOR C
+       WHERE  A.REF_ID  = C.REF_ID
+       AND    B.USER_ID = C.INV_USER
+       AND    A.STATUS  = 'S00007'
+       GROUP BY B.USER_ID, A.CRE_DATE) C
+     , (SELECT  B.USER_ID
+            , A.CRE_DATE
+            , COUNT(*) D_CNT
+       FROM   TB_APP_MST A
+            , TB_USR_MST B
+            , TB_MAPP_INVENTOR C
+       WHERE  A.REF_ID  = C.REF_ID
+       AND    B.USER_ID = C.INV_USER
+       AND    A.STATUS != 'S00007'
+       AND    A.STATUS != 'S00005'
+       GROUP BY B.USER_ID, A.CRE_DATE) D
+     , TB_USR_MST E
+WHERE A.USER_ID = B.USER_ID(+)
+AND   A.USER_ID = C.USER_ID(+)
+AND   A.USER_ID = D.USER_ID(+)
+AND   A.USER_ID = E.USER_ID
+AND   A.CRE_DATE = B.CRE_DATE(+)
+AND   A.CRE_DATE = C.CRE_DATE(+)
+AND   A.CRE_DATE = D.CRE_DATE(+)
+]]></query>
+<query name="/retrieveStatisticList_015/dateStart"><![CDATA[
+AND   A.CRE_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveStatisticList_015/dateEnd"><![CDATA[
+AND   A.CRE_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveStatisticList_015/bottomQuery"><![CDATA[
+GROUP BY E.USER_ID
+]]></query>
+
+<!-- 국내사무소별 해외사무소 의뢰현황(분할계속제외) -->
+<query name="/retrieveStatisticList_016"><![CDATA[
+SELECT NVL(FN_OFFICE_NAME(A.EXT_OFFICE_CODE),'사무소없음') "사무소"
+     , COUNT(*) "의뢰현황"
+FROM   TB_APP_MST_EXT A
+     , TB_APP_MST B
+WHERE  1=1
+]]></query>
+<query name="/retrieveStatisticList_016/dateStart"><![CDATA[
+AND    B.OFFICE_RCPT_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveStatisticList_016/dateEnd"><![CDATA[
+AND    B.OFFICE_RCPT_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveStatisticList_016/bottomQuery"><![CDATA[
+GROUP BY A.EXT_OFFICE_CODE
+]]></query>
+
+</root>

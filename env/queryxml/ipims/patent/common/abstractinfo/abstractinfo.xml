@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 마스터 구분 조회 -->
+<query name="/retrieveAbstractMstDiv"><![CDATA[
+SELECT MST_DIV
+FROM   V_MASTER_ALL
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 서지정보 조회 - 출원 -->
+<query name="/retrieveAbstractInfoA"><![CDATA[
+SELECT 'A' MST_DIV
+     , A.REF_NO
+     , A.RIGHT_DIV
+     , A.INOUT_DIV
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , A.KO_APP_TITLE
+     , FN_USER_NAME(A.OFFICE_JOB_MAN) OFFICE_JOB_MAN_NAME
+     , FN_PAPER_NAME(A.STATUS) STATUS_NAME
+     , A.STATUS_DATE
+     , A.OFFICE_CODE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , A.APP_NO
+     , A.APP_DATE
+     , A.OFFICE_REF_NO
+     , A.PAT_APP_NO
+     , B.EXT_OFFICE_CODE
+     , FN_OFFICE_NAME(B.EXT_OFFICE_CODE) AS EXT_OFFICE_NAME
+     , A.REG_NO
+     , A.REG_DATE
+     , B.EXT_OFFICE_REF_NO
+FROM   TB_APP_MST A , TB_APP_MST_EXT B
+WHERE A.REF_ID = B.REF_ID(+)
+AND   A.REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 서지정보 조회 - 조사 -->
+<query name="/retrieveAbstractInfoS"><![CDATA[
+SELECT 'S' MST_DIV
+     , A.PRSCH_NO
+     , B.JOB_MAN
+     , FN_USER_NAME(B.JOB_MAN) JOB_MAN_NAME
+     , A.PRSCH_SUBJECT
+     , B.OFFICE_CODE
+     , FN_OFFICE_NAME(B.OFFICE_CODE) OFFICE_NAME
+     , B.OFFICE_REF_NO
+FROM   TB_APP_PRSCH_REQ A
+     , TB_APP_PRSCH_CONSULT B
+WHERE  A.PRSCH_ID = {@REF_ID}
+AND    A.PRSCH_ID = B.PRSCH_ID(+)
+]]></query>
+
+<!-- 서지정보 조회 - 분쟁 -->
+<query name="/retrieveAbstractInfoC"><![CDATA[
+SELECT 'C' MST_DIV
+     , A.MGT_NO
+     , FN_COUNTRY_NAME(A.COUNTRY_CODE) COUNTRY_NAME
+     , A.EXAM_USER
+     , A.REQ_MAN
+     , A.OTHER_NAME
+     , FN_PAPER_NAME(A.STATUS) STATUS_NAME
+     , A.DISPUTE_NO
+     , FN_COM_CODE_NAME('DISPUTE_KIND', A.DISPUTE_KIND, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) DISPUTE_KIND_NAME
+     , A.REQ_DATE
+     , A.DISPUTE_SUBJECT
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , A.LAWYER
+     , A.OTHER_AGENT
+     , A.OTHER_LAWYER
+FROM   TB_IPB_DISPUTE A
+WHERE  A.DISPUTE_ID = {@REF_ID}
+]]></query>
+
+</root>

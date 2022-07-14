@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 국내출원의뢰접수 목록 조회 -->
+<query name="/retrieveIntApplyReceiptList"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , FN_COM_CODE_NAME('RIGHT_DIV', A.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_COM_CODE_NAME('INT_DIVISION_TYPE', A.DIVISION_TYPE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) DIVISION_TYPE_NAME
+     , A.KO_APP_TITLE
+     , A.OFFICE_SEND_DATE
+     , A.OFFICE_RCPT_DATE
+FROM   TB_APP_MST A
+     , TB_APP_INT_CONSULT B
+WHERE  A.REF_ID = B.REF_ID(+)
+AND    A.INOUT_DIV = 'INT'
+AND    A.OFFICE_CODE = {@$OFFICE_CODE}
+AND    A.OFFICE_CONTACT_YN = '1'
+AND    B.EXAM_RESULT = '1'
+AND    A.OFFICE_SEND_DATE IS NOT NULL
+]]></query>
+<query name="/retrieveIntApplyReceiptList/receiptYn0"><![CDATA[
+AND    A.OFFICE_RCPT_DATE IS NULL
+]]></query>
+<query name="/retrieveIntApplyReceiptList/receiptYn1"><![CDATA[
+AND    A.OFFICE_RCPT_DATE IS NOT NULL
+]]></query>
+<query name="/retrieveIntApplyReceiptList/refNo"><![CDATA[
+AND    A.REF_NO LIKE '%'||{@REF_NO}||'%'
+]]></query>
+<query name="/retrieveIntApplyReceiptList/dateStart"><![CDATA[
+AND    A.OFFICE_SEND_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveIntApplyReceiptList/dateEnd"><![CDATA[
+AND    A.OFFICE_SEND_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 국내출원의뢰접수 조회 -->
+<query name="/retrieveIntApplyReceipt"><![CDATA[
+SELECT A.REF_ID
+     , A.REF_NO
+     , A.RIGHT_DIV
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , FN_COM_CODE_NAME('RIGHT_DIV', A.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , A.OFFICE_SEND_DATE
+     , A.KO_APP_TITLE
+     , B.APP_IMMED_YN
+     , B.APP_IMMED_REASON
+     , FN_REF_NO((SELECT MIN(REF_ID) FROM TB_MAPP_REF_ID T WHERE T.GRP_ID = A.REF_ID AND T.MAPP_KIND = 'U' AND T.MAPP_DIV = 'N')) UNION_REF_NO
+     , FN_REF_NO((SELECT MIN(REF_ID) FROM TB_MAPP_REF_ID T WHERE T.GRP_ID = A.REF_ID AND T.MAPP_KIND = 'P' AND T.MAPP_DIV = 'N')) PRIOR_REF_NO
+     , A.EXAMREQ_YN
+     , B.INV_GRADE
+     , (SELECT T.DOC_FILE FROM TB_APP_INT_REQ_PAT T WHERE T.REF_ID = A.REF_ID) DOC_FILE
+     , CASE A.RIGHT_DIV
+            WHEN '30' THEN (SELECT DESIGN_IMG_FILE FROM TB_APP_INT_REQ_DESIGN T WHERE T.REF_ID = A.REF_ID)
+            WHEN '40' THEN (SELECT TMARK_IMG_FILE FROM TB_APP_INT_REQ_TMARK T WHERE T.REF_ID = A.REF_ID)
+       END IMG_FILE
+     , CASE A.RIGHT_DIV
+            WHEN '30' THEN (SELECT ETC_FILE FROM TB_APP_INT_REQ_DESIGN T WHERE T.REF_ID = A.REF_ID)
+            WHEN '40' THEN (SELECT ETC_FILE FROM TB_APP_INT_REQ_TMARK T WHERE T.REF_ID = A.REF_ID)
+       END ETC_FILE
+     , C.OFFICE_TRANS_CONTENTS
+     , A.OFFICE_RCPT_DATE
+     , A.OFFICE_REF_NO
+     , A.OFFICE_REF_NO OFFICE_REF_NO_SPAN
+     , A.OFFICE_JOB_MAN
+     , FN_USER_NAME(A.OFFICE_JOB_MAN) OFFICE_JOB_MAN_NAME
+     , CASE WHEN A.OFFICE_RCPT_DATE IS NULL OR A.OFFICE_REF_NO IS NULL THEN '1' ELSE '0' END IS_EDITABLE
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+     , TB_APP_INT_CONSULT C
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.REF_ID = B.REF_ID(+)
+AND    A.REF_ID = C.REF_ID(+)
+AND    A.INOUT_DIV = 'INT'
+AND    A.OFFICE_CODE = {@$OFFICE_CODE}
+AND    A.OFFICE_CONTACT_YN = '1'
+AND    C.EXAM_RESULT = '1'
+AND    A.OFFICE_SEND_DATE IS NOT NULL
+]]></query>
+
+<!-- 국내출원의뢰접수 저장 -->
+<query name="/updateIntApplyReceipt"><![CDATA[
+UPDATE TB_APP_MST SET
+       OFFICE_RCPT_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , OFFICE_REF_NO    = {@OFFICE_REF_NO}
+     , OFFICE_JOB_MAN   = {@OFFICE_JOB_MAN}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

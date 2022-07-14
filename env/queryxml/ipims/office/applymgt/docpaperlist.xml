@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 신규요청현황 목록 조회 -->
+<query name="/retrieveRecentDocPaperList"><![CDATA[
+SELECT A.REF_ID
+     , A.LIST_SEQ
+     , B.REF_NO
+     , B.APP_NO
+     , FN_PAPER_NAME(A.PAPER_CODE) PAPER_NAME
+     , A.COMMENTS
+     , B.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.PAPER_DATE
+     , A.DUE_DATE
+     , B.OFFICE_CODE
+     , FN_OFFICE_NAME(B.OFFICE_CODE) AS OFFICE_CODE_NAME
+     , B.JOB_MAN
+     , FN_USER_NAME(B.JOB_MAN) AS JOB_MAN_NAME
+     , FN_PAPER_NAME(B.STATUS) STATUS_NAME
+FROM   TB_PAPER_LIST A
+     , TB_APP_MST B
+WHERE  A.REF_ID = B.REF_ID(+)
+AND    A.OFFICE_DISP_YN = '1'
+AND    B.OFFICE_CODE = {@$OFFICE_CODE}
+AND    B.OFFICE_RCPT_DATE IS NOT NULL
+AND    A.CONFIRM_DATE IS NULL
+AND    A.CRE_USER IN (SELECT USER_ID FROM TB_USR_MST WHERE SYSTEM_TYPE = 'PATENT')
+AND    (A.REF_ID, A.LIST_SEQ) IN (SELECT X.REF_ID, MAX(X.LIST_SEQ)
+                                  FROM   TB_PAPER_LIST X
+                                  GROUP BY X.REF_ID
+                                 )
+]]></query>
+<query name="/retrieveRecentDocPaperList/refNo"><![CDATA[
+AND    B.REF_NO LIKE '%'||{@REF_NO}||'%'
+]]></query>
+<query name="/retrieveRecentDocPaperList/inoutDiv"><![CDATA[
+AND    B.INOUT_DIV = {@INOUT_DIV}
+]]></query>
+<query name="/retrieveRecentDocPaperList/rightDiv"><![CDATA[
+AND    B.RIGHT_DIV = {@RIGHT_DIV}
+]]></query>
+
+<!-- 진행서류현황 목록 조회 -->
+<query name="/retrieveDocPaperList"><![CDATA[
+SELECT A.REF_ID
+     , A.LIST_SEQ
+     , B.REF_NO
+     , B.APP_NO
+     , FN_PAPER_NAME(A.PAPER_CODE) PAPER_NAME
+     , A.COMMENTS
+     , B.KO_APP_TITLE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.PAPER_DATE
+     , A.DUE_DATE
+     , B.OFFICE_CODE
+     , FN_USER_NAME(B.OFFICE_JOB_MAN) OFFICE_JOB_MAN_NAME
+     , B.JOB_MAN
+     , FN_USER_NAME(B.JOB_MAN) AS JOB_MAN_NAME
+     , FN_PAPER_NAME(B.STATUS) STATUS_NAME
+     , C.GRP_ID
+FROM   TB_PAPER_LIST A
+     , TB_APP_MST B
+     , TB_APP_MST_EXT C
+WHERE  A.REF_ID = B.REF_ID(+)
+AND    A.REF_ID = C.REF_ID(+)
+AND    A.OFFICE_DISP_YN = '1'
+AND    B.OFFICE_CODE = {@$OFFICE_CODE}
+AND    B.OFFICE_RCPT_DATE IS NOT NULL
+]]></query>
+<query name="/retrieveDocPaperList/refNo"><![CDATA[
+AND    B.REF_NO LIKE '%'||{@SR_NO_TEXT}||'%'
+]]></query>
+<query name="/retrieveDocPaperList/appNo"><![CDATA[
+AND    B.APP_NO LIKE '%'||{@SR_NO_TEXT}||'%'
+]]></query>
+<query name="/retrieveDocPaperList/regNo"><![CDATA[
+AND    B.REG_NO LIKE '%'||{@SR_NO_TEXT}||'%'
+]]></query>
+<query name="/retrieveDocPaperList/noticeNo"><![CDATA[
+AND    B.NOTICE_NO LIKE '%'||{@SR_NO_TEXT}||'%'
+]]></query>
+<query name="/retrieveDocPaperList/officeRefNo"><![CDATA[
+AND    B.OFFICE_REF_NO LIKE '%'||{@SR_NO_TEXT}||'%'
+]]></query>
+<query name="/retrieveDocPaperList/extOfficeRefNo"><![CDATA[
+AND    A.REF_ID IN (SELECT T.REF_ID
+                    FROM   TB_APP_MST_EXT T
+                    WHERE  UPPER(T.EXT_OFFICE_REF_NO) LIKE '%'||UPPER({@SR_NO_TEXT})||'%'
+                   )
+]]></query>
+<query name="/retrieveDocPaperList/inoutDiv"><![CDATA[
+AND    B.INOUT_DIV = {@INOUT_DIV}
+]]></query>
+<query name="/retrieveDocPaperList/rightDiv"><![CDATA[
+AND    B.RIGHT_DIV = {@RIGHT_DIV}
+]]></query>
+<query name="/retrieveDocPaperList/officeJobMan"><![CDATA[
+AND    B.OFFICE_JOB_MAN = {@OFFICE_JOB_MAN}
+]]></query>
+<query name="/retrieveDocPaperList/jobMan"><![CDATA[
+AND    B.JOB_MAN = {@JOB_MAN}
+]]></query>
+<query name="/retrieveDocPaperList/paperCode"><![CDATA[
+AND    A.PAPER_CODE = {@PAPER_CODE}
+]]></query>
+<query name="/retrieveDocPaperList/inputOwner"><![CDATA[
+AND    A.INPUT_OWNER = {@INPUT_OWNER}
+]]></query>
+<query name="/retrieveDocPaperList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveDocPaperList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+<query name="/retrieveDocPaperList/chkLast"><![CDATA[
+AND    (A.REF_ID, A.LIST_SEQ) IN (SELECT X.REF_ID, MAX(X.LIST_SEQ)
+                                  FROM   TB_PAPER_LIST X
+                                  WHERE  X.OFFICE_DISP_YN = '1'
+                                  {#chkLastDateQuery}
+                                  GROUP BY X.REF_ID
+                                 )
+]]></query>
+
+<!-- 분쟁/소송 진행서류현황 목록 조회 -->
+<query name="/retrieveDisputePaperList"><![CDATA[
+SELECT A.REF_ID
+     , A.LIST_SEQ
+     , B.MGT_NO
+     , B.DISPUTE_NO
+     , FN_PAPER_NAME(A.PAPER_CODE) PAPER_NAME
+     , B.DISPUTE_SUBJECT
+     , B.OTHER_NAME
+     , FN_COUNTRY_NAME(B.COUNTRY_CODE) COUNTRY_NAME
+     , A.PAPER_DATE
+     , FN_PAPER_NAME(B.STATUS) STATUS_NAME
+FROM   TB_PAPER_LIST A
+     , TB_IPB_DISPUTE B
+WHERE  A.REF_ID = B.DISPUTE_ID
+AND    A.OFFICE_DISP_YN = '1'
+AND    B.OFFICE_CODE = {@$OFFICE_CODE}
+AND    B.OFFICE_RCPT_DATE IS NOT NULL
+]]></query>
+<query name="/retrieveDisputePaperList/numText"><![CDATA[
+AND    UPPER({#NUM_KIND}) LIKE '%'||UPPER({@NUM_TEXT})||'%'
+]]></query>
+<query name="/retrieveDisputePaperList/countryCode"><![CDATA[
+AND    B.COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveDisputePaperList/otherName"><![CDATA[
+AND    B.OTHER_NAME = {@OTHER_NAME}
+]]></query>
+<query name="/retrieveDisputePaperList/paperCode"><![CDATA[
+AND    A.PAPER_CODE = {@PAPER_CODE}
+]]></query>
+<query name="/retrieveDisputePaperList/dateStart"><![CDATA[
+AND    {#DATE_KIND} >= {@DATE_START}
+]]></query>
+<query name="/retrieveDisputePaperList/dateEnd"><![CDATA[
+AND    {#DATE_KIND} <= {@DATE_END}
+]]></query>
+<query name="/retrieveDisputePaperList/disputeDiv"><![CDATA[
+AND    B.DISPUTE_DIV = {@DISPUTE_DIV}
+]]></query>
+
+</root>

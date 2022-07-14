@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 메일 목록 조회 -->
+<query name="/retrieveMailLogList"><![CDATA[
+SELECT A.MAIL_ID
+     , A.SUBJECT
+     , A.FROM_NAME
+     , (SELECT COUNT(1) FROM TB_MAIL_RECV T WHERE T.MAIL_ID = A.MAIL_ID) RECV_CNT
+     , {#codeData:B.STATUS:/systemmgt/mailStatus:B.STATUS} LAST_STATUS_NAME
+     , TO_CHAR(TO_DATE(A.CRE_DATE),'YYYY/MM/DD') || ' ' || TO_CHAR(TO_DATE(A.CRE_TIME, 'HH24MISS'), 'HH24:MI:SS') CRE_DATE_TIME
+FROM   TB_MAIL_MST A
+     , TB_MAIL_LOG B
+     , (SELECT MAIL_ID, MAX(LOG_SEQ) LOG_SEQ FROM TB_MAIL_LOG T1 GROUP BY MAIL_ID) C
+WHERE  A.MAIL_ID = B.MAIL_ID
+AND    B.MAIL_ID = C.MAIL_ID
+AND    B.LOG_SEQ = C.LOG_SEQ
+]]></query>
+<query name="/retrieveMailLogList/searchText"><![CDATA[
+AND    UPPER(A.{#SEARCH_KIND}) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+<query name="/retrieveMailLogList/dateStart"><![CDATA[
+AND    A.CRE_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveMailLogList/dateEnd"><![CDATA[
+AND    A.CRE_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveMailLogList/lastStatus"><![CDATA[
+AND    B.STATUS = {@LAST_STATUS}
+]]></query>
+<query name="/retrieveMailLogList/noRecv"><![CDATA[
+AND    EXISTS (SELECT 1 FROM TB_MAIL_RECV T WHERE T.MAIL_ID = A.MAIL_ID)
+]]></query>
+
+<!-- 메일 조회 -->
+<query name="/retrieveMailLog"><![CDATA[
+SELECT TO_CHAR(TO_DATE(CRE_DATE),'YYYY/MM/DD') || ' ' || TO_CHAR(TO_DATE(CRE_TIME, 'HH24MISS'), 'HH24:MI:SS') CRE_DATE_TIME
+     , SUBJECT
+     , FROM_NAME
+     , FROM_ADDR
+     , STATUS
+     , {#codeData:STATUS:/systemmgt/mailStatus:STATUS} STATUS_NAME
+FROM   TB_MAIL_MST A
+     , (SELECT STATUS
+        FROM   TB_MAIL_LOG
+        WHERE  MAIL_ID = {@MAIL_ID:NUMBER}
+        AND    LOG_SEQ = (SELECT MAX(LOG_SEQ) FROM TB_MAIL_LOG WHERE MAIL_ID = {@MAIL_ID:NUMBER})
+       ) B
+WHERE  MAIL_ID = {@MAIL_ID:NUMBER}
+]]></query>
+
+<!-- 메일 수신자 목록 조회 -->
+<query name="/retrieveMailLogRecvList"><![CDATA[
+SELECT RECV_SEQ
+     , RECV_TYPE
+     , RECV_NAME
+     , RECV_ADDR
+FROM   TB_MAIL_RECV
+WHERE  MAIL_ID = {@MAIL_ID:NUMBER}
+ORDER BY RECV_SEQ
+]]></query>
+
+<!-- 메일 발송로그 목록 조회 -->
+<query name="/retrieveMailSendLogList"><![CDATA[
+SELECT LOG_SEQ
+     , {#codeData:STATUS:/systemmgt/mailStatus:STATUS} STATUS_NAME
+     , TO_CHAR(TO_DATE(SND_DATE),'YYYY/MM/DD') || ' ' || TO_CHAR(TO_DATE(SND_TIME, 'HH24MISS'), 'HH24:MI:SS') SND_DATE_TIME
+     , SND_RESULT
+FROM   TB_MAIL_LOG
+WHERE  MAIL_ID = {@MAIL_ID:NUMBER}
+ORDER BY LOG_SEQ DESC
+]]></query>
+
+<!-- 메일 내용 조회 -->
+<query name="/retrieveMailLogBody"><![CDATA[
+SELECT BODY
+FROM   TB_MAIL_MST
+WHERE  MAIL_ID = {@MAIL_ID:NUMBER}
+]]></query>
+
+</root>

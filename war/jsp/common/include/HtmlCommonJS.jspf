@@ -1,0 +1,32 @@
+<%--<script type="text/javascript" charset="utf-8" src="<n:url/>/common/ui/jquery/jquery.js"></script>--%>
+<%--<script type="text/javascript">jQuery.migrateMute = true;</script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="<n:url/>/common/ui/jquery/jquery-migrate.js"></script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="<n:url/>/common/ui/jquery/ui/jquery-ui.js"></script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="<n:url/>/common/ui/clipboard.js/dist/clipboard.js"></script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="<n:url/><n:config path="/anyworks/ui/home"/>/anyworks.js"></script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="<n:url/>/common/ui/initialize.jsp"></script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="<n:url/>/common/ui/common.js"></script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="<n:url/>/common/ui/layout.js"></script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="<n:url/>/common/ui/controls.js"></script>--%>
+<%----%>
+<%--<script type="text/javascript" charset="utf-8" src="/JuSung_IPIMS/war/common/ui/jquery/jquery.js"></script>--%>
+<%--<script type="text/javascript">jQuery.migrateMute = true;</script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="/JuSung_IPIMS/war/common/ui/jquery/jquery-migrate.js"></script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="/JuSung_IPIMS/war/common/ui/jquery/ui/jquery-ui.js"></script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="/JuSung_IPIMS/war/common/ui/clipboard.js/dist/clipboard.js"></script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="/JuSung_IPIMS/war/common/ui/anyworks/anyworks.js"></script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="/JuSung_IPIMS/war/common/ui/initialize.jsp"></script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="/JuSung_IPIMS/war/common/ui/common.js"></script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="/JuSung_IPIMS/war/common/ui/layout.js"></script>--%>
+<%--<script type="text/javascript" charset="utf-8" src="/JuSung_IPIMS/war/common/ui/controls.js"></script>--%>
+<%----%>
+<script type="text/javascript" charset="utf-8" src="${pageContext.request.contextPath}/common/ui/jquery/jquery.js"></script>
+<script type="text/javascript">jQuery.migrateMute = true;</script>
+<script type="text/javascript" charset="utf-8" src="${pageContext.request.contextPath}/common/ui/jquery/jquery-migrate.js"></script>
+<script type="text/javascript" charset="utf-8" src="${pageContext.request.contextPath}/common/ui/jquery/ui/jquery-ui.js"></script>
+<script type="text/javascript" charset="utf-8" src="${pageContext.request.contextPath}/common/ui/clipboard.js/dist/clipboard.js"></script>
+<script type="text/javascript" charset="utf-8" src="${pageContext.request.contextPath}/common/ui/anyworks/anyworks.js"></script>
+<script type="text/javascript" charset="utf-8" src="${pageContext.request.contextPath}/common/ui/initialize.jsp"></script>
+<script type="text/javascript" charset="utf-8" src="${pageContext.request.contextPath}/common/ui/common.js"></script>
+<script type="text/javascript" charset="utf-8" src="${pageContext.request.contextPath}/common/ui/layout.js"></script>
+<script type="text/javascript" charset="utf-8" src="${pageContext.request.contextPath}/common/ui/controls.js"></script>

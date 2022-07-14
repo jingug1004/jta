@@ -1,0 +1,240 @@
+﻿<PUBLIC:COMPONENT tagName="SELECT" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="codeData" get="getCodeData" put="setCodeData">
+    <PUBLIC:PROPERTY name="codeData2" get="getCodeData" put="setCodeData2">
+    <PUBLIC:PROPERTY name="index" get="getIndex" put="setIndex">
+    <PUBLIC:PROPERTY name="value" get="getValue" put="setValue">
+    <PUBLIC:PROPERTY name="valueRow" get="getValueRow">
+    <PUBLIC:PROPERTY name="firstName">
+    <PUBLIC:PROPERTY name="text" get="getText">
+    <PUBLIC:METHOD name="reload">
+    <PUBLIC:METHOD name="setCodeDataObject">
+    <PUBLIC:METHOD name="addItem">
+    <PUBLIC:METHOD name="delItem">
+    <PUBLIC:METHOD name="clearAll">
+    <PUBLIC:METHOD name="focus">
+    <PUBLIC:EVENT name="OnReady" id="OnReadyEvent">
+    <PUBLIC:EVENT name="OnChange" id="OnChangeEvent">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var sel_main;
+var sel_main_id = "sel_" + element.id + "_" + element.sourceIndex;
+
+var myDiv;
+var myCodeData;
+var myIndex;
+var myValue;
+
+eval(function()
+{
+    if (element.document.media == "print") return;
+
+    if (element.style.width == "") {
+        element.style.width = "100%";
+    }
+
+    myDiv = element.document.createElement('<DIV>');
+    element.appendChild(myDiv);
+
+    myDiv.innerHTML = '<SELECT id="' + sel_main_id + '" style="width:100%;"></SELECT>';
+
+    sel_main = element.document.getElementById(sel_main_id);
+
+    sel_main.onchange = function()
+    {
+        OnChangeEvent.fire(element.document.createEventObject());
+    }
+})();
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    for (var i = 0, elements = element.getElementsByTagName("*"); i < elements.length; i++) {
+        if (elements[i].tagName == "SCRIPT" || elements[i].tagName == "COMMENT") eval(elements[i].text);
+    }
+
+    try {
+        OnReadyEvent.fire(element.document.createEventObject());
+    } catch(ex) {
+    }
+
+    element.isReady = true;
+}
+
+function getCodeData()
+{
+    return myCodeData;
+}
+
+function setCodeData(val)
+{
+    clearAll();
+
+    myCodeData = val;
+
+    if (element.document.media == "print") return;
+    if (element.document.readyState != "complete") return;
+
+    setCodeDataObject(any.getCodeData(myCodeData));
+}
+
+function setCodeData2(val)
+{
+    myCodeData = val;
+}
+
+function reload()
+{
+    if (myCodeData != null) setCodeData(myCodeData);
+}
+
+function setCodeDataObject(codeDatas)
+{
+    clearAll();
+
+    if (codeDatas == null) return;
+
+    var firstNode = any.getFirstNode(element.firstName);
+
+    if (firstNode != null) {
+        addItem(firstNode.CODE, firstNode.NAME, firstNode);
+    }
+
+    for (var i = 0; i < codeDatas.length; i++) {
+        addItem(codeDatas[i].data.CODE, any.getCodeName(codeDatas[i].data), codeDatas[i].data);
+    }
+
+    if (myValue == null) {
+        setIndex(myIndex);
+    } else {
+        setValue(myValue);
+        myValue = null;
+    }
+
+    if (element.readyState == "complete" && element.document.readyState == "complete") {
+        try {
+            OnChangeEvent.fire(element.document.createEventObject());
+        } catch(ex) {
+        }
+    }
+}
+
+function getIndex()
+{
+    if (sel_main == null) return -1;
+
+    return sel_main.options.selectedIndex;
+}
+
+function setIndex(val)
+{
+    if (val == null) return;
+
+    myIndex = val;
+
+    if (sel_main == null) return;
+
+    sel_main.options.selectedIndex = myIndex;
+
+    if (element.readyState == "complete" && element.document.readyState == "complete") {
+        OnChangeEvent.fire(element.document.createEventObject());
+    }
+}
+
+function getValue(rowIdx, colId)
+{
+    if (sel_main == null) return "";
+
+    if (rowIdx == null) rowIdx = sel_main.options.selectedIndex;
+
+    if (rowIdx == -1) return "";
+
+    if (colId == null) {
+        return sel_main.options[rowIdx].value;
+    }
+
+    return sel_main.options[rowIdx].data[colId];
+}
+
+function setValue(val)
+{
+    myValue = val;
+
+    if (sel_main == null) return;
+
+    sel_main.value = myValue;
+
+    if (sel_main.options.selectedIndex == -1 && element.firstName != null && element.firstName != "") {
+        sel_main.options.selectedIndex = 0;
+    }
+
+    if (element.readyState == "complete" && element.document.readyState == "complete") {
+        OnChangeEvent.fire(element.document.createEventObject());
+    }
+}
+
+function getValueRow(val)
+{
+    for (var i = 0; i < sel_main.options.length; i++) {
+        if (sel_main.options[i].value == val) return i;
+    }
+
+    return -1;
+}
+
+function getText()
+{
+    if (sel_main == null) return;
+    if (sel_main.options.selectedIndex == -1) return;
+
+    return sel_main.options[sel_main.options.selectedIndex].text;
+}
+
+function addItem(code, text, data)
+{
+    if (sel_main == null) return;
+
+    var opt = new Option(text, code);
+
+    opt.data = data;
+
+    sel_main.options.add(opt);
+}
+
+function delItem(val)
+{
+    if (sel_main == null) return;
+
+    var idx = -1;
+
+    if (typeof(val) == "number") {
+        idx = val;
+    } else {
+        for (var i = 0; i < sel_main.options.length; i++) {
+            if (sel_main.options[i].value != val) continue;
+            idx = i;
+            break;
+        }
+    }
+
+    if (idx == -1) return;
+
+    sel_main.options.remove(idx);
+}
+
+function clearAll()
+{
+    if (sel_main == null) return;
+
+    sel_main.options.length = 0;
+}
+
+function focus()
+{
+    sel_main.focus();
+}
+</SCRIPT>

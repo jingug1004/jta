@@ -1,0 +1,107 @@
+<%@page contentType="text/html; charset=utf-8" pageEncoding="UTF-8"%>
+<%@page import="anyfive.ipims.patent.common.app.PatentApp"%><% PatentApp app = new PatentApp(request, response, out); %>
+<% app.writeHTMLDocType(); %>
+<HTML XMLNS:ANY>
+<HEAD>
+<TITLE>선행조사 검색</TITLE>
+<% app.writeHTMLHeader(); %>
+<% app.writeHTCImport(app.HTC_GRID); %>
+<SCRIPT language="JScript">
+//윈도우 로딩시
+window.onready = function()
+{
+    if (parent.SEARCH_TEXT != null) {
+        txt_searchText.value = parent.SEARCH_TEXT;
+    }
+
+    cfShowObjects([btn_confirm], parent.multiCheck);
+
+    fnSearch();
+}
+
+//검색
+function fnSearch()
+{
+    var ldr = gr_prschList.loader;
+
+    ldr.init();
+    ldr.path = top.getRoot() + "/anyfive.ipims.patent.common.popup.search.act.RetrievePrschSearchList.do";
+    ldr.addParam("SEARCH_TEXT", txt_searchText.value);
+    ldr.addParam("PRSCH_DIV", parent.PRSCH_DIV);
+
+    ldr.onSuccess = function(gr, fg)
+    {
+        txt_searchText.focus();
+    }
+
+    ldr.onFail = function(gr, fg)
+    {
+        this.error.show();
+    }
+
+    ldr.execute();
+}
+
+//확인
+function fnConfirm()
+{
+    cfPopupSearchResult(parent, gr_prschList);
+}
+</SCRIPT>
+</HEAD>
+
+<BODY>
+
+<% app.writeBodyHeader(); %>
+
+<TABLE border="0" cellspacing="0" cellpadding="0" width="100%" height="100%">
+    <TR>
+        <TD>
+            <TABLE border="0" cellspacing="0" cellpadding="0" width="100%" onEnter="javascript:fnSearch();">
+                <TR>
+                    <TD><SPAN id="spn_gridMessage"></SPAN></TD>
+                    <TD align="right">의뢰번호
+                        <INPUT type="text" id="txt_searchText" style="width:150px;">
+                        <BUTTON auto="search" onClick="javascript:fnSearch();"></BUTTON>
+                    </TD>
+                </TR>
+            </TABLE>
+        </TD>
+    </TR>
+    <TR>
+        <TD height="5"></TD>
+    </TR>
+    <TR>
+        <TD height="100%">
+            <ANY:GRID id="gr_prschList" pagingType="1"><COMMENT>
+                addColumn({ width:30 , align:"center", type:"check" , sort:false, id:"ROW_CHK"          , hide:true });
+                addColumn({ width:120, align:"left"  , type:"string", sort:true , id:"PRSCH_NO"         , name:"의뢰번호" });
+                addColumn({ width:200, align:"left"  , type:"string", sort:true , id:"PRSCH_SUBJECT"    , name:"의뢰제목" });
+                addColumn({ width:90 , align:"center", type:"string", sort:true , id:"PRSCH_TYPE_NAME"  , name:"내/외부조사" });
+                addColumn({ width:100, align:"left"  , type:"string", sort:true , id:"BIZ_STATUS_NAME"  , name:"진행상태" });
+                messageSpan = "spn_gridMessage";
+                addSorting("PRSCH_NO", "ASC");
+
+                if (parent.multiCheck == true) {
+                    fg.ColHidden(fg.ColIndex("ROW_CHK")) = false;
+                } else {
+                    addAction("PRSCH_NO", fnConfirm);
+                }
+            </COMMENT></ANY:GRID>
+        </TD>
+    </TR>
+    <TR>
+        <TD height="5"></TD>
+    </TR>
+    <TR>
+        <TD align="right">
+            <BUTTON text="확인" onClick="javascript:fnConfirm();" id="btn_confirm" display="none"></BUTTON>
+            <BUTTON auto="close" id="btn_close"></BUTTON>
+        </TD>
+    </TR>
+</TABLE>
+
+<% app.writeBodyFooter(); %>
+
+</BODY>
+</HTML>

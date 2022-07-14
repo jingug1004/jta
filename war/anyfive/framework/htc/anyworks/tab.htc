@@ -1,0 +1,346 @@
+﻿<PUBLIC:COMPONENT tagName="TAB" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="button" get="getButton">
+    <PUBLIC:PROPERTY name="index" get="getIndex">
+    <PUBLIC:PROPERTY name="frameDiv" get="getFrameDiv" put="setFrameDiv">
+    <PUBLIC:PROPERTY name="showButton" get="getShowButton" put="setShowButton">
+    <PUBLIC:PROPERTY name="enableButton" get="getEnableButton" put="setEnableButton">
+    <PUBLIC:PROPERTY name="fullSize" value="false">
+    <PUBLIC:METHOD name="addButton">
+    <PUBLIC:METHOD name="resetAll">
+    <PUBLIC:METHOD name="goTab">
+    <PUBLIC:EVENT name="OnChange" id="OnChangeEvent">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var gButtons = new Array();
+var gIndex = -1;
+var gFrameDiv;
+
+var gTabImage;
+var gTabColor;
+var gBaseObj;
+
+eval(function()
+{
+    if (element.document.media == "print") return;
+
+    element.style.width = "100%";
+
+    gTabImage = {
+        blank : top.getRoot() + "/anyfive/framework/htc/anyworks/image/tab_blank.gif",
+        on : {
+            left   : top.getRoot() + "/anyfive/framework/htc/anyworks/image/tab_on_left.gif",
+            center : top.getRoot() + "/anyfive/framework/htc/anyworks/image/tab_on_center.gif",
+            right  : top.getRoot() + "/anyfive/framework/htc/anyworks/image/tab_on_right.gif"
+        },
+        off : {
+            left   : top.getRoot() + "/anyfive/framework/htc/anyworks/image/tab_off_left.gif",
+            center : top.getRoot() + "/anyfive/framework/htc/anyworks/image/tab_off_center.gif",
+            right  : top.getRoot() + "/anyfive/framework/htc/anyworks/image/tab_off_right.gif"
+        }
+    };
+
+    gTabColor = { on:"#333333", off:"#777777" };
+
+    makeControl();
+})();
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    for (var i = 0, elements = element.getElementsByTagName("*"); i < elements.length; i++) {
+        if (elements[i].tagName == "SCRIPT" || elements[i].tagName == "COMMENT") eval(elements[i].text);
+    }
+
+    element.isReady = true;
+}
+
+function makeControl()
+{
+    var tbl, tbd;
+    var tr, td;
+
+    tbl = element.document.createElement('<TABLE border="0" cellspacing="0" cellpadding="0" width="100%" height="100%">');
+    element.appendChild(tbl);
+
+    tbd = element.document.createElement('<TBODY>');
+    tbd.onselectstart = function() { return false; }
+    tbl.appendChild(tbd);
+
+    tr = element.document.createElement('<TR>');
+    tbd.appendChild(tr);
+
+    td = element.document.createElement('<TD>');
+    td.background = gTabImage.blank;
+    tr.appendChild(td);
+
+    gBaseObj = { tbl:tbl, tbd:tbd, tr:tr };
+
+    tbl = element.document.createElement('<TABLE border="0" cellspacing="0" cellpadding="0">');
+    td.appendChild(tbl);
+
+    tbd = element.document.createElement('<TBODY>');
+    tbl.appendChild(tbd);
+
+    tbd.onclick = function()
+    {
+        if (event.srcElement.button == null) return;
+        if (event.srcElement.button.index == gIndex) return;
+
+        goTab(event.srcElement.button.index);
+    }
+
+    tr = element.document.createElement('<TR>');
+    tr.height = "23px";
+    tbd.appendChild(tr);
+
+    gBaseObj.button = tr;
+
+    td = element.document.createElement('<TD>');
+    td.background = gTabImage.blank;
+    td.width = "4px";
+    tr.appendChild(td);
+
+    tr = element.document.createElement('<TR>');
+    gBaseObj.tbd.appendChild(tr);
+
+    td = element.document.createElement('<TD>');
+    td.height = "2px";
+    tr.appendChild(td);
+
+    makeFrameDiv();
+}
+
+function makeFrameDiv()
+{
+    if (gFrameDiv != null) return;
+
+    var tr, td;
+
+    tr = element.document.createElement('<TR>');
+    gBaseObj.tbd.appendChild(tr);
+
+    td = element.document.createElement('<TD>');
+    td.height = "100%";
+    tr.appendChild(td);
+
+    gFrameDiv = element.document.createElement('<DIV>');
+    td.appendChild(gFrameDiv);
+}
+
+function getButton(val)
+{
+    if (val == null) {
+        if (gIndex != -1) return gButtons[gIndex];
+    } else {
+        if (typeof(val) == "number") {
+            return gButtons[val];
+        }
+        return gButtons[getIndex(val)];
+    }
+
+    return null;
+}
+
+function getIndex(id)
+{
+    if (id == null) return gIndex;
+
+    for (var i = 0; i < gButtons.length; i++) {
+        if (gButtons[i].id == id) return i;
+    }
+
+    return -1;
+}
+
+function getFrameDiv()
+{
+    return gFrameDiv;
+}
+
+function setFrameDiv(val)
+{
+    var div;
+
+    if (typeof(val) == "string") {
+        div = element.document.getElementById(val);
+    } else {
+        div = val;
+    }
+
+    if (div == null) {
+        makeFrameDiv();
+    } else {
+        gFrameDiv = div;
+    }
+}
+
+function getShowButton(val)
+{
+    var btn = getButton(val);
+
+    return (btn != null && btn.td.center.style.display != "none");
+}
+
+function setShowButton(val, show)
+{
+    var btn = getButton(val);
+
+    if (btn != null) btn.td.left.style.display = btn.td.center.style.display = btn.td.right.style.display = (show == true ? "" : "none");
+}
+
+function getEnableButton(val)
+{
+    var btn = getButton(val);
+
+    return (btn != null && btn.td.center.disabled != true);
+}
+
+function setEnableButton(val, enable)
+{
+    var btn = getButton(val);
+
+    if (btn != null) btn.td.left.disabled = btn.td.center.disabled = btn.td.right.disabled = !enable;
+}
+
+function addButton(btn)
+{
+    if (element.document.media == "print") return;
+
+    var td;
+
+    btn.td = {};
+
+    td = element.document.createElement('<TD>');
+    td.button = btn;
+    td.background = gTabImage.off.left;
+    td.width = "4px";
+    td.style.cursor = "default";
+    td.vAlign = "bottom";
+    td.innerHTML = '<IMG src="' + top.getRoot() + '/anyfive/framework/img/blank.gif" width="4px" height="1px">';
+    gBaseObj.button.appendChild(td);
+
+    btn.td.left = td;
+
+    td = element.document.createElement('<TD>');
+    td.button = btn;
+    td.background = gTabImage.off.center;
+    td.align = "center";
+    td.noWrap = true;
+    td.style.cursor = "default";
+    td.style.paddingLeft = "8px";
+    td.style.paddingRight = "8px";
+    td.style.fontWeight = "bold";
+    td.style.color = gTabColor.off;
+    td.innerText = btn.name;
+    gBaseObj.button.appendChild(td);
+
+    btn.td.center = td;
+
+    td = element.document.createElement('<TD>');
+    td.button = btn;
+    td.background = gTabImage.off.right;
+    td.width = "4px";
+    td.style.cursor = "default";
+    td.vAlign = "bottom";
+    td.innerHTML = '<IMG src="' + top.getRoot() + '/anyfive/framework/img/blank.gif" width="4px" height="1px">';
+    gBaseObj.button.appendChild(td);
+
+    btn.td.right = td;
+
+    if (btn.src != null) {
+        if (typeof(btn.src) == "string") {
+            btn.object = element.document.getElementById(btn.src);
+        } else {
+            btn.object = btn.src;
+        }
+
+        if (btn.object == null) {
+            btn.path = btn.src;
+            btn.object = element.document.createElement('<DIV style="display:none;">');
+            gFrameDiv.appendChild(btn.object);
+        } else {
+            btn.object.style.display = "none";
+        }
+    }
+
+    btn.index = gButtons.length;
+
+    gButtons.push(btn);
+}
+
+function resetAll()
+{
+    if (gButtons == null) return;
+
+    for (var i = 0; i < gButtons.length; i++) {
+        if (gButtons[i].object == null) continue;
+        gButtons[i].object.innerHTML = ''
+    }
+}
+
+function goTab(val)
+{
+    var idx;
+
+    if (val == null) {
+        val = (gIndex == -1 ? 0 : gIndex);
+    }
+
+    if (typeof(val) == "string") {
+        idx = getIndex(val);
+    } else {
+        idx = val;
+    }
+
+    var btn = gButtons[idx];
+
+    if (btn == null) return;
+
+    if (btn.td.center.disabled == true) {
+        if (btn.path != null) btn.object.innerHTML = '<IFRAME src="" frameborder="no" scrolling="no" width="100%" height="100%"></IFRAME>';
+        return;
+    }
+
+    onOffTab(gIndex, "off");
+    onOffTab(idx, "on");
+
+    gIndex = idx;
+
+    OnChangeEvent.fire(element.document.createEventObject());
+
+    function onOffTab(idx, state)
+    {
+        var btn = gButtons[idx];
+        var ifrId;
+
+        if (btn == null) return;
+
+        btn.td.left.background    = gTabImage[state].left;
+        btn.td.center.background  = gTabImage[state].center;
+        btn.td.right.background   = gTabImage[state].right;
+        btn.td.center.style.color = gTabColor[state];
+
+        if (btn.object == null) return;
+
+        if (state == "on") {
+            btn.object.style.display = "block";
+            if (btn.path != null) {
+                ifrId = "ifr_tabFrame_" + element.id + "_" + btn.index;
+                if (btn.reload == true || element.document.getElementById(ifrId) == null) {
+                    btn.object.innerHTML = '<IFRAME id="' + ifrId + '" name="' + ifrId + '" src="' + btn.path + '" frameborder="no" scrolling="no" width="100%" height="100%" pageType="tabframe" fullSize="' + element.fullSize + '"></IFRAME>';
+                }
+            }
+        } else {
+            btn.object.style.display = "none";
+            if (btn.path != null && btn.reload == true) {
+                btn.object.innerHTML = '';
+            }
+        }
+    }
+}
+</SCRIPT>

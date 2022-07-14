@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 상품류  맵핑목록 조회 -->
+<query name="/retrieveTMarkClsList"><![CDATA[
+SELECT TMARK_CLS_CODE
+     , TMARK_CLS_CODE || '류' TMARK_CLS_NAME
+FROM   TB_MAPP_TMARK_CLS A
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.MAPP_DIV = {@MAPP_DIV}
+ORDER BY TO_NUMBER(TMARK_CLS_CODE)
+]]></query>
+
+<!-- 상품류  맵핑 생성 -->
+<query name="/createTMarkCls"><![CDATA[
+INSERT INTO TB_MAPP_TMARK_CLS (
+       REF_ID
+     , MAPP_DIV
+     , TMARK_CLS_CODE
+) VALUES (
+       {@REF_ID}
+     , {@MAPP_DIV}
+     , {@TMARK_CLS_CODE}
+)
+]]></query>
+
+<!-- 상품류  맵핑목록 전체 삭제 -->
+<query name="/deleteTMarkClsListAll"><![CDATA[
+DELETE FROM TB_MAPP_TMARK_CLS
+WHERE  REF_ID = {@REF_ID}
+AND    MAPP_DIV = {@MAPP_DIV}
+]]></query>
+
+<!-- 상품류 목록 복제 -->
+<query name="/duplicateTMarkClsList"><![CDATA[
+INSERT INTO TB_MAPP_TMARK_CLS (
+       REF_ID
+     , MAPP_DIV
+     , TMARK_CLS_CODE
+)
+SELECT {@NEW_REF_ID}
+     , {@NEW_MAPP_DIV}
+     , TMARK_CLS_CODE
+FROM   TB_MAPP_TMARK_CLS
+WHERE  REF_ID = {@OLD_REF_ID}
+AND    MAPP_DIV = {@OLD_MAPP_DIV}
+]]></query>
+
+</root>

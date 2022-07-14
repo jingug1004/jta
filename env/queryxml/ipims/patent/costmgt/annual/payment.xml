@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 연차료 납부관리 목록 -->
+<query name="/retrieveAnnualPaymentList"><![CDATA[
+SELECT distinct B.COST_SEQ
+     , D.REF_ID
+     , D.REF_NO
+     , D.INOUT_DIV
+     , D.KO_APP_TITLE
+     , FN_COM_CODE_NAME('RIGHT_DIV', D.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_OFFICE_NAME(D.OFFICE_CODE) OFFICE_NAME
+     , FN_OFFICE_NAME(G.EXT_OFFICE_CODE) AS EXT_OFFICE_NAME
+     , NVL(B.PAY_YEARDEG, A.PAY_YEARDEG) AS PAY_YEARDEG
+     , B.PAY_LIMIT
+     , C.PRICE
+     , C.INT_OFFICE_CHARGE
+     , C.EXT_OFFICE_CHARGE
+     , D.APP_NO
+     , D.APP_DATE
+     , D.REG_NO
+     , D.REG_DATE
+     , FN_APP_MAN_NAME(D.COSTSHARE_OWNER) COSTSHARE_OWNER_NAME
+     , D.COUNTRY_CODE
+     , F.INDEP_CLAIM
+     , F.SUBORD_CLAIM
+     , A.TOTAL_CLAIM
+     , A.CRE_USER
+     , FN_APP_MAN_LIST(DECODE(D.COUNTRY_CODE, 'KR', A.REF_ID,  G.GRP_ID)) APP_MAN_NAME
+     , C.DETAIL_CODE
+FROM   TB_COST_REMINDER A
+     , TB_COST_MST_ANNUAL B
+     , TB_COST_MST C
+     , TB_APP_MST D
+     , TB_APP_MST_INT F
+     , TB_APP_MST_EXT G
+WHERE  A.REF_ID = B.REF_ID(+)
+AND    A.REF_ID = F.REF_ID(+)
+AND    A.REF_ID = G.REF_ID(+)
+AND    A.PAY_YEARDEG = B.PAY_YEARDEG(+)
+AND    B.COST_SEQ = C.COST_SEQ(+)
+AND    A.REF_ID = D.REF_ID
+AND    A.KEEP_YN = '1'
+AND    A.EVAL_END_YN = '1'
+AND    C.CONSULT_ID IS NULL
+]]></query>
+<query name="/retrieveAnnualPaymentList/rightDiv"><![CDATA[
+AND    D.RIGHT_DIV = {@RIGHT_DIV}
+]]></query>
+<query name="/retrieveAnnualPaymentList/annualDiv"><![CDATA[
+AND    D.INOUT_DIV = {@ANNUAL_DIV}
+]]></query>
+<query name="/retrieveAnnualPaymentList/searchText"><![CDATA[
+AND    {#SEARCH_TYPE} LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrieveAnnualPaymentList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveAnnualPaymentList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+<query name="/retrieveAnnualPaymentList/koAppTitle"><![CDATA[
+AND    UPPER(D.KO_APP_TITLE) LIKE '%'||UPPER({@KO_APP_TITLE})||'%'
+]]></query>
+
+<!-- 비용 마스터 생성 -->
+<query name="/createCostMaster"><![CDATA[
+INSERT INTO TB_COST_MST (
+       COST_SEQ
+     , MST_DIV
+     , COST_KIND
+     , REF_ID
+     , GRAND_CODE
+     , DETAIL_CODE
+     , OFFICE_CODE
+     , WON_PRICE
+     , PRICE
+     , INT_OFFICE_CHARGE
+     , EXT_OFFICE_CHARGE
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@COST_SEQ}
+     , 'A'
+     , '7'
+     , A.REF_ID
+     , '29'
+     , DECODE(LENGTH({@연차납부코드}), 1, '000', 2, '00', 3, '0') || {@연차납부코드}
+     , {@OFFICE_CODE}
+     , {@관납료}
+     , {@관납료}
+     , {@수수료}
+     , {@송금수수료}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_MST A
+WHERE  REF_NO = {@REF-NO}
+AND    EXISTS (SELECT 1
+               FROM   TB_COST_REMINDER X
+               WHERE  X.REF_ID = A.REF_ID
+               AND    X.PAY_YEARDEG = {@납부년차}
+               AND    X.KEEP_YN = '1'
+               AND    X.EVAL_END_YN = '1'
+              )
+AND    NOT EXISTS (SELECT 1
+                   FROM   TB_COST_MST_ANNUAL X
+                   WHERE  X.REF_ID = A.REF_ID
+                   AND    X.PAY_YEARDEG = {@납부년차}
+                  )
+]]></query>
+
+<!-- 연차료 비용 생성 -->
+<query name="/createAnnualPayment"><![CDATA[
+INSERT INTO TB_COST_MST_ANNUAL (
+       COST_SEQ
+     , REF_ID
+     , PAY_YEARDEG
+     , PAY_LIMIT
+     , REQ_DATE
+) VALUES (
+       {@COST_SEQ}
+     , (SELECT REF_ID FROM TB_APP_MST WHERE REF_NO = {@REF-NO})
+     , {@납부년차}
+     , {@납부기한}
+     , {@REQ_DATE}
+)
+]]></query>
+
+<!-- 비용 마스터 수정 -->
+<query name="/updateCostMaster"><![CDATA[
+UPDATE TB_COST_MST A SET
+       OFFICE_CODE = {@OFFICE_CODE}
+     , WON_PRICE = {@관납료}
+     , PRICE = {@관납료}
+     , INT_OFFICE_CHARGE = {@수수료}
+     , EXT_OFFICE_CHARGE = {@송금수수료}
+     , UPD_USER = {@$USER_ID}
+     , UPD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  COST_SEQ = (SELECT COST_SEQ
+                   FROM   TB_COST_MST_ANNUAL
+                   WHERE  REF_ID = (SELECT REF_ID FROM TB_APP_MST WHERE REF_NO = {@REF-NO})
+                   AND    PAY_YEARDEG = {@납부년차}
+                  )
+AND    CONSULT_ID IS NULL
+]]></query>
+
+<!-- 연차료 비용 수정 -->
+<query name="/updateAnnualPayment"><![CDATA[
+UPDATE TB_COST_MST_ANNUAL SET
+       REQ_DATE = {@REQ_DATE}
+WHERE  REF_ID = (SELECT REF_ID FROM TB_APP_MST WHERE REF_NO = {@REF-NO})
+AND    PAY_YEARDEG = {@납부년차}
+]]></query>
+
+
+<!-- 수수료비용 마스터 생성 -->
+<query name="/createOfficeChargeMaster"><![CDATA[
+INSERT INTO TB_COST_MST (
+       COST_SEQ
+     , MST_DIV
+     , COST_KIND
+     , REF_ID
+     , GRAND_CODE
+     , DETAIL_CODE
+     , OFFICE_CODE
+     , WON_PRICE
+     , PRICE
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@COST_SEQ}
+     , 'A'
+     , '7'
+     , A.REF_ID
+     , '29'
+     , '0034'
+     , {@OFFICE_CODE}
+     , {@수수료}
+     , {@수수료}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_MST A
+WHERE  REF_NO = {@REF-NO}
+]]></query>
+
+<!-- 해외송금수수료 마스터 생성 -->
+<query name="/createExtChargeMaster"><![CDATA[
+INSERT INTO TB_COST_MST (
+       COST_SEQ
+     , MST_DIV
+     , COST_KIND
+     , REF_ID
+     , GRAND_CODE
+     , DETAIL_CODE
+     , OFFICE_CODE
+     , WON_PRICE
+     , PRICE
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@COST_SEQ}
+     , 'A'
+     , '7'
+     , A.REF_ID
+     , '22'
+     , '0014'
+     , {@OFFICE_CODE}
+     , {@송금수수료}
+     , {@송금수수료}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_MST A
+WHERE  REF_NO = {@REF-NO}
+]]></query>
+
+<!-- 관납비용 마스터 수정 -->
+<query name="/updatePriceCostMaster"><![CDATA[
+UPDATE TB_COST_MST  SET
+       OFFICE_CODE = {@OFFICE_CODE}
+     , WON_PRICE =  {@관납료}
+     , PRICE =  {@관납료}
+     , UPD_USER = {@$USER_ID}
+     , UPD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , INT_OFFICE_CHARGE = {@수수료}
+     , EXT_OFFICE_CHARGE = {@송금수수료}
+WHERE  COST_SEQ = (SELECT COST_SEQ
+                   FROM   TB_COST_MST_ANNUAL
+                   WHERE  REF_ID = (SELECT REF_ID FROM TB_APP_MST WHERE REF_NO = {@REF-NO})
+                   AND    PAY_YEARDEG = {@납부년차}
+                  )
+AND    CONSULT_ID IS NULL
+]]></query>
+
+<!-- 수수료비용 마스터 수정 -->
+<query name="/updateOfficeChargeMaster"><![CDATA[
+UPDATE TB_COST_MST  SET
+       OFFICE_CODE = {@OFFICE_CODE}
+     , WON_PRICE = {@수수료}
+     , PRICE = {@수수료}
+     , UPD_USER = {@$USER_ID}
+     , UPD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  COST_SEQ = (SELECT COST_SEQ + 1
+                   FROM   TB_COST_MST_ANNUAL
+                   WHERE  REF_ID = (SELECT REF_ID FROM TB_APP_MST WHERE REF_NO = {@REF-NO})
+                   AND    PAY_YEARDEG = {@납부년차}
+                  )
+AND    CONSULT_ID IS NULL
+]]></query>
+
+<!-- 해외송금비용 마스터 수정 -->
+<query name="/updateExtChargeMaster"><![CDATA[
+UPDATE TB_COST_MST  SET
+       OFFICE_CODE = {@OFFICE_CODE}
+     , WON_PRICE = {@송금수수료}
+     , PRICE = {@송금수수료}
+     , UPD_USER = {@$USER_ID}
+     , UPD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  COST_SEQ = (SELECT COST_SEQ + 2
+                   FROM   TB_COST_MST_ANNUAL
+                   WHERE  REF_ID = (SELECT REF_ID FROM TB_APP_MST WHERE REF_NO = {@REF-NO})
+                   AND    PAY_YEARDEG = {@납부년차}
+                  )
+AND    CONSULT_ID IS NULL
+]]></query>
+
+<!-- 총항수 생성
+<query name="/createCostReminde"><![CDATA[
+INSERT INTO TB_COST_REMINDER (
+       REF_ID
+     , TOTAL_CLAIM
+) VALUES (
+       {@REF_ID}
+     , {@총항수}
+)
+]]></query>
+-->
+<!--총항수  수정 -->
+<query name="/updateCostReminde"><![CDATA[
+UPDATE TB_COST_REMINDER  SET
+       TOTAL_CLAIM = {@총항수}
+WHERE  REF_ID = (SELECT REF_ID FROM TB_APP_MST WHERE REF_NO = {@REF-NO})
+]]></query>
+
+
+</root>

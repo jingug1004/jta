@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 자사특허 검색 임시데이터 생성 -->
+<query name="/createOurSearchTempList"><![CDATA[
+INSERT INTO TB_SEARCH_LIST (
+       WORK_ID
+     , REF_ID
+) VALUES (
+       {@WORK_ID}
+     , {@REF_ID}
+)
+]]></query>
+
+<!-- 자사특허 검색 임시데이터 삭제 -->
+<query name="/deleteOurSearchTempList"><![CDATA[
+DELETE TB_SEARCH_LIST
+WHERE  WORK_ID = {@WORK_ID}
+]]></query>
+
+<query name="/retrieveOurSearchList"><![CDATA[
+SELECT B.REF_ID
+     , A.KO_APP_TITLE
+     , A.APP_NO
+     , A.REG_NO
+     , A.PAT_APP_NO
+     , FN_STATE_NAMES(A.APP_NO, A.REG_NO, A.ABD_YN) AS STATUS_NAME
+     , FN_INVENTOR_NAMES(A.REF_ID) INV_NAMES
+     , C.ABSTRACT
+     , A.IPC_CLS_CODE
+     , TO_CHAR(TO_DATE(A.APP_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') APP_DATE
+     , TO_CHAR(TO_DATE(A.REG_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') REG_DATE
+     , (SELECT T1.FILE_ID
+        FROM   TB_COM_FILE T1
+        WHERE  T1.FILE_SEQ = (SELECT MIN(FILE_SEQ) FROM TB_COM_FILE X WHERE X.FILE_ID = A.APPDOC_FILE)
+        AND    T1.FILE_ID = A.APPDOC_FILE
+       ) FILE_ID
+     , (SELECT T1.FILE_SEQ
+        FROM   TB_COM_FILE T1
+        WHERE  T1.FILE_SEQ = (SELECT MIN(FILE_SEQ) FROM TB_COM_FILE X WHERE X.FILE_ID = A.APPDOC_FILE)
+        AND    T1.FILE_ID = A.APPDOC_FILE
+       ) FILE_SEQ
+     , (SELECT T1.FILE_NAME_ORG
+        FROM   TB_COM_FILE T1
+        WHERE  T1.FILE_SEQ = (SELECT MIN(FILE_SEQ) FROM TB_COM_FILE X WHERE X.FILE_ID = A.APPDOC_FILE)
+        AND    T1.FILE_ID = A.APPDOC_FILE
+       ) FILE_NAME_ORG
+FROM   TB_APP_MST A
+     , TB_SEARCH_LIST B
+     , TB_APP_ABSTRACT C
+WHERE B.WORK_ID = {@WORK_ID}
+AND   A.REF_ID = B.REF_ID
+AND   A.REF_ID = C.REF_ID(+)
+]]></query>
+
+<!-- <query name="/retrieveOurSearchList"><![CDATA[
+SELECT B.REF_ID
+     , A.KO_APP_TITLE
+     , A.APP_NO
+     , A.REG_NO
+     , FN_STATE_NAMES(A.APP_NO, A.REG_NO, A.ABD_YN) AS STATUS_NAME
+     , FN_INVENTOR_NAMES(A.REF_ID) INV_NAMES
+     , C.ABSTRACT
+     , A.IPC_CLS_CODE
+     , (SELECT T1.FILE_ID
+        FROM   TB_COM_FILE T1
+        WHERE  T1.FILE_ID = A.DRAWING_FILE
+        AND    T1.FILE_SEQ = (SELECT MIN(FILE_SEQ) FROM TB_COM_FILE X WHERE X.FILE_ID = T1.FILE_ID)
+       ) FILE_ID
+     , (SELECT T1.FILE_SEQ
+        FROM   TB_COM_FILE T1
+        WHERE  T1.FILE_ID = A.DRAWING_FILE
+        AND    T1.FILE_SEQ = (SELECT MIN(FILE_SEQ) FROM TB_COM_FILE X WHERE X.FILE_ID = T1.FILE_ID)
+       ) FILE_SEQ
+     , (SELECT T2.FILE_NAME_ORG
+        FROM   TB_COM_FILE T2
+        WHERE  T2.FILE_ID = A.DRAWING_FILE
+        AND    T2.FILE_SEQ = (SELECT MIN(FILE_SEQ) FROM TB_COM_FILE X WHERE X.FILE_ID = T2.FILE_ID)
+       ) FILE_NAME_ORG
+FROM   TB_APP_MST A
+     , TB_SEARCH_LIST B
+     , TB_APP_ABSTRACT C
+WHERE B.WORK_ID = {@WORK_ID}
+AND   A.REF_ID = B.REF_ID
+AND   A.REF_ID = C.REF_ID(+)
+]]> -->
+
+</root>

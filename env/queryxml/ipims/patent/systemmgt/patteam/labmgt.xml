@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+<!-- 연구소정보관리 목록 조회 -->
+<query name="/retrieveLabMgtList"><![CDATA[
+SELECT LAB_CODE
+     , LAB_NAME
+     , FN_USER_NAME(LAB_CHIEF) LAB_CHIEF_NAME
+     , FN_COM_CODE_NAME('USE_YN', USE_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) USE_YN_NAME
+FROM   TB_ORG_LAB
+WHERE  1=1
+]]></query>
+<query name="/retrieveLabMgtList/searchLabCode"><![CDATA[
+AND    UPPER(LAB_CODE) LIKE '%'||UPPER({@LAB_CODE})||'%'
+]]></query>
+<query name="/retrieveLabMgtList/searchLabName"><![CDATA[
+AND    UPPER(LAB_NAME) LIKE '%'||UPPER({@LAB_NAME})||'%'
+]]></query>
+
+<!-- 연구소정보관리 생성 -->
+<query name="/createLabMgt"><![CDATA[
+INSERT INTO TB_ORG_LAB (
+       LAB_CODE
+     , LAB_NAME
+     , LAB_CHIEF
+     , USE_YN
+     , REMARK
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@LAB_CODE}
+     , {@LAB_NAME}
+     , {@LAB_CHIEF}
+     , {@USE_YN}
+     , {@REMARK}
+     , {@CRE_USER}
+     , TO_CHAR(sysdate, 'yyyymmdd')
+FROM   DUAL
+WHERE  NOT EXISTS (SELECT 1
+                   FROM   TB_ORG_LAB
+                   WHERE  LAB_CODE = {@LAB_CODE}
+                  )
+]]></query>
+
+<!-- 연구소정보관리  조회 -->
+<query name="/retrieveLabMgt"><![CDATA[
+SELECT LAB_CODE
+     , LAB_NAME
+     , LAB_CHIEF AS USER_ID
+     , (SELECT EMP_NO
+        FROM   TB_USR_PATENT
+        WHERE  USER_ID = LAB_CHIEF) EMP_NO
+     , FN_USER_NAME(LAB_CHIEF) EMP_HNAME
+     , USE_YN
+     , REMARK
+FROM   TB_ORG_LAB
+WHERE  LAB_CODE = {@LAB_CODE}
+]]></query>
+
+<!-- 연구소정보관리  수정 -->
+<query name="/updateLabMgt"><![CDATA[
+UPDATE TB_ORG_LAB SET
+       LAB_NAME  = {@LAB_NAME}
+     , LAB_CHIEF = {@LAB_CHIEF}
+     , USE_YN    = {@USE_YN}
+     , REMARK    = {@REMARK}
+     , UPD_USER  = {@UPD_USER}
+     , UPD_DATE  = TO_CHAR(sysdate, 'yyyymmdd')
+WHERE  LAB_CODE  = {@LAB_CODE}
+]]></query>
+
+<!-- 연구소정보관리  삭제 -->
+<query name="/deleteLabMgt"><![CDATA[
+DELETE FROM TB_ORG_LAB
+WHERE  LAB_CODE  = {@LAB_CODE}
+]]></query>
+
+</root>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 조사의뢰품의 목록 조회 -->
+<query name="/retrievePriorSearchConsultList"><![CDATA[
+SELECT A.PRSCH_ID
+     , B.PRSCH_NO
+     , FN_USER_NAME(B.REQ_USER) REQ_USER_NAME
+     , FN_COM_CODE_NAME('PRSCH_DIV', B.PRSCH_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) PRSCH_DIV_NAME
+     , B.PRSCH_SUBJECT
+     , B.CRE_DATE
+     , B.REQ_DATE
+     , A.OFFICE_RCPT_DATE
+     , C.INFORM_DATE
+     , FN_BIZ_CODE_NAME(Z.STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) BIZ_STATUS_NAME
+     , A.JOB_MAN
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , A.EXAM_RESULT
+FROM   TB_APP_PRSCH_CONSULT A
+     , TB_APP_PRSCH_REQ B
+     , TB_APP_PRSCH_RESULT C
+     , TB_BIZ_COM_MST Z
+WHERE  A.PRSCH_ID = B.PRSCH_ID(+)
+AND    A.PRSCH_ID = C.PRSCH_ID(+)
+AND    A.PRSCH_ID = Z.REF_ID(+)
+AND    A.JOB_MAN IS NOT NULL
+]]></query>
+<query name="/retrievePriorSearchConsultList/reqUser"><![CDATA[
+AND    FN_USER_NAME(B.REQ_USER) LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrievePriorSearchConsultList/jobMan"><![CDATA[
+AND    FN_USER_NAME(A.JOB_MAN) LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrievePriorSearchConsultList/prschNo"><![CDATA[
+AND    B.PRSCH_NO LIKE '%'||{@PRSCH_NO}||'%'
+]]></query>
+<query name="/retrievePriorSearchConsultList/prschSubject"><![CDATA[
+AND    B.PRSCH_SUBJECT LIKE '%'||{@PRSCH_SUBJECT}||'%'
+]]></query>
+<query name="/retrievePriorSearchConsultList/dateStart"><![CDATA[
+AND    B.{#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrievePriorSearchConsultList/dateEnd"><![CDATA[
+AND    B.{#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+<query name="/retrievePriorSearchConsultList/bizStatus"><![CDATA[
+AND    Z.STATUS  = {@BIZ_STATUS}
+]]></query>
+<query name="/retrievePriorSearchConsultList/prschDiv"><![CDATA[
+AND    B.PRSCH_DIV = {@PRSCH_DIV}
+]]></query>
+
+<!-- 조사의뢰품의 조회 -->
+<query name="/retrievePriorSearchConsult"><![CDATA[
+SELECT A.PRSCH_ID
+     , B.PRSCH_NO
+     , FN_COM_CODE_NAME('PRSCH_DIV', B.PRSCH_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) PRSCH_DIV_NAME
+     , B.PRSCH_DIV
+     , B.PRSCH_SUBJECT
+     , B.PRSCH_GOAL
+     , A.JOB_MAN
+     , B.PRSCH_REQ_CONTENTS
+     , B.REQ_USER
+     , B.REQ_DATE
+     , B.ATTACH_FILE AS ATTACH_FILE_REQ
+     , B.APPR_NO
+     , FN_USER_NAME(B.CRE_USER) CRE_USER_NAME
+     , B.CRE_DATE
+     , A.UPD_USER
+     , A.UPD_DATE
+     , D.DEPT_NAME
+     , FN_USER_NAME(A.JOB_MAN) JOB_MAN_NAME
+     , A.EXAM_RESULT
+     , A.EXAM_OPINION
+     , A.PRSCH_TYPE
+     , A.ATTACH_FILE AS ATTACH_FILE_CONSULT
+     , A.OFFICE_CONTACT
+     , A.OFFICE_CODE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , DECODE(C.PRSCH_ID, NULL,'0', '1') PRSCH_RESULT_INPUT_YN
+     , C.PRSCH_RESULT
+     , C.RESULT_FILE
+     , C.INFORM_DATE
+     , A.PUB_YN
+FROM   TB_APP_PRSCH_CONSULT A
+     , TB_APP_PRSCH_REQ B
+     , TB_APP_PRSCH_RESULT C
+     , TB_ORG_DEPT D
+WHERE  A.PRSCH_ID = B.PRSCH_ID(+)
+AND    A.PRSCH_ID = C.PRSCH_ID(+)
+AND    B.DEPT_CODE = D.DEPT_CODE(+)
+AND    A.PRSCH_ID = {@PRSCH_ID}
+]]></query>
+
+<!-- 조사의뢰서 업데이트 -->
+<query name="/updatePriorSearchRequest"><![CDATA[
+UPDATE TB_APP_PRSCH_REQ SET
+       REQ_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , DISP_YN = '0'
+WHERE  PRSCH_ID = {@PRSCH_ID}
+]]></query>
+
+<!-- 조사의뢰품의 생성 -->
+<query name="/createPriorSearchConsult"><![CDATA[
+INSERT INTO TB_APP_PRSCH_CONSULT (
+       PRSCH_ID
+     , JOB_MAN
+     , EXAM_RESULT
+     , EXAM_OPINION
+     , PRSCH_TYPE
+     , OFFICE_CODE
+     , OFFICE_CONTACT
+     , ATTACH_FILE
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@PRSCH_ID}
+     , {@$USER_ID}
+     , '1'
+     , {@EXAM_OPINION}
+     , {@PRSCH_TYPE}
+     , {@OFFICE_CODE}
+     , {@OFFICE_CONTACT}
+     , {@ATTACH_FILE}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 선행조사 - 출원 맵핑목록 생성 -->
+<query name="/createPriorSearchApplyMapp"><![CDATA[
+INSERT INTO TB_MAPP_PRSCH (
+       REF_ID
+     , MAPP_DIV
+     , PRSCH_ID
+) VALUES (
+       {@REF_ID}
+     , {@MAPP_DIV}
+     , {@PRSCH_ID}
+)
+]]></query>
+
+<!-- 조사의뢰품의 수정 -->
+<query name="/updatePriorSearchConsult"><![CDATA[
+UPDATE TB_APP_PRSCH_CONSULT SET
+       EXAM_RESULT         = {@EXAM_RESULT}
+     , EXAM_OPINION        = {@EXAM_OPINION}
+     , PRSCH_TYPE          = {@PRSCH_TYPE}
+     , ATTACH_FILE         = {@ATTACH_FILE_CONSULT}
+     , OFFICE_CODE         = {@OFFICE_CODE}
+     , OFFICE_CONTACT      = {@OFFICE_CONTACT}
+     , UPD_USER            = {@$USER_ID}
+     , UPD_DATE            = TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , PUB_YN              = {@PUB_YN}
+WHERE  PRSCH_ID            = {@PRSCH_ID}
+]]></query>
+
+</root>

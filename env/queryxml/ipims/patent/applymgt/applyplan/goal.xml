@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 출원목표수립 목록 조회 -->
+<query name="/retrieveApplyPlanGoalList"><![CDATA[
+SELECT A.DEPT_CODE DEPT_CODE
+     , A.DEPT_NAME DEPT_NAME
+     , B.INT_PLAN_CNT
+     , B.EXT_PLAN_CNT
+FROM   TB_ORG_DEPT A
+     , TB_APP_PLAN_MGT B
+WHERE  B.DEPT_CODE(+) = A.DEPT_CODE
+AND    B.PLAN_YEAR(+) = {@PLAN_YEAR}
+AND    A.USE_YN = '1'
+]]></query>
+
+<!-- 출원목표수립 목록 삭제 -->
+<query name="/deleteApplyPlanGoalList"><![CDATA[
+DELETE FROM TB_APP_PLAN_MGT
+WHERE  PLAN_DIV = {@PLAN_DIV}
+AND    PLAN_YEAR = {@PLAN_YEAR}
+]]></query>
+
+<!-- 출원목표수립 생성 -->
+<query name="/createApplyPlanGoal"><![CDATA[
+INSERT INTO TB_APP_PLAN_MGT (
+       PLAN_DIV
+     , PLAN_YEAR
+     , DEPT_CODE
+     , INT_PLAN_CNT
+     , EXT_PLAN_CNT
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@PLAN_DIV}
+     , {@PLAN_YEAR}
+     , {@DEPT_CODE}
+     , {@INT_PLAN_CNT}
+     , {@EXT_PLAN_CNT}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 출원목표코드 삭제 -->
+<query name="/deleteAppcode"><![CDATA[
+DELETE FROM TB_APP_PLAN_MGT_CODE
+WHERE  PLAN_YEAR = {@PLAN_YEAR}
+
+]]></query>
+
+<!-- 출원목표코드 생성 -->
+<query name="/creatAppcode"><![CDATA[
+INSERT INTO TB_APP_PLAN_MGT_CODE (
+       PLAN_YEAR
+     , ACTR_STD
+) VALUES (
+       {@PLAN_YEAR}
+     , {@ACTR_STD}
+)
+]]></query>
+
+</root>

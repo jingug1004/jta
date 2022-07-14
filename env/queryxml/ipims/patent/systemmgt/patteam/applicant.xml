@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+
+<!-- 출원인 목록 조회 -->
+<query name="/retrieveApplicantList"><![CDATA[
+SELECT APP_MAN_CODE
+     , APP_MAN_NAME
+     , ADDRESS
+     , FN_COM_CODE_NAME('USE_YN', USE_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) USE_YN_NAME
+FROM   TB_APP_MAN
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveApplicantList/APP_MAN_NAME"><![CDATA[
+AND    UPPER(APP_MAN_NAME) LIKE '%'||UPPER({@APP_MAN_NAME})||'%'
+]]></query>
+
+
+<!-- 출원인 조회 -->
+<query name="/retrieveApplicant"><![CDATA[
+SELECT APP_MAN_CODE
+     , APP_MAN_NAME
+     , ADDRESS
+     , USE_YN
+     , REMARK
+FROM   TB_APP_MAN
+WHERE  1 = 1
+AND APP_MAN_CODE = {@APP_MAN_CODE}
+]]></query>
+
+
+<!-- 출원인 등록 -->
+<query name="/createApplicant"><![CDATA[
+INSERT INTO TB_APP_MAN(
+       APP_MAN_CODE
+     , APP_MAN_NAME
+     , ADDRESS
+     , USE_YN
+     , REMARK
+     , CRE_USER
+     , CRE_DATETIME
+) VALUES(
+       {@APP_MAN_CODE}
+     , {@APP_MAN_NAME}
+     , {@ADDRESS}
+     , {@USE_YN}
+     , {@REMARK}
+     , {@$USER_ID}
+     , SYSDATE
+)
+]]></query>
+
+
+<!-- 출원인 수정 -->
+<query name="/updateApplicant"><![CDATA[
+update TB_APP_MAN set
+       APP_MAN_NAME  = {@APP_MAN_NAME}
+     , ADDRESS       = {@ADDRESS}
+     , USE_YN        = {@USE_YN}
+     , REMARK        = {@REMARK}
+where APP_MAN_CODE = {@APP_MAN_CODE}
+]]></query>
+
+<!-- 출원인 삭제 -->
+<query name="/deleteApplicant"><![CDATA[
+DELETE FROM TB_APP_MAN
+WHERE APP_MAN_CODE = {@APP_MAN_CODE}
+]]></query>
+
+
+
+
+</root>

@@ -1,0 +1,2 @@
+<%@ include file="HtmlMeta.jspf" %>
+<%@ include file="HtmlCommon.jspf" %>

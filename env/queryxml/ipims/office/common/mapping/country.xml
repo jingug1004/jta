@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 국가 맵핑목록 조회 -->
+<query name="/retrieveCountryList"><![CDATA[
+SELECT A.COUNTRY_CODE
+     , B.COUNTRY_NAME
+FROM   TB_MAPP_COUNTRY A
+     , TB_COM_COUNTRY B
+WHERE  A.REF_ID       = {@REF_ID}
+AND    A.MAPP_DIV     = {@MAPP_DIV}
+AND    A.COUNTRY_CODE = B.COUNTRY_CODE
+ORDER BY B.DISP_ORD
+]]></query>
+</root>

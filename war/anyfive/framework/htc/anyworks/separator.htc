@@ -1,0 +1,106 @@
+<PUBLIC:COMPONENT tagName="SEPARATOR" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="id1">
+    <PUBLIC:PROPERTY name="id2">
+    <PUBLIC:PROPERTY name="hideIds">
+    <PUBLIC:PROPERTY name="minWidth" value="100">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var gSeparatorButton;
+
+var gStartPosition;
+var gStartWidth1;
+var gStartWidth2;
+var gStartWidthAll;
+
+var gObject1;
+var gObject2;
+
+function document_onready()
+{
+    element.style.width = "6px";
+    element.style.height = "100%";
+
+    element.isReady = true;
+
+    gObject1 = element.document.getElementById(id1);
+    gObject2 = element.document.getElementById(id2);
+
+    gSeparatorButton = element.document.createElement('INPUT');
+    gSeparatorButton.type = "button";
+    gSeparatorButton.height = element.offsetHeight;
+    gSeparatorButton.style.cursor = "col-resize";
+    gSeparatorButton.style.border = "#333333 1px solid";
+    gSeparatorButton.style.width = "100%";
+    gSeparatorButton.style.height = "100%";
+    element.appendChild(gSeparatorButton);
+
+    gSeparatorButton.attachEvent("onfocus", function()
+    {
+        gSeparatorButton.blur();
+    });
+
+    minWidth = parseInt(minWidth, 10);
+
+    element.document.attachEvent("onmousedown", function()
+    {
+        if (event.srcElement != gSeparatorButton) return;
+
+        gStartPosition = event.x;
+        gStartWidth1 = gObject1.offsetWidth;
+        gStartWidth2 = gObject2.offsetWidth;
+        gStartWidthAll = gStartWidth1 + gStartWidth2 - element.offsetWidth;
+
+        attachEvents();
+    });
+
+    element.document.attachEvent("onmouseup", function()
+    {
+        detachEvents();
+    });
+
+    element.attachEvent("onmouseup", function()
+    {
+        detachEvents();
+    });
+
+    gSeparatorButton.attachEvent("onmouseup", function()
+    {
+        detachEvents();
+    });
+}
+
+function resizeObjects()
+{
+    if (event.x > gStartPosition && gStartWidth1 + (event.x - gStartPosition) > gStartWidthAll - minWidth) {
+        detachEvents();
+        return;
+    }
+
+    if (event.x < gStartPosition && gStartWidth2 + (gStartPosition - event.x) > gStartWidthAll - minWidth) {
+        detachEvents();
+        return;
+    }
+
+    try {
+        gObject1.style.width = Math.min(gStartWidth1 + (event.x - gStartPosition), gStartWidthAll - minWidth);
+        gObject2.style.width = Math.min(gStartWidth2 + (gStartPosition - event.x), gStartWidthAll - minWidth);
+    } catch(e) {
+        detachEvents();
+    } finally {
+    }
+}
+
+function attachEvents()
+{
+    element.document.attachEvent("onmousemove", resizeObjects);
+}
+
+function detachEvents()
+{
+    element.document.detachEvent("onmousemove", resizeObjects);
+}
+</SCRIPT>

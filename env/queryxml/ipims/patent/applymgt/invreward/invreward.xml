@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 발명자별 보상금지급조회 -->
+<query name="/retrieveInvRewardList"><![CDATA[
+SELECT A.REF_ID
+     , F.REF_NO
+     , FN_COM_CODE_NAME('INOUT_DIV', F.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , FN_COM_CODE_NAME('RIGHT_DIV', F.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_COM_CODE_NAME('REWARD_DIV', B.REWARD_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) REWARD_DIV_NAME
+     , B.REWARD_GRADE
+     , A.PRICE
+     , ANS.ANS_DATE
+     , F.APP_NO
+     , F.APP_DATE
+     , F.REG_NO
+     , F.REG_DATE
+FROM   TB_COST_MST A
+     , TB_COST_MST_REWARD B
+     , TB_USR_MST D
+     , TB_USR_PATENT E
+     , TB_APP_MST F
+     , TB_COST_CONSULT G
+     , TB_APPR_MST H
+     , TB_APPR_ANS ANS
+WHERE  A.COST_SEQ = B.COST_SEQ
+AND    B.INV_USER = D.USER_ID
+AND    B.INV_USER = E.USER_ID
+AND    A.REF_ID   = F.REF_ID
+AND    A.CONSULT_ID = G.CONSULT_ID
+AND    G.APPR_NO = H.APPR_NO
+AND    H.APPR_NO = ANS.APPR_NO
+AND    H.APPR_STATUS = '8'
+AND    B.INV_USER = {@$USER_ID}
+]]></query>
+<query name="/retrieveInvRewardList/searchNo"><![CDATA[
+AND    {#SR_GUBUN} LIKE '%'||{@SR_NO}||'%'
+]]></query>
+<query name="/retrieveInvRewardList/inoutDiv"><![CDATA[
+AND    F.INOUT_DIV = {@INOUT_DIV}
+]]></query>
+<query name="/retrieveInvRewardList/rewardDiv"><![CDATA[
+AND    B.REWARD_DIV = {@REWARD_DIV}
+]]></query>
+<query name="/retrieveInvRewardList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveInvRewardList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+
+</root>

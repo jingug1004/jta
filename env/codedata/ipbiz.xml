@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 분쟁/소송 상대측정보 검색종류 -->
+<codeData name="/disputeOtherSearchKind">
+    <row CODE="OTHER_NAME" NAME="상대명" />
+    <row CODE="OTHER_ADDR" NAME="상대주소" />
+    <row CODE="OTHER_LAWYER" NAME="상대변리사" />
+    <row CODE="OTHER_AGENT" NAME="상대대리인" />
+</codeData>
+
+<!-- 분쟁/소송 기타정보 검색종류(추가건) -->
+<codeData name="/disputeOtherSearch">
+    <row CODE="OTHER_NAME" NAME="상대명(회사)" />
+    <row CODE="OFFICE_CODE" NAME="당사사무소" />
+    <row CODE="REQ_MAN" NAME="청구인" />
+    <row CODE="COUNTRY_CODE" NAME="국가" />
+</codeData>
+
+<!-- 분쟁/소송 검색일자(Off/Def 현황) -->
+<codeData name="/disputeSearchDate">
+    <row CODE="REQ_DATE"           NAME="청구일" />
+    <row CODE="LAST_DISPOSAL_DATE" NAME="최종처분일" />
+    <row CODE="CRE_DATE"           NAME="작성일" />
+</codeData>
+
+<!-- 분쟁/소송 검색번호 -->
+<codeData name="/disputePaperSearchNumKind">
+    <row CODE="MGT_NO" NAME="관리번호" />
+    <row CODE="DISPUTE_NO" NAME="분쟁번호" />
+</codeData>
+
+<!-- 분쟁/소송 검색일자 -->
+<codeData name="/disputePaperSearchDateKind">
+    <row CODE="PAPER_DATE" NAME="서류일자" />
+    <row CODE="DUE_DATE" NAME="DUE-DATE" />
+    <row CODE="REQ_DATE" NAME="청구일자" />
+    <row CODE="LAST_DISPOSAL_DATE" NAME="최종판결일자" />
+</codeData>
+
+<!-- 라이센스 날짜 검색 구분 -->
+<codeData name="/licenseSearchDateType">
+    <row CODE="CRE_DATE"            NAME="작성일" />
+    <row CODE="CONTRACT_START_DATE" NAME="계약시작일" />
+    <row CODE="CONTRACT_END_DATE"   NAME="계약종료일" />
+</codeData>
+
+<!-- 라이센스 통화단위구분 -->
+<query name="/currencyDiv"><![CDATA[
+SELECT DISTINCT CURRENCY_CODE CODE,
+       CURRENCY_CODE NAME
+FROM   TB_COM_COUNTRY
+WHERE  CURRENCY_CODE IS NOT NULL
+]]></query>
+
+<!-- 감정서 날짜 검색 구분 -->
+<codeData name="/expOpinionSearchDateType">
+    <row CODE="EXPOPIN_DATE" NAME="감정일" />
+    <row CODE="CRE_DATE"     NAME="작성일" />
+</codeData>
+
+<!-- WIPS 검색 Volume -->
+<codeData name="/wipsSearchVolume">
+    <row CODE="SUM" NAME="프론트페이지+대표청구항" />
+</codeData>
+
+<!-- WIPS 검색 구간지정 -->
+<codeData name="/wipsDateFilter">
+    <row CODE="1" NAME="2000~현재" />
+    <row CODE="2" NAME="1995~1999" />
+    <row CODE="3" NAME="1990~1994" />
+    <row CODE="4" NAME="1980~1989" />
+    <row CODE="5" NAME="1979 이전" />
+</codeData>
+
+<!-- OFFENSE 당사 사무소 조회 -->
+<query name="/countryCode"><![CDATA[
+SELECT OFFICE_CODE CODE
+     , FN_OFFICE_NAME(OFFICE_CODE) NAME
+FROM   TB_ORG_OFFICE
+WHERE  USE_YN in ('1','0')
+and  COUNTRY_CODE = {@1}
+]]></query>
+<!-- 국외사무소코드 -->
+<query name="/extOfficeCode"><![CDATA[
+SELECT OFFICE_CODE CODE
+     , FIRM_HNAME NAME
+FROM   TB_ORG_OFFICE
+WHERE  USE_YN IN ('1','0')
+AND    COUNTRY_CODE = {@1}
+ORDER BY DISP_ORD, FIRM_HNAME
+]]></query>
+</root>

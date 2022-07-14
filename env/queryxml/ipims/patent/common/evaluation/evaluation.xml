@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 평가서 항목 목록 조회 -->
+<query name="/retrieveEvalSheetItemList"><![CDATA[
+SELECT A.ITEM_SEQ
+     , A.ITEM_NAME
+     , (SELECT DECODE(COUNT(1), 0,'T', 'R')
+        FROM   TB_EVAL_SHEET_ITEM_ELEM T
+        WHERE  T.EVAL_SHEET_ID = A.EVAL_SHEET_ID
+        AND    T.ITEM_SEQ = A.ITEM_SEQ
+       ) INPUT_TYPE
+     , A.ROW_ELEM_CNT
+     , B.ELEM_SEQ
+     , B.ELEM_VALUE
+FROM   TB_EVAL_SHEET_ITEM A
+     , TB_EVAL_COM_ITEM B
+WHERE  A.EVAL_SHEET_ID = {@EVAL_SHEET_ID}
+AND    B.EVAL_ID(+) = {@EVAL_ID}
+AND    B.EVAL_SHEET_ID(+) = A.EVAL_SHEET_ID
+AND    B.ITEM_SEQ(+) = A.ITEM_SEQ
+ORDER BY A.DISP_ORD
+]]></query>
+
+<!-- 평가 마스터 생성 - 발명부서 -->
+<query name="/createEvaluationMaster_INVDEPT"><![CDATA[
+INSERT INTO TB_EVAL_COM_MST (
+       EVAL_ID
+     , REF_ID
+     , PAPER_LIST_SEQ
+     , EVAL_CODE
+     , INVDEPT_EVAL_SHEET_ID
+     , INVDEPT_EVAL_USER
+     , INVDEPT_EVAL_DATE
+     , INVDEPT_EVAL_END_YN
+     , SUM_TOTAL
+) VALUES (
+       {@EVAL_ID}
+     , {@REF_ID}
+     , {@PAPER_LIST_SEQ}
+     , {@EVAL_CODE}
+     , {@EVAL_SHEET_ID}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , NVL({@INVDEPT_EVAL_END_YN}, '0')
+     , {@SUM_TOTAL}
+)
+]]></query>
+
+<!-- 평가 마스터 생성 - 특허부서 -->
+<query name="/createEvaluationMaster_PATDEPT"><![CDATA[
+INSERT INTO TB_EVAL_COM_MST (
+       EVAL_ID
+     , REF_ID
+     , PAPER_LIST_SEQ
+     , EVAL_CODE
+     , PATDEPT_EVAL_SHEET_ID
+     , PATDEPT_EVAL_USER
+     , PATDEPT_EVAL_DATE
+     , PATDEPT_EVAL_END_YN
+     , SUM_TOTAL
+) VALUES (
+       {@EVAL_ID}
+     , {@REF_ID}
+     , {@PAPER_LIST_SEQ}
+     , {@EVAL_CODE}
+     , {@EVAL_SHEET_ID}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , NVL({@PATDEPT_EVAL_END_YN}, '0')
+     , {@SUM_TOTAL}
+)
+]]></query>
+
+<!-- 평가 마스터 수정 - 발명부서 -->
+<query name="/updateEvaluationMaster_INVDEPT"><![CDATA[
+UPDATE TB_EVAL_COM_MST SET
+       INVDEPT_EVAL_SHEET_ID = {@EVAL_SHEET_ID}
+     , INVDEPT_EVAL_USER = {@$USER_ID}
+     , INVDEPT_EVAL_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , INVDEPT_EVAL_END_YN = NVL({@INVDEPT_EVAL_END_YN}, '0')
+     , SUM_TOTAL = {@SUM_TOTAL}
+WHERE  EVAL_ID = {@EVAL_ID}
+]]></query>
+
+<!-- 평가 마스터 수정 - 특허부서 -->
+<query name="/updateEvaluationMaster_PATDEPT"><![CDATA[
+UPDATE TB_EVAL_COM_MST SET
+       PATDEPT_EVAL_SHEET_ID = {@EVAL_SHEET_ID}
+     , PATDEPT_EVAL_USER = {@$USER_ID}
+     , PATDEPT_EVAL_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , PATDEPT_EVAL_END_YN = NVL({@PATDEPT_EVAL_END_YN}, '0')
+     , SUM_TOTAL = {@SUM_TOTAL}
+WHERE  EVAL_ID = {@EVAL_ID}
+]]></query>
+
+<!-- 평가 항목 생성 -->
+<query name="/createEvaluationItem"><![CDATA[
+INSERT INTO TB_EVAL_COM_ITEM (
+       EVAL_ID
+     , EVAL_SHEET_ID
+     , ITEM_SEQ
+     , ELEM_SEQ
+     , ELEM_VALUE
+)
+SELECT {@EVAL_ID}
+     , A.EVAL_SHEET_ID
+     , A.ITEM_SEQ
+     , B.ELEM_SEQ
+     , NVL(B.ELEM_VALUE, {@ELEM_SEQ})
+FROM   TB_EVAL_SHEET_ITEM A
+     , TB_EVAL_SHEET_ITEM_ELEM B
+WHERE  A.EVAL_SHEET_ID = {@EVAL_SHEET_ID}
+AND    A.ITEM_SEQ = {@ITEM_SEQ}
+AND    B.EVAL_SHEET_ID(+) = A.EVAL_SHEET_ID
+AND    B.ITEM_SEQ(+) = A.ITEM_SEQ
+AND    B.ELEM_SEQ(+) = {@ELEM_SEQ}
+]]></query>
+
+<!-- 평가 항목 전체 삭제 -->
+<query name="/deleteEvaluationItemAll"><![CDATA[
+DELETE FROM TB_EVAL_COM_ITEM
+WHERE  EVAL_ID = {@EVAL_ID}
+AND    EVAL_SHEET_ID = {@EVAL_SHEET_ID}
+]]></query>
+
+
+<!-- 종합적 평가의견 등록 -->
+<query name="/updateEvalOpinionMaster"><![CDATA[
+UPDATE TB_EVAL_COM_MST SET
+       EVAL_OPINION = {@EVAL_OPINION}
+WHERE  EVAL_ID = {@EVAL_ID}
+]]></query>
+
+
+</root>

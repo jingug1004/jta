@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 결재환경정보 조회 -->
+<query name="/retrieveApprovalMgt"><![CDATA[
+SELECT APPR_CODE
+     , APPR_NAME
+     , APPR_TABLE
+     , APPR_NO_COL
+     , APPR_PK_COLS
+     , APPR_VIEW_PATH
+     , APPR_NONE_AVAIL_YN
+     , APPR_CANCEL_AVAIL_YN
+     , UPPER_REQ_AVAIL_YN
+FROM   TB_APPR_MGT
+WHERE  APPR_CODE = {@APPR_CODE}
+]]></query>
+
+<!-- 결재 APPR_KEYS 조회 -->
+<query name="/retrieveApprovalKeys"><![CDATA[
+SELECT {#apprPkCols}
+FROM   {#apprTable}
+WHERE  {#apprNoCol} = {@APPR_NO}
+]]></query>
+
+<!-- 메인정보 조회 -->
+<query name="/retrieveApprovalMainInfo"><![CDATA[
+SELECT {#apprNoCol} APPR_NO
+     , (SELECT DECODE(COUNT(1), 0,'0', '1')
+        FROM   TB_BIZ_COM_MST T1
+             , TB_BIZ_MGT_STEP T2
+             , TB_BIZ_MGT_PROC T3
+        WHERE  T1.REF_ID = {@REF_ID}
+        AND    T2.APPR_CODE = {@APPR_CODE}
+        AND    T2.BIZ_STEP_ID = T1.BIZ_STEP_ID
+        AND    T3.BIZ_STEP_ID = T1.BIZ_STEP_ID
+        AND    T3.CURR_STATUS = T1.STATUS
+        AND    T3.BIZ_ACT = {@BIZ_ACT}
+       ) WP_REQ_AVAIL
+FROM   {#apprTable}
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveApprovalMainInfo/apprKey"><![CDATA[
+AND    {#apprKey} = ?
+]]></query>
+
+<!-- 결재공통 마스터 조회 -->
+<query name="/retrieveApprovalMaster"><![CDATA[
+SELECT APPR_NO
+     , APPR_CODE
+     , APPR_STATUS
+     , LAST_REQ_SEQ
+     , (SELECT COUNT(1)
+        FROM   TB_APPR_ANS T
+        WHERE  T.APPR_NO = A.APPR_NO
+        AND    T.REQ_SEQ = A.LAST_REQ_SEQ
+        AND    T.ANS_STATUS IN ('7', '8', '9')
+       ) LAST_ANS_CNT
+FROM   TB_APPR_MST A
+WHERE  APPR_NO = {@APPR_NO}
+]]></query>
+
+<!-- 결재요청 목록 조회 -->
+<query name="/retrieveApprovalRequestList"><![CDATA[
+SELECT REQ.REQ_SEQ
+     , REQ.REQ_USER
+     , FN_USER_NAME(REQ.REQ_USER) || '(' || USR.EMP_NO || ')' REQ_USER_NAME
+     , FN_DEPT_NAME(USR.DEPT_CODE) REQ_USER_DEPT_NAME
+     , REQ.REQ_DATE
+     , REQ.REQ_STATUS
+     , REQ.REQ_MEMO
+FROM   TB_APPR_REQ REQ
+     , V_USER_ALL USR
+WHERE  REQ.APPR_NO = {@APPR_NO}
+AND    REQ.REQ_USER = USR.USER_ID
+ORDER BY REQ.REQ_SEQ
+]]></query>
+
+<!-- 결재처리자 목록 조회 -->
+<query name="/retrieveApprovalAnswerListA"><![CDATA[
+SELECT ANS.REQ_SEQ
+     , ANS.ANS_ORD
+     , ANS.ANS_USER
+     , USR.EMP_HNAME || '(' || USR.EMP_NO || ')' ANS_USER_NAME
+     , USR.DEPT_NAME ANS_USER_DEPT_NAME
+     , ANS.ANS_DATE
+     , ANS.ANS_STATUS
+     , ANS.ANS_MEMO
+FROM   TB_APPR_ANS ANS
+     , V_USER_ALL USR
+WHERE  ANS.APPR_NO = {@APPR_NO}
+AND    ANS.ANS_USER = USR.USER_ID
+ORDER BY ANS.REQ_SEQ, ANS.ANS_ORD
+]]></query>
+
+<!-- 결재배포자 목록 조회 -->
+<query name="/retrieveApprovalAnswerListB"><![CDATA[
+SELECT DIST.REQ_SEQ
+     , DIST.DIST_USER
+     , USR.EMP_HNAME || '(' || USR.EMP_NO || ')' DIST_USER_NAME
+     , USR.DEPT_NAME DIST_USER_DEPT_NAME
+     , DIST.DIST_DATE
+FROM   TB_APPR_DIST DIST
+     , V_USER_ALL USR
+WHERE  DIST.APPR_NO = {@APPR_NO}
+AND    DIST.DIST_USER = USR.USER_ID
+ORDER BY DIST.REQ_SEQ
+]]></query>
+
+<!-- 결재공통 마스터 생성 -->
+<query name="/createApprovalMaster"><![CDATA[
+INSERT INTO TB_APPR_MST (
+       APPR_NO
+     , APPR_CODE
+     , LAST_REQ_SEQ
+)
+SELECT {@APPR_NO}
+     , {@APPR_CODE}
+     , {@LAST_REQ_SEQ}
+FROM   DUAL
+WHERE  NOT EXISTS (SELECT 1
+                   FROM   TB_APPR_MST
+                   WHERE  APPR_NO = {@APPR_NO}
+                  )
+]]></query>
+
+<!-- 결재공통 마스터 수정 -->
+<query name="/updateApprovalMaster"><![CDATA[
+UPDATE TB_APPR_MST SET
+       LAST_REQ_SEQ = {@LAST_REQ_SEQ}
+WHERE  APPR_NO = {@APPR_NO}
+]]></query>
+
+<!-- 결재공통 마스터 상태 수정 -->
+<query name="/updateApprovalMasterStatus"><![CDATA[
+UPDATE TB_APPR_MST A SET
+       APPR_STATUS = NVL({@APPR_STATUS}, APPR_STATUS)
+     , LAST_REQ_SEQ = (SELECT MAX(REQ_SEQ) FROM TB_APPR_REQ WHERE APPR_NO = {@APPR_NO})
+WHERE  APPR_NO = {@APPR_NO}
+]]></query>
+
+<!-- 업무테이블의 결재번호 수정 -->
+<query name="/updateApprovalNoOfBizTable"><![CDATA[
+UPDATE {#apprTable} SET
+       {#apprNoCol} = ?
+WHERE  1 = 1
+{#apprKeyWhere}
+AND    {#apprNoCol} IS NULL
+]]></query>
+<query name="/updateApprovalNoOfBizTable/apprKey"><![CDATA[
+AND    {#apprKey} = ?
+]]></query>
+
+<!-- 결재요청 생성 -->
+<query name="/createApprovalRequest"><![CDATA[
+INSERT INTO TB_APPR_REQ (
+       APPR_NO
+     , REQ_SEQ
+     , REQ_USER
+     , REQ_DATE
+     , REQ_STATUS
+     , REQ_MEMO
+) VALUES (
+       {@APPR_NO}
+     , {@REQ_SEQ}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , {@REQ_STATUS}
+     , {@REQ_MEMO}
+)
+]]></query>
+
+<!-- 결재요청 수정 -->
+<query name="/updateApprovalRequest"><![CDATA[
+UPDATE TB_APPR_REQ SET
+       REQ_STATUS = {@REQ_STATUS}
+WHERE  APPR_NO = {@APPR_NO}
+AND    REQ_SEQ = {@REQ_SEQ}
+]]></query>
+
+<!-- 결재처리자 목록 생성 -->
+<query name="/createApprovalAnswerA"><![CDATA[
+INSERT INTO TB_APPR_ANS (
+       APPR_NO
+     , REQ_SEQ
+     , ANS_ORD
+     , ANS_USER
+     , ANS_STATUS
+) VALUES (
+       {@APPR_NO}
+     , {@REQ_SEQ}
+     , {@ANS_ORD}
+     , {@ANS_USER}
+     , '0'
+)
+]]></query>
+
+<!-- 결재배포자 목록 생성 -->
+<query name="/createApprovalAnswerB"><![CDATA[
+INSERT INTO TB_APPR_DIST (
+       APPR_NO
+     , REQ_SEQ
+     , DIST_USER
+) VALUES (
+       {@APPR_NO}
+     , {@REQ_SEQ}
+     , {@DIST_USER}
+)
+]]></query>
+
+<!-- 결재처리 수정 -->
+<query name="/updateApprovalAnswer"><![CDATA[
+UPDATE TB_APPR_ANS SET
+       ANS_DATE   = TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , ANS_STATUS = {@ANS_STATUS}
+     , ANS_MEMO   = {@ANS_MEMO}
+WHERE  APPR_NO = {@APPR_NO}
+AND    REQ_SEQ = {@REQ_SEQ}
+AND    ANS_ORD = {@ANS_ORD}
+AND    ANS_STATUS = '1'
+]]></query>
+
+<!-- 다음 결재처리자 상태 변경 -->
+<query name="/updateApprovalNextAnswerStatus"><![CDATA[
+UPDATE TB_APPR_ANS A SET
+       ANS_STATUS = '1'
+WHERE  APPR_NO = {@APPR_NO}
+AND    REQ_SEQ = {@REQ_SEQ}
+AND    ANS_ORD = (SELECT MIN(ANS_ORD)
+                     FROM   TB_APPR_ANS
+                     WHERE  APPR_NO = A.APPR_NO
+                     AND    REQ_SEQ = A.REQ_SEQ
+                     AND    ANS_STATUS = '0'
+                    )
+]]></query>
+
+<!-- 결재요청 삭제 -->
+<query name="/deleteApprovalRequest"><![CDATA[
+DELETE FROM TB_APPR_REQ A
+WHERE  APPR_NO = {@APPR_NO}
+AND    REQ_SEQ = {@REQ_SEQ}
+AND    NOT EXISTS (SELECT 1
+                   FROM   TB_APPR_ANS
+                   WHERE  APPR_NO = A.APPR_NO
+                   AND    REQ_SEQ = A.REQ_SEQ
+                   AND    ANS_STATUS IN ('7', '8', '9')
+                  )
+]]></query>
+
+<!-- 결재처리자 목록 삭제 -->
+<query name="/deleteApprovalAnswerListA"><![CDATA[
+DELETE FROM TB_APPR_ANS A
+WHERE  APPR_NO = {@APPR_NO}
+AND    REQ_SEQ = {@REQ_SEQ}
+AND    ANS_STATUS NOT IN ('7', '8', '9')
+]]></query>
+
+<!-- 결재배포자 목록 삭제 -->
+<query name="/deleteApprovalAnswerListB"><![CDATA[
+DELETE FROM TB_APPR_DIST A
+WHERE  APPR_NO = {@APPR_NO}
+AND    REQ_SEQ = {@REQ_SEQ}
+]]></query>
+
+<!-- 결재메일 발송정보 조회 - 요청정보 -->
+<query name="/retrieveApprovalMailSendInfoReq"><![CDATA[
+SELECT MGT.APPR_NAME
+     , MST.APPR_NO
+     , TO_CHAR(TO_DATE(REQ.REQ_DATE), 'YYYY/MM/DD') REQ_DATE
+     , REQ.REQ_MEMO
+     , USR.EMP_HNAME || '(' || USR.EMP_NO || ')' REQ_USER_NAME
+     , USR.MAIL_ADDR FROM_ADDR
+     , USR.EMP_HNAME FROM_NAME
+FROM   TB_APPR_MST MST
+     , TB_APPR_REQ REQ
+     , TB_APPR_MGT MGT
+     , V_USER_ALL USR
+WHERE  MST.APPR_NO = {@APPR_NO}
+AND    REQ.APPR_NO = MST.APPR_NO
+AND    REQ.REQ_SEQ = MST.LAST_REQ_SEQ
+AND    MGT.APPR_CODE = MST.APPR_CODE
+AND    REQ.REQ_USER = USR.USER_ID
+]]></query>
+
+<!-- 결재메일 발송정보 조회 - 처리정보 -->
+<query name="/retrieveApprovalMailSendInfoAns"><![CDATA[
+SELECT MGT.APPR_NAME
+     , MST.APPR_NO
+     , TO_CHAR(TO_DATE(ANS.ANS_DATE), 'YYYY/MM/DD') ANS_DATE
+     , ANS.ANS_MEMO
+     , USR.EMP_HNAME || '(' || USR.EMP_NO || ')' ANS_USER_NAME
+     , USR.MAIL_ADDR FROM_ADDR
+     , USR.EMP_HNAME FROM_NAME
+FROM   TB_APPR_MST MST
+     , TB_APPR_ANS ANS
+     , TB_APPR_MGT MGT
+     , V_USER_ALL USR
+WHERE  MST.APPR_NO = {@APPR_NO}
+AND    ANS.APPR_NO = MST.APPR_NO
+AND    ANS.REQ_SEQ = MST.LAST_REQ_SEQ
+AND    ANS.ANS_ORD = {@ANS_ORD}
+AND    MGT.APPR_CODE = MST.APPR_CODE
+AND    ANS.ANS_USER = USR.USER_ID
+]]></query>
+
+<!-- 결재요청/취소메일 수신정보(처리자) 조회 -->
+<query name="/retrieveApprovalMailAnsInfo"><![CDATA[
+SELECT USR.USER_ID   TO_USER_ID
+     , USR.MAIL_ADDR TO_ADDR
+     , USR.EMP_HNAME TO_NAME
+FROM   TB_APPR_ANS ANS
+     , V_USER_ALL USR
+WHERE  ANS.APPR_NO = {@APPR_NO}
+AND    ANS.REQ_SEQ = (SELECT T.LAST_REQ_SEQ FROM TB_APPR_MST T WHERE T.APPR_NO = {@APPR_NO})
+AND    ANS.ANS_STATUS = '1'
+AND    ANS.ANS_USER = USR.USER_ID
+]]></query>
+
+<!-- 결재반려메일 수신목록(요청자) 조회 -->
+<query name="/retrieveApprovalMailReqInfo"><![CDATA[
+SELECT USR.USER_ID   TO_USER_ID
+     , USR.MAIL_ADDR TO_ADDR
+     , USR.EMP_HNAME TO_NAME
+FROM   TB_APPR_REQ REQ
+     , V_USER_ALL USR
+WHERE  REQ.APPR_NO = {@APPR_NO}
+AND    REQ.REQ_SEQ = (SELECT T.LAST_REQ_SEQ FROM TB_APPR_MST T WHERE T.APPR_NO = {@APPR_NO})
+AND    REQ.REQ_USER = USR.USER_ID
+]]></query>
+
+<!-- 결재배포메일 수신목록(요청자 및 배포자) 조회 - 품의 제외-->
+<query name="/retrieveApprovalMailDistList"><![CDATA[
+SELECT USR.USER_ID   TO_USER_ID
+     , USR.MAIL_ADDR TO_ADDR
+     , USR.EMP_HNAME TO_NAME
+FROM   TB_APPR_REQ REQ
+     , V_USER_ALL USR
+WHERE  REQ.APPR_NO = {@APPR_NO}
+AND    REQ.REQ_SEQ = (SELECT T.LAST_REQ_SEQ FROM TB_APPR_MST T WHERE T.APPR_NO = {@APPR_NO})
+AND    REQ.REQ_USER = USR.USER_ID
+UNION
+SELECT USR.USER_ID   TO_USER_ID
+     , USR.MAIL_ADDR TO_ADDR
+     , USR.EMP_HNAME TO_NAME
+FROM   TB_APPR_DIST ANS
+     , V_USER_ALL USR
+WHERE  ANS.APPR_NO = {@APPR_NO}
+AND    ANS.REQ_SEQ = (SELECT T.LAST_REQ_SEQ FROM TB_APPR_MST T WHERE T.APPR_NO = {@APPR_NO})
+AND    ANS.DIST_USER = USR.USER_ID
+]]></query>
+
+<!-- 결재배포메일 수신목록(요청자 및 배포자) 조회 - 품의일경우 -->
+<query name="/retrieveApprovalMailDistList2"><![CDATA[
+SELECT USR.USER_ID   TO_USER_ID
+     , USR.MAIL_ADDR TO_ADDR
+     , USR.EMP_HNAME TO_NAME
+     , FN_REF_NO(CON.REF_ID) REF_NO
+FROM   TB_APPR_REQ REQ
+     , V_USER_ALL USR
+     , TB_APP_INT_CONSULT CON
+WHERE  REQ.APPR_NO = {@APPR_NO}
+AND    REQ.REQ_SEQ = (SELECT T.LAST_REQ_SEQ FROM TB_APPR_MST T WHERE T.APPR_NO = {@APPR_NO})
+AND    REQ.REQ_USER = USR.USER_ID
+AND    REQ.APPR_NO = CON.APPR_NO
+UNION
+SELECT USR.USER_ID   TO_USER_ID
+     , USR.MAIL_ADDR TO_ADDR
+     , USR.EMP_HNAME TO_NAME
+     , FN_REF_NO(CON.REF_ID) REF_NO
+FROM   TB_APPR_DIST ANS
+     , V_USER_ALL USR
+     , TB_APP_INT_CONSULT CON
+WHERE  ANS.APPR_NO = {@APPR_NO}
+AND    ANS.REQ_SEQ = (SELECT T.LAST_REQ_SEQ FROM TB_APPR_MST T WHERE T.APPR_NO = {@APPR_NO})
+AND    ANS.DIST_USER = USR.USER_ID
+AND    ANS.APPR_NO = CON.APPR_NO
+]]></query>
+
+<!-- 결재메일 진행내역 목록 조회 -->
+<query name="/retrieveApprovalMailHistoryList"><![CDATA[
+SELECT USR.EMP_HNAME || '(' || USR.EMP_NO || ')' ANS_USER_NAME
+     , {#codeData:ANS.ANS_STATUS:/approval/apprAnsStatus} ANS_STATUS_NAME
+     , TO_CHAR(TO_DATE(ANS.ANS_DATE), 'YYYY/MM/DD') ANS_DATE
+     , ANS.ANS_MEMO
+FROM   TB_APPR_ANS ANS
+     , V_USER_ALL USR
+WHERE  ANS.APPR_NO = {@APPR_NO}
+AND    ANS.REQ_SEQ = (SELECT T.LAST_REQ_SEQ FROM TB_APPR_MST T WHERE T.APPR_NO = {@APPR_NO})
+AND    ANS.ANS_USER = USR.USER_ID
+ORDER  BY ANS.ANS_ORD
+]]></query>
+
+<!-- 결재메일 KEY 생성 -->
+<query name="/createApprovalMailKey"><![CDATA[
+INSERT INTO TB_APPR_MAIL_LINK (
+       MAIL_KEY
+     , APPR_NO
+     , USER_ID
+)
+SELECT {@MAIL_KEY}
+     , {@APPR_NO}
+     , {@USER_ID}
+FROM   DUAL
+WHERE  NOT EXISTS (SELECT 1
+                   FROM   TB_APPR_MAIL_LINK
+                   WHERE  MAIL_KEY = {@MAIL_KEY}
+                  )
+]]></query>
+
+<!-- 업무프로세스 처리가능여부 조회 -->
+<query name="/retrieveWorkProcessAvail"><![CDATA[
+SELECT DECODE(COUNT(1), 0,'0', '1') WP_AVAIL
+FROM   TB_BIZ_COM_MST A
+     , TB_BIZ_MGT_STEP B
+WHERE  A.REF_ID = {@REF_ID}
+AND    B.APPR_CODE = {@APPR_CODE}
+AND    B.BIZ_STEP_ID = A.BIZ_STEP_ID
+]]></query>
+
+</root>

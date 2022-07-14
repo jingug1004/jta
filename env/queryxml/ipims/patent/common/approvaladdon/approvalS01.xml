@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 선행기술조사 품의서 업데이트 -->
+<query name="/updatePriorSearchConsult"><![CDATA[
+UPDATE TB_APP_PRSCH_CONSULT SET
+       EXAM_RESULT = NULL
+WHERE  PRSCH_ID = {@PRSCH_ID}
+]]></query>
+
+<!-- 선행기술조사 의뢰일 업데이트 -->
+<query name="/updatePriorSearchReqDate"><![CDATA[
+UPDATE TB_APP_PRSCH_REQ SET
+       REQ_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  PRSCH_ID = {@PRSCH_ID}
+]]></query>
+
+</root>

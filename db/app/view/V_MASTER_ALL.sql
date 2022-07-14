@@ -1,0 +1,53 @@
+CREATE OR REPLACE VIEW V_MASTER_ALL AS
+SELECT REF_ID
+     , 'A' MST_DIV
+     , RIGHT_DIV
+     , INOUT_DIV
+     , REF_NO
+     , JOB_MAN
+     , KO_APP_TITLE
+     , APP_NO
+     , APP_DATE
+     , REG_NO
+     , REG_DATE
+     , OFFICE_CODE
+     , STATUS
+     , CRE_USER
+FROM   TB_APP_MST
+UNION ALL
+SELECT A.PRSCH_ID
+     , 'S' MST_DIV
+     , '60' RIGHT_DIV
+     , 'COM' INOUT_DIV
+     , A.PRSCH_NO
+     , B.JOB_MAN
+     , PRSCH_SUBJECT KO_APP_TITLE
+     , NULL APP_NO
+     , NULL APP_DATE
+     , NULL REG_NO
+     , NULL REG_DATE
+     , OFFICE_CODE
+     , NULL STATUS
+     , A.CRE_USER
+FROM   TB_APP_PRSCH_REQ A
+     , TB_APP_PRSCH_CONSULT B
+WHERE  A.PRSCH_ID = B.PRSCH_ID
+UNION ALL
+SELECT DISPUTE_ID
+     , 'C' MST_DIV
+     , '80' RIGHT_DIV
+     , 'COM' INOUT_DIV
+     , MGT_NO
+     , NULL JOB_MAN
+     , NULL KO_APP_TITLE
+     , NULL APP_NO
+     , NULL APP_DATE
+     , NULL REG_NO
+     , NULL REG_DATE
+     , NULL OFFICE_CODE
+     , NULL STATUS
+     , CRE_USER
+FROM   TB_IPB_DISPUTE
+/**
+ * 마스터 뷰 : 출원(특허/실용신안/디자인/상표), 조사, 분쟁
+ */;

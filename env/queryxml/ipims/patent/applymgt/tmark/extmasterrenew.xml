@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 상표해외출원마스터 갱신정보 조회 -->
+<query name="/retrieveTMarkExtMasterRenewInfo"><![CDATA[
+SELECT A.REF_NO
+     , RPAD('R', B.RENEW_CNT + 1, 'R') DIVISION_CODE
+     , B.RENEW_CNT + 1 DIVISION_LEVEL
+FROM   TB_APP_MST A
+     , (SELECT COUNT(1) RENEW_CNT
+        FROM   TB_APP_MST
+        WHERE  DIVISION_PRIOR_REF_ID = {@REF_ID}
+        AND    DIVISION_TYPE = 'R'
+       ) B
+WHERE  A.REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 상표해외출원마스터 갱신 생성 -->
+<query name="/createTMarkExtMasterRenew"><![CDATA[
+INSERT INTO TB_APP_MST (
+       REF_ID
+     , REF_NO
+     , RIGHT_DIV
+     , INOUT_DIV
+     , COUNTRY_CODE
+     , JOB_MAN
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , LAB_CODE
+     , DEPT_CODE
+     , OFFICE_CODE
+     , OFFICE_CONTACT_YN
+     , OFFICE_REF_NO
+     , OFFICE_JOB_MAN
+     , OFFICE_SEND_DATE
+     , OFFICE_RCPT_DATE
+     , APP_NO
+     , APP_DATE
+     , REG_NO
+     , REG_DATE
+     , PUB_NO
+     , PUB_DATE
+     , NOTICE_NO
+     , NOTICE_DATE
+     , DIVISION_PRIOR_REF_ID
+     , DIVISION_TYPE
+     , DIVISION_CODE
+     , DIVISION_LEVEL
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@NEW_REF_ID}
+     , {@NEW_REF_NO}
+     , RIGHT_DIV
+     , INOUT_DIV
+     , COUNTRY_CODE
+     , JOB_MAN
+     , KO_APP_TITLE
+     , EN_APP_TITLE
+     , LAB_CODE
+     , DEPT_CODE
+     , OFFICE_CODE
+     , OFFICE_CONTACT_YN
+     , OFFICE_REF_NO
+     , OFFICE_JOB_MAN
+     , OFFICE_SEND_DATE
+     , OFFICE_RCPT_DATE
+     , APP_NO
+     , APP_DATE
+     , REG_NO
+     , REG_DATE
+     , PUB_NO
+     , PUB_DATE
+     , NOTICE_NO
+     , NOTICE_DATE
+     , REF_ID DIVISION_PRIOR_REF_ID
+     , 'R' DIVISION_TYPE
+     , {@DIVISION_CODE}
+     , {@DIVISION_LEVEL}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_MST
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 상표해외출원마스터 갱신 생성 - 해외 -->
+<query name="/createTMarkExtMasterIntRenew"><![CDATA[
+INSERT INTO TB_APP_MST_EXT (
+       REF_ID
+     , GRP_ID
+     , EXT_OFFICE_CODE
+     , EXT_OFFICE_REF_NO
+     , BUY_DATE
+     , BUY_COUNTRY
+     , PRIORITY_CLAIM_YN
+     , PRIORITY_CLAIM_COUNTRY
+)
+SELECT {@NEW_REF_ID}
+     , GRP_ID
+     , EXT_OFFICE_CODE
+     , EXT_OFFICE_REF_NO
+     , BUY_DATE
+     , BUY_COUNTRY
+     , PRIORITY_CLAIM_YN
+     , PRIORITY_CLAIM_COUNTRY
+FROM   TB_APP_MST_EXT
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

@@ -1,0 +1,180 @@
+================================================================================
+[2022-06-17 10:28:07.402] /anyfive.ipims.share.login.act.RetrieveLoginUserSearchList.do
+/ipims/share/login/login => /retrieveLoginUserSearchList
+/ipims/share/login/login => /retrieveLoginUserSearchList/searchText
+SELECT COUNT(1) AS TOTAL_COUNT FROM (
+SELECT DECODE(D.USER_ID, NULL,B.EMP_NO, D.EMP_NO) EMP_NO
+     , FN_COM_CODE_NAME('SYSTEM_TYPE', A.SYSTEM_TYPE, 'ko-kr', 'ko-kr') SYSTEM_TYPE_NAME
+     , A.EMP_HNAME
+     , FN_DIVISN_NAME(B.DIVISN_CODE) DIVISN_NAME
+     , DECODE(D.USER_ID, NULL,C.DEPT_NAME, FN_OFFICE_NAME(D.OFFICE_CODE)) DEPT_NAME
+     , A.EMP_ENAME
+     , A.LOGIN_ID
+     , A.LOGIN_PW
+     , FN_COM_CODE_NAME('HT_CODE', A.HT_CODE, 'ko-kr', 'ko-kr') HT_CODE_NAME
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+     , TB_ORG_DEPT C
+     , TB_USR_OFFICE D
+WHERE  A.USER_ID = B.USER_ID(+)
+AND    B.DEPT_CODE = C.DEPT_CODE(+)
+AND    A.USER_ID = D.USER_ID(+)
+AND    A.USER_ID NOT IN (SELECT USER_ID FROM TB_USR_OUT_INVENTOR)
+AND    (UPPER(A.LOGIN_ID) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(A.EMP_HNAME) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(B.EMP_NO) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(D.EMP_NO) LIKE '%'||UPPER('pat1')||'%'
+       )
+) TEMP__1
+Result : 1 Row(s) Selected
+Laptime : 0.277
+================================================================================
+[2022-06-17 10:28:07.743] /anyfive.ipims.share.login.act.RetrieveLoginUserSearchList.do
+/ipims/share/login/login => /retrieveLoginUserSearchList
+/ipims/share/login/login => /retrieveLoginUserSearchList/searchText
+SELECT TEMP__2.* FROM (SELECT ROW_NUMBER() OVER(ORDER BY "EMP_HNAME" ASC) AS ROW_NUM, TEMP__1.* FROM (
+SELECT DECODE(D.USER_ID, NULL,B.EMP_NO, D.EMP_NO) EMP_NO
+     , FN_COM_CODE_NAME('SYSTEM_TYPE', A.SYSTEM_TYPE, 'ko-kr', 'ko-kr') SYSTEM_TYPE_NAME
+     , A.EMP_HNAME
+     , FN_DIVISN_NAME(B.DIVISN_CODE) DIVISN_NAME
+     , DECODE(D.USER_ID, NULL,C.DEPT_NAME, FN_OFFICE_NAME(D.OFFICE_CODE)) DEPT_NAME
+     , A.EMP_ENAME
+     , A.LOGIN_ID
+     , A.LOGIN_PW
+     , FN_COM_CODE_NAME('HT_CODE', A.HT_CODE, 'ko-kr', 'ko-kr') HT_CODE_NAME
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+     , TB_ORG_DEPT C
+     , TB_USR_OFFICE D
+WHERE  A.USER_ID = B.USER_ID(+)
+AND    B.DEPT_CODE = C.DEPT_CODE(+)
+AND    A.USER_ID = D.USER_ID(+)
+AND    A.USER_ID NOT IN (SELECT USER_ID FROM TB_USR_OUT_INVENTOR)
+AND    (UPPER(A.LOGIN_ID) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(A.EMP_HNAME) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(B.EMP_NO) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(D.EMP_NO) LIKE '%'||UPPER('pat1')||'%'
+       )
+) TEMP__1) TEMP__2 WHERE TEMP__2.ROW_NUM > 0 AND TEMP__2.ROW_NUM <= 50
+Result : 1 Row(s) Selected
+Laptime : 0.338
+================================================================================
+[2022-06-17 10:37:45.687] /anyfive.ipims.share.login.act.RetrieveLoginUserSearchList.do
+/ipims/share/login/login => /retrieveLoginUserSearchList
+/ipims/share/login/login => /retrieveLoginUserSearchList/searchText
+SELECT COUNT(1) AS TOTAL_COUNT FROM (
+SELECT DECODE(D.USER_ID, NULL,B.EMP_NO, D.EMP_NO) EMP_NO
+     , FN_COM_CODE_NAME('SYSTEM_TYPE', A.SYSTEM_TYPE, 'ko-kr', 'ko-kr') SYSTEM_TYPE_NAME
+     , A.EMP_HNAME
+     , FN_DIVISN_NAME(B.DIVISN_CODE) DIVISN_NAME
+     , DECODE(D.USER_ID, NULL,C.DEPT_NAME, FN_OFFICE_NAME(D.OFFICE_CODE)) DEPT_NAME
+     , A.EMP_ENAME
+     , A.LOGIN_ID
+     , A.LOGIN_PW
+     , FN_COM_CODE_NAME('HT_CODE', A.HT_CODE, 'ko-kr', 'ko-kr') HT_CODE_NAME
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+     , TB_ORG_DEPT C
+     , TB_USR_OFFICE D
+WHERE  A.USER_ID = B.USER_ID(+)
+AND    B.DEPT_CODE = C.DEPT_CODE(+)
+AND    A.USER_ID = D.USER_ID(+)
+AND    A.USER_ID NOT IN (SELECT USER_ID FROM TB_USR_OUT_INVENTOR)
+AND    (UPPER(A.LOGIN_ID) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(A.EMP_HNAME) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(B.EMP_NO) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(D.EMP_NO) LIKE '%'||UPPER('pat1')||'%'
+       )
+) TEMP__1
+Result : 1 Row(s) Selected
+Laptime : 0.226
+================================================================================
+[2022-06-17 10:37:46.397] /anyfive.ipims.share.login.act.RetrieveLoginUserSearchList.do
+/ipims/share/login/login => /retrieveLoginUserSearchList
+/ipims/share/login/login => /retrieveLoginUserSearchList/searchText
+SELECT TEMP__2.* FROM (SELECT ROW_NUMBER() OVER(ORDER BY "EMP_HNAME" ASC) AS ROW_NUM, TEMP__1.* FROM (
+SELECT DECODE(D.USER_ID, NULL,B.EMP_NO, D.EMP_NO) EMP_NO
+     , FN_COM_CODE_NAME('SYSTEM_TYPE', A.SYSTEM_TYPE, 'ko-kr', 'ko-kr') SYSTEM_TYPE_NAME
+     , A.EMP_HNAME
+     , FN_DIVISN_NAME(B.DIVISN_CODE) DIVISN_NAME
+     , DECODE(D.USER_ID, NULL,C.DEPT_NAME, FN_OFFICE_NAME(D.OFFICE_CODE)) DEPT_NAME
+     , A.EMP_ENAME
+     , A.LOGIN_ID
+     , A.LOGIN_PW
+     , FN_COM_CODE_NAME('HT_CODE', A.HT_CODE, 'ko-kr', 'ko-kr') HT_CODE_NAME
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+     , TB_ORG_DEPT C
+     , TB_USR_OFFICE D
+WHERE  A.USER_ID = B.USER_ID(+)
+AND    B.DEPT_CODE = C.DEPT_CODE(+)
+AND    A.USER_ID = D.USER_ID(+)
+AND    A.USER_ID NOT IN (SELECT USER_ID FROM TB_USR_OUT_INVENTOR)
+AND    (UPPER(A.LOGIN_ID) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(A.EMP_HNAME) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(B.EMP_NO) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(D.EMP_NO) LIKE '%'||UPPER('pat1')||'%'
+       )
+) TEMP__1) TEMP__2 WHERE TEMP__2.ROW_NUM > 0 AND TEMP__2.ROW_NUM <= 50
+Result : 1 Row(s) Selected
+Laptime : 0.709
+================================================================================
+[2022-06-17 10:40:06.050] /anyfive.ipims.share.login.act.RetrieveLoginUserSearchList.do
+/ipims/share/login/login => /retrieveLoginUserSearchList
+/ipims/share/login/login => /retrieveLoginUserSearchList/searchText
+SELECT COUNT(1) AS TOTAL_COUNT FROM (
+SELECT DECODE(D.USER_ID, NULL,B.EMP_NO, D.EMP_NO) EMP_NO
+     , FN_COM_CODE_NAME('SYSTEM_TYPE', A.SYSTEM_TYPE, 'ko-kr', 'ko-kr') SYSTEM_TYPE_NAME
+     , A.EMP_HNAME
+     , FN_DIVISN_NAME(B.DIVISN_CODE) DIVISN_NAME
+     , DECODE(D.USER_ID, NULL,C.DEPT_NAME, FN_OFFICE_NAME(D.OFFICE_CODE)) DEPT_NAME
+     , A.EMP_ENAME
+     , A.LOGIN_ID
+     , A.LOGIN_PW
+     , FN_COM_CODE_NAME('HT_CODE', A.HT_CODE, 'ko-kr', 'ko-kr') HT_CODE_NAME
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+     , TB_ORG_DEPT C
+     , TB_USR_OFFICE D
+WHERE  A.USER_ID = B.USER_ID(+)
+AND    B.DEPT_CODE = C.DEPT_CODE(+)
+AND    A.USER_ID = D.USER_ID(+)
+AND    A.USER_ID NOT IN (SELECT USER_ID FROM TB_USR_OUT_INVENTOR)
+AND    (UPPER(A.LOGIN_ID) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(A.EMP_HNAME) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(B.EMP_NO) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(D.EMP_NO) LIKE '%'||UPPER('pat1')||'%'
+       )
+) TEMP__1
+Result : 1 Row(s) Selected
+Laptime : 0.123
+================================================================================
+[2022-06-17 10:40:06.118] /anyfive.ipims.share.login.act.RetrieveLoginUserSearchList.do
+/ipims/share/login/login => /retrieveLoginUserSearchList
+/ipims/share/login/login => /retrieveLoginUserSearchList/searchText
+SELECT TEMP__2.* FROM (SELECT ROW_NUMBER() OVER(ORDER BY "EMP_HNAME" ASC) AS ROW_NUM, TEMP__1.* FROM (
+SELECT DECODE(D.USER_ID, NULL,B.EMP_NO, D.EMP_NO) EMP_NO
+     , FN_COM_CODE_NAME('SYSTEM_TYPE', A.SYSTEM_TYPE, 'ko-kr', 'ko-kr') SYSTEM_TYPE_NAME
+     , A.EMP_HNAME
+     , FN_DIVISN_NAME(B.DIVISN_CODE) DIVISN_NAME
+     , DECODE(D.USER_ID, NULL,C.DEPT_NAME, FN_OFFICE_NAME(D.OFFICE_CODE)) DEPT_NAME
+     , A.EMP_ENAME
+     , A.LOGIN_ID
+     , A.LOGIN_PW
+     , FN_COM_CODE_NAME('HT_CODE', A.HT_CODE, 'ko-kr', 'ko-kr') HT_CODE_NAME
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+     , TB_ORG_DEPT C
+     , TB_USR_OFFICE D
+WHERE  A.USER_ID = B.USER_ID(+)
+AND    B.DEPT_CODE = C.DEPT_CODE(+)
+AND    A.USER_ID = D.USER_ID(+)
+AND    A.USER_ID NOT IN (SELECT USER_ID FROM TB_USR_OUT_INVENTOR)
+AND    (UPPER(A.LOGIN_ID) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(A.EMP_HNAME) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(B.EMP_NO) LIKE '%'||UPPER('pat1')||'%' OR
+        UPPER(D.EMP_NO) LIKE '%'||UPPER('pat1')||'%'
+       )
+) TEMP__1) TEMP__2 WHERE TEMP__2.ROW_NUM > 0 AND TEMP__2.ROW_NUM <= 50
+Result : 1 Row(s) Selected
+Laptime : 0.067

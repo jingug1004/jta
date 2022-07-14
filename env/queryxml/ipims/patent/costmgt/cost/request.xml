@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 비용청구 목록 조회 -->
+<query name="/retrieveCostRequestList"><![CDATA[
+SELECT A.REQ_ID
+     , A.INOUT_DIV
+     , A.REQ_SUBJECT
+     , B.CNT_CNF_NULL
+     , B.CNT_CNF_YES
+     , B.CNT_CNF_NO
+     , A.INVOICE_NO
+     , C.REQ_WON_PRICE
+     , C.REQ_PRICE
+     , A.OFFICE_CODE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) OFFICE_NAME
+     , FN_USER_NAME(A.REQ_USER) REQ_USER_NAME
+     , A.REQ_DATE
+     , A.REQ_YN
+     , ROUND(D.TAX,1)SUPER_TAX
+FROM   TB_COST_REQ_MST A
+     , (SELECT REQ_ID
+             , SUM(DECODE(CONFIRM_YN, NULL,1, 0)) CNT_CNF_NULL
+             , SUM(DECODE(CONFIRM_YN, '1',1, 0)) CNT_CNF_YES
+             , SUM(DECODE(CONFIRM_YN, '9',1, 0)) CNT_CNF_NO
+        FROM   TB_COST_MST
+        WHERE  REQ_ID IS NOT NULL
+        GROUP BY REQ_ID
+       ) B
+     , (SELECT REQ_ID
+             , SUM(WON_PRICE) REQ_WON_PRICE
+             , SUM(PRICE) REQ_PRICE
+        FROM   TB_COST_MST
+        WHERE  REQ_ID IS NOT NULL
+        GROUP BY REQ_ID
+       ) C
+       ,(SELECT SUM(DECODE(DETAILCODE.TAX_YN,'1',MST.WON_PRICE*0.1,'0'))TAX,REQ_ID
+        FROM TB_COST_MST MST,TB_COST_MGT_DETAILCODE DETAILCODE
+        WHERE MST.GRAND_CODE = DETAILCODE.GRAND_CODE
+        AND   MST.DETAIL_CODE= DETAILCODE.DETAIL_CODE
+        AND MST.REQ_ID IS NOT NULL
+        GROUP BY REQ_ID)D
+WHERE  (A.REQ_YN = '1' OR A.CRE_USER IN (SELECT USER_ID FROM TB_USR_MST WHERE SYSTEM_TYPE = 'PATENT'))
+AND    A.CONSULT_ID IS NULL
+AND    A.REQ_ID = B.REQ_ID(+)
+AND    A.REQ_ID = C.REQ_ID(+)
+AND    A.REQ_ID = D.REQ_ID(+)
+]]></query>
+<query name="/retrieveCostRequestList/inoutDiv"><![CDATA[
+AND   A.INOUT_DIV = {@INOUT_DIV}
+]]></query>
+<query name="/retrieveCostRequestList/reqSubject"><![CDATA[
+AND   A.REQ_SUBJECT LIKE '%'||{@REQ_SUBJECT}||'%'
+]]></query>
+<query name="/retrieveCostRequestList/dateStart"><![CDATA[
+AND   {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveCostRequestList/dateEnd"><![CDATA[
+AND   {#DATE_GUBUN} <= {@DATE_START}
+]]></query>
+<query name="/retrieveCostRequestList/officeCode"><![CDATA[
+AND    A.OFFICE_CODE = {@OFFICE_CODE}
+]]></query>
+</root>

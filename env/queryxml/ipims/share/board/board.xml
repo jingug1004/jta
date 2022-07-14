@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 게시판 설정 조회 -->
+<query name="/retrieveBoardConfig"><![CDATA[
+SELECT A.MENU_CODE
+     , A.BRD_ID
+     , NVL(C.MENU_NAME, D.MENU_NAME) MENU_NAME
+     , A.WRITE_AVAIL
+     , A.ANS_AVAIL
+     , A.READ_CNT_DISP
+     , A.NOTICE_PERIOD
+     , A.FILE_POLICY
+FROM   TB_BRD_MGT A
+     , TB_MNU_MENU B
+     , (SELECT MENU_CODE
+             , MENU_NAME
+        FROM   TB_MNU_MENU_NAME
+        WHERE  SYSTEM_TYPE = {@$SYSTEM_TYPE}
+        AND    LANG_CODE = {@$LANG_CODE}
+       ) C
+     , (SELECT MENU_CODE
+             , MENU_NAME
+        FROM   TB_MNU_MENU_NAME
+        WHERE  SYSTEM_TYPE = {@$SYSTEM_TYPE}
+        AND    LANG_CODE = {@$DEFAULT_LANG_CODE}
+       ) D
+WHERE  A.SYSTEM_TYPE = B.SYSTEM_TYPE(+)
+AND    A.MENU_CODE = B.MENU_CODE(+)
+AND    A.MENU_CODE = C.MENU_CODE(+)
+AND    A.MENU_CODE = D.MENU_CODE(+)
+AND    A.SYSTEM_TYPE = {@$SYSTEM_TYPE}
+]]></query>
+<query name="/retrieveBoardConfig/menuCode"><![CDATA[
+AND    A.MENU_CODE = {@MENU_CODE}
+]]></query>
+<query name="/retrieveBoardConfig/brdId"><![CDATA[
+AND    A.BRD_ID = {@BRD_ID}
+AND    EXISTS (SELECT 1
+               FROM   TB_MNU_GROUP_MENU
+               WHERE  SYSTEM_TYPE = A.SYSTEM_TYPE
+               AND    MENU_CODE = A.MENU_CODE
+               AND    GROUP_CODE = 'COM'
+              )
+]]></query>
+
+<!-- 게시판 목록 조회 -->
+<query name="/retrieveBoardList"><![CDATA[
+SELECT BRD_NO
+     , CASE WHEN DEL_YN = '1' THEN '(삭제되었습니다.)' ELSE SUBJECT END SUBJECT
+     , CASE WHEN DEL_YN = '1' THEN NULL ELSE FN_USER_NAME(CRE_USER) END CRE_USER_NAME
+     , CASE WHEN DEL_YN = '1' THEN NULL ELSE TO_CHAR(TO_DATE(CRE_DATE), 'YYYY/MM/DD') || ' ' || TO_CHAR(TO_DATE(CRE_TIME, 'HH24MISS'), 'HH24:MI:SS') END CRE_DATE_TIME
+     , CASE WHEN DEL_YN = '1' THEN '0' ELSE CASE WHEN (SELECT COUNT(*) FROM TB_COM_FILE WHERE FILE_ID = A.ATTACH_FILE) = 0 THEN '0' ELSE '1' END END FILE_ICON
+     , CASE WHEN DEL_YN = '1' THEN NULL ELSE READ_CNT END READ_CNT
+     , RE_PARENT
+     , RE_LEVEL
+     , RE_ORDER
+     , DEL_YN
+FROM   TB_BRD_LIST A
+WHERE  BRD_ID = {@BRD_ID}
+]]></query>
+<query name="/retrieveBoardList/subject"><![CDATA[
+AND    UPPER(SUBJECT) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+<query name="/retrieveBoardList/creUserName"><![CDATA[
+AND    EXISTS (SELECT 1
+               FROM   TB_USR_MST
+               WHERE  USER_ID = A.CRE_USER
+               AND    UPPER(EMP_HNAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+              )
+]]></query>
+
+<!-- 게시판 조회수 증가 -->
+<query name="/updateBoardReadCnt"><![CDATA[
+UPDATE TB_BRD_LIST SET
+       READ_CNT = READ_CNT + 1
+WHERE  BRD_ID = {@BRD_ID}
+AND    BRD_NO = {@BRD_NO}
+AND    DEL_YN = '0'
+]]></query>
+
+<!-- 게시판 조회 -->
+<query name="/retrieveBoard"><![CDATA[
+SELECT CRE_USER
+     , FN_USER_NAME(CRE_USER) CRE_USER_NAME
+     , READ_CNT
+     , SUBJECT
+     , NOTICE_START
+     , NOTICE_END
+     , CONTENTS
+     , ATTACH_FILE
+     , TO_CHAR(TO_DATE(CRE_DATE), 'YYYY/MM/DD') || ' ' || TO_CHAR(TO_DATE(CRE_TIME, 'HH24MISS'), 'HH24:MI:SS') CRE_DATE_TIME
+     , TO_CHAR(TO_DATE(UPD_DATE), 'YYYY/MM/DD') || ' ' || TO_CHAR(TO_DATE(UPD_TIME, 'HH24MISS'), 'HH24:MI:SS') UPD_DATE_TIME
+     , RE_PARENT
+FROM   TB_BRD_LIST
+WHERE  BRD_ID = {@BRD_ID}
+AND    BRD_NO = {@BRD_NO}
+AND    DEL_YN = '0'
+]]></query>
+
+<!-- 게시판 생성 -->
+<query name="/createBoard"><![CDATA[
+INSERT INTO TB_BRD_LIST (
+       BRD_ID
+     , BRD_NO
+     , SUBJECT
+     , CONTENTS
+     , ATTACH_FILE
+     , READ_CNT
+     , RE_PARENT
+     , RE_LEVEL
+     , RE_ORDER
+     , NOTICE_START
+     , NOTICE_END
+     , CRE_USER
+     , CRE_DATE
+     , CRE_TIME
+) VALUES (
+       {@BRD_ID}
+     , {@BRD_NO}
+     , {@SUBJECT}
+     , EMPTY_CLOB()
+     , {@ATTACH_FILE}
+     , 0
+     , {@BRD_NO}
+     , 0
+     , 0
+     , {@NOTICE_START}
+     , {@NOTICE_END}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , TO_CHAR(SYSDATE, 'HH24MISS')
+)
+]]></query>
+
+<!-- 게시판 생성(답변글) -->
+<query name="/createBoardReply"><![CDATA[
+INSERT INTO TB_BRD_LIST (
+       BRD_ID
+     , BRD_NO
+     , SUBJECT
+     , CONTENTS
+     , ATTACH_FILE
+     , READ_CNT
+     , RE_PARENT
+     , RE_LEVEL
+     , RE_ORDER
+     , NOTICE_START
+     , NOTICE_END
+     , CRE_USER
+     , CRE_DATE
+     , CRE_TIME
+)
+SELECT {@BRD_ID}
+     , {@BRD_NO}
+     , {@SUBJECT}
+     , EMPTY_CLOB()
+     , {@ATTACH_FILE}
+     , 0
+     , {@RE_PARENT}
+     , RE_LEVEL + 1
+     , RE_ORDER + 1
+     , {@NOTICE_START}
+     , {@NOTICE_END}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , TO_CHAR(SYSDATE, 'HH24MISS')
+FROM   TB_BRD_LIST
+WHERE  BRD_ID = {@BRD_ID}
+AND    BRD_NO = {@ORG_BRD_NO}
+]]></query>
+
+<!-- 게시판 수정 -->
+<query name="/updateBoard"><![CDATA[
+UPDATE TB_BRD_LIST SET
+       SUBJECT      = {@SUBJECT}
+     , CONTENTS     = EMPTY_CLOB()
+     , ATTACH_FILE  = {@ATTACH_FILE}
+     , NOTICE_START = {@NOTICE_START}
+     , NOTICE_END   = {@NOTICE_END}
+     , UPD_USER     = {@$USER_ID}
+     , UPD_DATE     = TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , UPD_TIME     = TO_CHAR(SYSDATE, 'HH24MISS')
+WHERE  BRD_ID       = {@BRD_ID}
+AND    BRD_NO       = {@BRD_NO}
+]]></query>
+
+<!-- 게시판 수정(삭제표시) -->
+<query name="/updateBoardDelYn"><![CDATA[
+UPDATE TB_BRD_LIST SET
+       DEL_YN = '1'
+WHERE  BRD_ID = {@BRD_ID}
+AND    BRD_NO = {@BRD_NO}
+]]></query>
+
+<!-- 게시판 내용 저장 -->
+<query name="/updateBoardContents"><![CDATA[
+SELECT CONTENTS
+FROM   TB_BRD_LIST
+WHERE  BRD_ID = {@BRD_ID}
+AND    BRD_NO = {@BRD_NO}
+AND    DEL_YN = '0'
+FOR    UPDATE
+]]></query>
+
+<!-- 게시판 삭제 -->
+<query name="/deleteBoard"><![CDATA[
+DELETE
+FROM   TB_BRD_LIST A
+WHERE  BRD_ID = {@BRD_ID}
+AND    BRD_NO = {@BRD_NO}
+AND    NOT EXISTS (SELECT 1
+                   FROM   TB_BRD_LIST T
+                   WHERE  T.BRD_ID = A.BRD_ID
+                   AND    T.RE_PARENT = A.RE_PARENT
+                   AND    T.RE_LEVEL  = A.RE_LEVEL + 1
+                   AND    T.RE_ORDER  = A.RE_ORDER + 1
+                  )
+]]></query>
+
+<!-- 게시판 목록 삭제(삭제표시건들) -->
+<query name="/deleteBoardListDelYn"><![CDATA[
+DELETE
+FROM   TB_BRD_LIST A
+WHERE  BRD_ID = {@BRD_ID}
+AND    RE_PARENT = {@RE_PARENT}
+AND    DEL_YN = '1'
+AND    NOT EXISTS (SELECT 1
+                   FROM   TB_BRD_LIST
+                   WHERE  RE_PARENT = A.RE_PARENT
+                   AND    RE_LEVEL  = A.RE_LEVEL + 1
+                   AND    RE_ORDER  = A.RE_ORDER + 1
+                  )
+]]></query>
+
+<!-- RE_ORDER 증가 -->
+<query name="/updateBoardReOrderAdd"><![CDATA[
+UPDATE TB_BRD_LIST A SET
+       RE_ORDER = RE_ORDER + 1
+WHERE  BRD_ID = {@BRD_ID}
+AND    RE_PARENT = {@RE_PARENT}
+AND    RE_ORDER >= (SELECT RE_ORDER FROM TB_BRD_LIST WHERE BRD_ID = A.BRD_ID AND BRD_NO = {@BRD_NO})
+AND    BRD_NO <> {@BRD_NO}
+]]></query>
+
+<!-- RE_ORDER 조정을 위한 조회 -->
+<query name="/retrieveBoardListForReOrder"><![CDATA[
+SELECT BRD_NO
+FROM   TB_BRD_LIST
+WHERE  BRD_ID = {@BRD_ID}
+AND    RE_PARENT = {@RE_PARENT}
+AND    RE_ORDER > 0
+ORDER  BY RE_ORDER
+]]></query>
+
+<!-- RE_ORDER 조정 -->
+<query name="/updateBoardListReOrder"><![CDATA[
+UPDATE TB_BRD_LIST SET
+       RE_ORDER = {@RE_ORDER:NUMBER}
+WHERE  BRD_ID = {@BRD_ID}
+AND    BRD_NO = {@BRD_NO}
+]]></query>
+
+</root>

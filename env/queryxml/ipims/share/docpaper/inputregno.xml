@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 등록정보 입력사항 조회 -->
+<query name="/retrieveInputRegNo"><![CDATA[
+SELECT A.REF_NO
+     , A.RIGHT_DIV
+     , A.REG_NO
+     , A.REG_DATE
+     , B.INDEP_CLAIM
+     , B.SUBORD_CLAIM
+     , B.DRAWING_CNT
+     , B.PAPER_CNT
+     , A.KO_APP_TITLE
+     , A.EN_APP_TITLE
+     , A.EXAMREQ_DATE
+     {#remark}
+     , (SELECT FILE_ID FROM TB_PAPER_LIST WHERE REF_ID = {@REF_ID} AND LIST_SEQ = {@LIST_SEQ}) FILE_ID
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.REF_ID = B.REF_ID(+)
+]]></query>
+<query name="/retrieveInputRegNo/remark"><![CDATA[
+     , (SELECT REMARK FROM TB_PAPER_LIST WHERE REF_ID = {@REF_ID} AND LIST_SEQ = {@LIST_SEQ}) REMARK
+]]></query>
+
+<!-- 등록정보 입력사항 저장 -->
+<query name="/updateInputRegNo"><![CDATA[
+UPDATE TB_APP_MST SET
+       REG_NO       = NVL({@REG_NO}, REG_NO)
+     , REG_DATE     = {@REG_DATE}
+     , KO_APP_TITLE = NVL({@KO_APP_TITLE}, KO_APP_TITLE)
+     , EN_APP_TITLE = NVL({@EN_APP_TITLE}, EN_APP_TITLE)
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 등록정보 입력사항 저장 - 국내 -->
+<query name="/updateInputRegNoInt"><![CDATA[
+UPDATE TB_APP_MST_INT SET
+       INDEP_CLAIM  = {@INDEP_CLAIM}
+     , SUBORD_CLAIM = {@SUBORD_CLAIM}
+     , DRAWING_CNT  = {@DRAWING_CNT}
+     , PAPER_CNT    = {@PAPER_CNT}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+
+
+</root>

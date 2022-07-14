@@ -1,0 +1,266 @@
+<PUBLIC:COMPONENT tagName="ABSTRACT" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="refId" get="getRefId" put="setRefId">
+    <PUBLIC:PROPERTY name="grpId" get="getGrpId" put="setGrpId">
+    <PUBLIC:PROPERTY name="value" get="getValue">
+    <PUBLIC:METHOD name="refresh">
+    <PUBLIC:METHOD name="openMaster">
+    <PUBLIC:METHOD name="openInventorList">
+    <PUBLIC:EVENT name="OnLoad" id="OnLoadEvent">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var ds_main;
+var ds_main_id;
+
+if (element.id.substr(0, 4) == "any_") {
+    ds_main_id = "ds_" + element.id.substr(4);
+} else {
+    ds_main_id = "ds_" + element.id;
+}
+
+var gRefId;
+var gGrpId;
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    for (var i = 0, elements = element.getElementsByTagName("*"); i < elements.length; i++) {
+        if (elements[i].tagName == "SCRIPT" || elements[i].tagName == "COMMENT") eval(elements[i].text);
+    }
+
+    ds_main = element.document.createElement('<ANY:DS id="' + ds_main_id + '">');
+    element.document.appendChild(ds_main);
+
+    element.isReady = true;
+}
+
+function getRefId()
+{
+    return gRefId;
+}
+
+function getGrpId()
+{
+    return gGrpId;
+}
+
+function setRefId(refId)
+{
+    if (refId == null || refId == "") return;
+
+    gRefId = refId;
+
+    refresh(true);
+}
+
+function setGrpId(grpId)
+{
+    if (grpId == null || grpId == "") return;
+
+    gGrpId = grpId;
+
+    refresh(true);
+}
+
+function getValue(name)
+{
+    return ds_main.value(0, name);
+}
+
+function refresh(fireEvent)
+{
+    if (gRefId == null || gRefId == "") return;
+
+    var prx = new any.proxy();
+    prx.path = top.getRoot() + "/anyfive.ipims.office.common.abstractinfo.act.RetrieveAbstractInfo.do";
+    prx.addParam("REF_ID", gRefId);
+    prx.addParam("_DS_ID_", ds_main_id);
+
+    prx.onSuccess = function()
+    {
+        makeHTML();
+
+        if (fireEvent == true) {
+            any.event.call(element, "OnLoad");
+            /* OnLoadEvent.fire(element.document.createEventObject()); */
+        }
+    }
+
+    prx.onFail = function()
+    {
+        this.error.show();
+    }
+
+    prx.execute();
+}
+
+function makeHTML()
+{
+    if (ds_main == null) return;
+
+    var html = new Array();
+
+    switch (ds_main.value(0, "MST_DIV")) {
+    case "A":
+        html.push('<TABLE border="0" cellspacing="1" cellpadding="2" class="main">        ');
+        html.push('    <COLGROUP>                                                         ');
+        html.push('        <COL class="conthead" width="15%">                             ');
+        html.push('        <COL class="contdata" width="18%">                             ');
+        html.push('        <COL class="conthead" width="15%">                             ');
+        html.push('        <COL class="contdata" width="18%">                             ');
+        html.push('        <COL class="conthead" width="15%">                             ');
+        html.push('        <COL class="contdata" width="18%">                             ');
+        html.push('    </COLGROUP>                                                        ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD colspan="6" class="title_table">[출원 서지사항]</TD>       ');
+        html.push('    </TR>                                                              ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD>REF-NO</TD>                                                ');
+        html.push('        <TD><A href="javascript:document.getElementById(\'' + element.id + '\').openMaster();">' + ds_main.value(0, "REF_NO") + '</A></TD>   ');
+        html.push('        <TD>발명자<BUTTON text="발명자조회" onClick="javascript:document.getElementById(\'' + element.id + '\').openInventorList();"></BUTTON></TD>  ');
+        html.push('        <TD>' + ds_main.value(0, "INVENTOR_NAMES") + '</TD>             ');
+        html.push('        <TD>건담당자</TD>                                              ');
+        html.push('        <TD>' + ds_main.value(0, "JOB_MAN_NAME") + '</TD>              ');
+        html.push('    </TR>                                                              ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD>발명의 명칭</TD>                                           ');
+        html.push('        <TD colspan="3">' + ds_main.value(0, "KO_APP_TITLE") + '</TD>  ');
+        html.push('        <TD>사무소담당자</TD>                                          ');
+        html.push('        <TD>' + ds_main.value(0, "OFFICE_JOB_MAN_NAME") + '</TD>       ');
+        html.push('    </TR>                                                              ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD>진행상태</TD>                                              ');
+        html.push('        <TD>' + ds_main.value(0, "STATUS_NAME") + '</TD>               ');
+        html.push('        <TD>진행일자</TD>                                              ');
+        html.push('        <TD>' + cfGetFormatDate(ds_main.value(0, "STATUS_DATE")) + '</TD>');
+        html.push('        <TD>사무소(국내/해외)</TD>                                            ');
+        html.push('        <TD>' + ds_main.value(0, "OFFICE_NAME")+ '/' + ds_main.value(0, "EXT_OFFICE_NAME") + '</TD>               ');
+        html.push('    </TR>                                                              ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD>출원번호</TD>                                              ');
+        html.push('        <TD>' + ds_main.value(0, "APP_NO") + '</TD>                    ');
+        html.push('        <TD>출원일자</TD>                                              ');
+        html.push('        <TD>' + cfGetFormatDate(ds_main.value(0, "APP_DATE")) + '</TD>');
+        html.push('        <TD>사무소REF</TD>                                             ');
+        html.push('        <TD>' + ds_main.value(0, "OFFICE_REF_NO") + '</TD>             ');
+        html.push('    </TR>                                                              ');
+        html.push('</TABLE>                                                               ');
+        break;
+    case "S":
+        html.push('<TABLE border="0" cellspacing="1" cellpadding="2" class="main">        ');
+        html.push('    <COLGROUP>                                                         ');
+        html.push('        <COL class="conthead" width="15%">                             ');
+        html.push('        <COL class="contdata" width="35%">                             ');
+        html.push('        <COL class="conthead" width="15%">                             ');
+        html.push('        <COL class="contdata" width="35%">                             ');
+        html.push('    </COLGROUP>                                                        ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD colspan="4" class="title_table">[조사 서지사항]</TD>       ');
+        html.push('    </TR>                                                              ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD>의뢰번호</TD>                                                ');
+        html.push('        <TD>' + ds_main.value(0, "PRSCH_NO") + '</TD>');
+        html.push('        <TD>건담당자</TD>                                              ');
+        html.push('        <TD>' + ds_main.value(0, "JOB_MAN_NAME") + '</TD>              ');
+        html.push('    </TR>                                                              ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD>의뢰제목</TD>                                           ');
+        html.push('        <TD colspan="3">' + ds_main.value(0, "PRSCH_SUBJECT") + '</TD>  ');
+        html.push('    </TR>                                                              ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD>사무소</TD>                                            ');
+        html.push('        <TD>' + ds_main.value(0, "OFFICE_NAME") + '</TD>               ');
+        html.push('        <TD>사무소REF</TD>                                             ');
+        html.push('        <TD>' + ds_main.value(0, "OFFICE_REF_NO") + '</TD>             ');
+        html.push('    </TR>                                                              ');
+        html.push('</TABLE>                                                               ');
+        break;
+    case "C":
+        html.push('<TABLE border="0" cellspacing="1" cellpadding="2" class="main">        ');
+        html.push('    <COLGROUP>                                                         ');
+        html.push('        <COL class="conthead" width="15%">                             ');
+        html.push('        <COL class="contdata" width="18%">                             ');
+        html.push('        <COL class="conthead" width="15%">                             ');
+        html.push('        <COL class="contdata" width="18%">                             ');
+        html.push('        <COL class="conthead" width="15%">                             ');
+        html.push('        <COL class="contdata" width="18%">                             ');
+        html.push('    </COLGROUP>                                                        ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD colspan="6" class="title_table">[분쟁(소송) 정보]</TD>       ');
+        html.push('    </TR>                                                              ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD>분쟁(소송)관리번호</TD>                                     ');
+        html.push('        <TD>' + ds_main.value(0, "MGT_NO") + '</TD>');
+        html.push('        <TD>분쟁국가</TD>                                              ');
+        html.push('        <TD>' + ds_main.value(0, "COUNTRY_NAME") + '</TD>              ');
+        html.push('        <TD>검토자</TD>                                                ');
+        html.push('        <TD>' + ds_main.value(0, "EXAM_USER") + '</TD>');
+        html.push('    </TR>                                                              ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD>청구인</TD>                                              ');
+        html.push('        <TD>' + ds_main.value(0, "REQ_MAN") + '</TD>                 ');
+        html.push('        <TD>피청구인</TD>                                              ');
+        html.push('        <TD>' + ds_main.value(0, "OTHER_NAME") + '</TD>              ');
+        html.push('        <TD>진행상태</TD>                                                ');
+        html.push('        <TD>' + ds_main.value(0, "STATUS_NAME") + '</TD>');
+        html.push('    </TR>                                                              ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD>분쟁(소송)번호</TD>                                          ');
+        html.push('        <TD>' + ds_main.value(0, "DISPUTE_NO") + '</TD>              ');
+        html.push('        <TD>분쟁(소송)종류</TD>                                       ');
+        html.push('        <TD>' + ds_main.value(0, "DISPUTE_KIND_NAME") + '</TD>');
+        html.push('        <TD>분쟁(소송)청구일</TD>                                       ');
+        html.push('        <TD>' + cfGetFormatDate(ds_main.value(0, "REQ_DATE")) + '</TD>  ');
+        html.push('    </TR>                                                              ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD>분쟁(소송)제목</TD>                                           ');
+        html.push('        <TD colspan="5">' + ds_main.value(0, "DISPUTE_SUBJECT") + '</TD>  ');
+        html.push('    </TR>                                                              ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD>대리인</TD>                                            ');
+        html.push('        <TD colspan="3">' + ds_main.value(0, "OFFICE_NAME") + '</TD>     ');
+        html.push('        <TD>변리사</TD>                                             ');
+        html.push('        <TD>' + ds_main.value(0, "LAWYER") + '</TD>             ');
+        html.push('    </TR>                                                              ');
+        html.push('    <TR>                                                               ');
+        html.push('        <TD>상대대리인</TD>                                            ');
+        html.push('        <TD colspan="3">' + ds_main.value(0, "OTHER_AGENT") + '</TD>    ');
+        html.push('        <TD>상대변리사</TD>                                             ');
+        html.push('        <TD>' + ds_main.value(0, "OTHER_LAWYER") + '</TD>             ');
+        html.push('    </TR>                                                              ');
+        html.push('</TABLE>                                                               ');
+        break;
+    }
+
+    element.innerHTML = html.join("\n");
+
+    bfSetMainTableTRHeight();
+}
+
+function openInventorList()
+{
+
+
+    var win = new any.window();
+    win.path = top.getRoot() + "/anyfive/ipims/share/docpaper/docpaper/DocInventorListR.jsp";
+    win.arg.REF_ID = gRefId;
+    win.arg.GRP_ID = gGrpId;
+    win.opt.width = 800;
+    win.opt.height = 400;
+    win.show();
+}
+
+function openMaster()
+{
+    var win = new any.window();
+    win.path = top.getRoot() + "/anyfive/ipims/office/costmgt/intcost/IntCostListR.jsp";
+    win.arg.REF_ID = gRefId;
+    win.opt.width = 800;
+    win.opt.height = 500;
+    win.show();
+}
+</SCRIPT>

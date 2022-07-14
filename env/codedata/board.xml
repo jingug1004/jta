@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 게시판 목록 검색구분 -->
+<codeData name="/boardListSearchKind">
+    <row CODE="SUBJECT"       NAME="제목" NAME_EN="Title" />
+    <row CODE="CRE_USER_NAME" NAME="작성자" NAME_EN="Writer" />
+</codeData>
+
+</root>

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 발명자 조회 -->
+<query name="/retrieveInventorByUserId"><![CDATA[
+SELECT A.USER_ID
+     , B.EMP_NO
+     , A.EMP_HNAME
+     , A.EMP_CNAME
+     , D.DIVISN_NAME
+     , C.DEPT_NAME
+     , '1' IN_INVENTOR_YN
+     , '내부' INOUT_NAME
+     , B.POSITION_NAME
+FROM   TB_USR_MST A
+     , TB_USR_PATENT B
+     , TB_ORG_DEPT C
+     , TB_ORG_DIVISN D
+WHERE  A.USER_ID = {@USER_ID}
+AND    A.USER_ID = B.USER_ID
+AND    B.DEPT_CODE = C.DEPT_CODE(+)
+AND    B.DIVISN_CODE = D.DIVISN_CODE(+)
+]]></query>
+
+<!-- 발명자 맵핑목록 조회 -->
+<query name="/retrieveInventorList"><![CDATA[
+SELECT A.INV_USER USER_ID
+     , NVL(C.EMP_NO,A.INV_USER)EMP_NO
+     , A.MAIN_INVENTOR_YN
+     , B.EMP_HNAME
+     , B.EMP_ENAME
+     , B.EMP_CNAME
+     , C.DIVISN_NAME
+     , C.DEPT_NAME
+     , A.QUOTA_RATIO
+     , C.IN_INVENTOR_YN
+     , C.INOUT_NAME
+     , C.HOME_ADDR
+     , C.POSITION_NAME
+FROM   TB_MAPP_INVENTOR A
+     , TB_USR_MST B
+     , (SELECT T1.USER_ID
+             , T1.EMP_NO
+             , FN_DIVISN_NAME(T1.DIVISN_CODE) DIVISN_NAME
+             , FN_DEPT_NAME(T1.DEPT_CODE) DEPT_NAME
+             , '1' IN_INVENTOR_YN
+             , '내부' INOUT_NAME
+             , T1.HOME_ADDR
+             , T1.POSITION_NAME
+        FROM   TB_MAPP_INVENTOR I1
+             , TB_USR_PATENT T1
+        WHERE  I1.REF_ID = {@REF_ID}
+        AND    I1.INV_USER = T1.USER_ID
+        UNION ALL
+        SELECT T2.USER_ID
+             , T2.EMP_NO
+             , NULL DIVISN_NAME
+             , CASE WHEN T2.COMPANY_NAME IS NOT NULL
+                    THEN FN_APP_MAN_NAME(T2.COMPANY_NAME) || ' (' || NVL(T2.DEPT_NAME,'') || ')'
+                    ELSE ''
+               END DEPT_NAME
+             , '0' IN_INVENTOR_YN
+             , '외부' INOUT_NAME
+             , T2.HOME_ADDR
+             , T2.POSITION_NAME
+        FROM   TB_MAPP_INVENTOR I2
+             , TB_USR_OUT_INVENTOR T2
+        WHERE  I2.REF_ID = {@REF_ID}
+        AND    I2.INV_USER = T2.USER_ID
+       ) C
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.INV_USER = B.USER_ID(+)
+AND    A.INV_USER = C.USER_ID(+)
+ORDER BY MAIN_INVENTOR_YN DESC, QUOTA_RATIO DESC, EMP_HNAME
+]]></query>
+
+<!-- 발명자 맵핑 생성 -->
+<query name="/createInventor"><![CDATA[
+INSERT INTO TB_MAPP_INVENTOR (
+       REF_ID
+     , INV_USER
+     , MAIN_INVENTOR_YN
+     , IN_INVENTOR_YN
+     , QUOTA_RATIO
+) VALUES (
+       {@REF_ID}
+     , {@USER_ID}
+     , {@MAIN_INVENTOR_YN}
+     , {@IN_INVENTOR_YN}
+     , {@QUOTA_RATIO}
+)
+]]></query>
+
+<!-- 발명자 맵핑 수정 -->
+<query name="/updateInventor"><![CDATA[
+UPDATE TB_MAPP_INVENTOR SET
+       MAIN_INVENTOR_YN = {@MAIN_INVENTOR_YN}
+     , QUOTA_RATIO = {@QUOTA_RATIO}
+WHERE  REF_ID = {@REF_ID}
+AND    INV_USER = {@USER_ID}
+]]></query>
+
+<!-- 발명자 맵핑 삭제 -->
+<query name="/deleteInventor"><![CDATA[
+DELETE FROM TB_MAPP_INVENTOR
+WHERE  REF_ID = {@REF_ID}
+AND    INV_USER = {@USER_ID}
+]]></query>
+
+<!-- 발명자 맵핑목록 전체 삭제 -->
+<query name="/deleteInventorListAll"><![CDATA[
+DELETE FROM TB_MAPP_INVENTOR
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 발명자 목록 복제 -->
+<query name="/duplicateInventorList"><![CDATA[
+INSERT INTO TB_MAPP_INVENTOR (
+       REF_ID
+     , INV_USER
+     , MAIN_INVENTOR_YN
+     , IN_INVENTOR_YN
+     , QUOTA_RATIO
+)
+SELECT {@NEW_REF_ID}
+     , INV_USER
+     , MAIN_INVENTOR_YN
+     , IN_INVENTOR_YN
+     , QUOTA_RATIO
+FROM   TB_MAPP_INVENTOR
+WHERE  REF_ID = {@OLD_REF_ID}
+]]></query>
+
+</root>

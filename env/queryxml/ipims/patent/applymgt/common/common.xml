@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 국내출원 의뢰서 수정가능 여부 조회 -->
+<query name="/retrieveIntRequestEditAvail"><![CDATA[
+SELECT CASE WHEN CRE_USER = {@$USER_ID} AND WRITE_END_YN != '1' THEN '1' ELSE '0' END EDIT_AVAIL
+FROM   TB_APP_INT_REQ
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 출원 마스터 정보 조회 -->
+<query name="/retrieveMasterInfo"><![CDATA[
+SELECT '1' IS_MASTER
+     , A.REF_ID
+     , A.RIGHT_DIV
+     , A.INOUT_DIV
+     , A.JOB_MAN
+FROM   TB_APP_MST A
+WHERE  A.REF_ID = {@REF_ID}
+UNION ALL
+SELECT '0' IS_MASTER
+     , A.REF_ID
+     , A.RIGHT_DIV
+     , 'INT' INOUT_DIV
+     , NULL JOB_MAN
+FROM   TB_APP_INT_REQ A
+WHERE  A.REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 국내출원 마스터 탭 정보 조회 -->
+<query name="/retrieveIntMasterTabInfo"><![CDATA[
+SELECT M.RIGHT_DIV
+     , M.INOUT_DIV
+     , M.REF_NO
+     , (SELECT COUNT(1) FROM TB_APP_INT_REQ T WHERE T.REF_ID = M.REF_ID) REQ_EXIST
+     , (SELECT COUNT(1) FROM TB_APP_INT_CONSULT T WHERE T.REF_ID = M.REF_ID) CONSULT_EXIST
+     , (SELECT EXAM_RESULT FROM TB_APP_INT_CONSULT T WHERE T.REF_ID = M.REF_ID) EXAM_RESULT
+     , (SELECT COUNT(1)
+        FROM   TB_MAPP_REF_ID A
+             , TB_APP_EXT_GRP B
+             , TB_APP_MST C
+             , TB_APP_MST_EXT D
+        WHERE  A.REF_ID = M.REF_ID
+        AND    A.MAPP_KIND = 'G'
+        AND    A.GRP_ID = B.GRP_ID
+        AND    A.GRP_ID = D.GRP_ID
+        AND    C.REF_ID = D.REF_ID
+       ) EXT_APPLY_CNT
+     , M.JOB_MAN
+FROM   TB_APP_MST M
+WHERE  M.REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 해외출원 마스터 탭 정보 조회 -->
+<query name="/retrieveExtMasterTabInfo"><![CDATA[
+SELECT M.RIGHT_DIV
+     , M.INOUT_DIV
+     , M.REF_NO
+     , M2.GRP_ID
+     , (SELECT COUNT(1) FROM TB_APP_EXT_GRP T WHERE T.GRP_ID = M2.GRP_ID) GROUP_EXIST
+FROM   TB_APP_MST M
+     , TB_APP_MST_EXT M2
+WHERE  M.REF_ID = {@REF_ID}
+AND    M.REF_ID = M2.REF_ID(+)
+]]></query>
+
+<!-- 마스터 권리구분 변경정보 조회 -->
+<query name="/retrieveMasterRightDivChangeInfo"><![CDATA[
+SELECT DECODE(RIGHT_DIV, {@RIGHT_DIV},'0', '1') CHANGE_YN
+     , RIGHT_DIV || ' : ' || FN_COM_CODE_NAME('RIGHT_DIV', RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) PAPER_REF_NO
+     , {@RIGHT_DIV} || ' : ' || FN_COM_CODE_NAME('RIGHT_DIV', {@RIGHT_DIV}, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) COMMENTS
+FROM   TB_APP_MST
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 마스터 건담당자 변경정보 조회 -->
+<query name="/retrieveMasterJobManChangeInfo"><![CDATA[
+SELECT DECODE(JOB_MAN, {@JOB_MAN},'0', '1') CHANGE_YN
+     , FN_USER_EMPNO(JOB_MAN) || ' : ' || FN_USER_NAME(JOB_MAN) PAPER_REF_NO
+     , FN_USER_EMPNO({@JOB_MAN}) || ' : ' || FN_USER_NAME({@JOB_MAN}) COMMENTS
+     , REF_NO
+     , KO_APP_TITLE
+FROM   TB_APP_MST
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 마스터 사무소 변경정보 조회 -->
+<query name="/retrieveMasterOfficeCodeChangeInfo"><![CDATA[
+SELECT DECODE(OFFICE_CODE, {@OFFICE_CODE},'0', '1') CHANGE_YN
+     , OFFICE_CODE || ' : ' || FN_OFFICE_NAME(OFFICE_CODE) PAPER_REF_NO
+     , {@OFFICE_CODE} || ' : ' || FN_OFFICE_NAME({@OFFICE_CODE}) COMMENTS
+FROM   TB_APP_MST
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 마스터 사무소담당자 변경정보 조회 -->
+<query name="/retrieveMasterOfficeJobManChangeInfo"><![CDATA[
+SELECT DECODE(OFFICE_JOB_MAN, {@OFFICE_JOB_MAN},'0', '1') CHANGE_YN
+     , FN_USER_EMPNO(OFFICE_JOB_MAN) || ' : ' || FN_USER_NAME(OFFICE_JOB_MAN) PAPER_REF_NO
+     , FN_USER_EMPNO({@OFFICE_JOB_MAN}) || ' : ' || FN_USER_NAME({@OFFICE_JOB_MAN}) COMMENTS
+     , REF_NO
+     , KO_APP_TITLE
+FROM   TB_APP_MST
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 마스터 초록정보 생성 -->
+<query name="/createMasterAbstract"><![CDATA[
+INSERT INTO TB_APP_ABSTRACT (
+       REF_ID
+     , ABSTRACT
+     , CLAIM
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@REF_ID}
+     , EMPTY_CLOB()
+     , EMPTY_CLOB()
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 마스터 초록정보 수정 -->
+<query name="/updateMasterAbstract"><![CDATA[
+UPDATE TB_APP_ABSTRACT SET
+       ABSTRACT = EMPTY_CLOB()
+     , CLAIM    = EMPTY_CLOB()
+     , UPD_USER = {@$USER_ID}
+     , UPD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 마스터 초록정보 저장을 위한 조회 -->
+<query name="/retrieveMasterAbstractForUpdate"><![CDATA[
+SELECT ABSTRACT
+     , CLAIM
+FROM   TB_APP_ABSTRACT
+WHERE  REF_ID = {@REF_ID}
+FOR    UPDATE
+]]></query>
+
+</root>

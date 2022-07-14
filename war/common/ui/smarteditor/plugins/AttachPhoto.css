@@ -1,0 +1,10 @@
+﻿@charset "utf-8";
+
+/* layer : 사진 첨부 */
+#smart_editor2 .se2_in_layer .se2_bx_photo_attach h3{margin:0;padding:10px 0 13px 10px;background:url(../img/bg_find_h3.gif) 0 -1px repeat-x;font-size:12px;line-height:14px;letter-spacing:-1px}
+#smart_editor2 .se2_in_layer .se2_bx_photo_attach .se2_close{position:absolute;top:5px;right:8px;width:20px;height:20px;background:url(../img/ko_KR/btn_set.png) -151px -1px no-repeat}
+#smart_editor2 .se2_in_layer .se2_bx_photo_attach .se2_input_file_area{display:block;margin:10px;}
+#smart_editor2 .se2_in_layer .se2_bx_photo_attach input{display:block;width:100%;height:20px;font-size:12px;color:#666}
+#smart_editor2 .se2_in_layer .se2_bx_photo_attach .se2_attach_btns{text-align:center;margin:0 0 10px 0;}
+#smart_editor2 .se2_in_layer .se2_bx_photo_attach .se2_attach_btns button.se2_apply{width:41px;height:24px;margin-right:3px;background:url(../img/ko_KR/btn_set.png) no-repeat}
+#smart_editor2 .se2_in_layer .se2_bx_photo_attach .se2_attach_btns button.se2_cancel{width:39px;height:24px;background:url(../img/ko_KR/btn_set.png) -41px 0 no-repeat}

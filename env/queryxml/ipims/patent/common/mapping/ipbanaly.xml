@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- IP Biz. 분석자료 맵핑 목록 조회 -->
+<query name="/retrieveIpbAnalyList"><![CDATA[
+SELECT M.ANALY_ID
+     , A.MGT_NO
+     , A.ANALY_DIV
+     , FN_COM_CODE_NAME('DISPUTE_DIV', A.ANALY_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) ANALY_DIV_NAME
+     , A.ANALY_NAME
+     , A.COMPETITOR
+FROM   TB_MAPP_IPB_ANALY M
+     , TB_IPB_ANALY A
+WHERE  M.REF_ID = {@REF_ID}
+AND    M.ANALY_ID = A.ANALY_ID
+]]></query>
+
+<!-- IP Biz. 분석자료 맵핑  생성 -->
+<query name="/createIpbAnaly"><![CDATA[
+INSERT INTO TB_MAPP_IPB_ANALY (
+       REF_ID
+     , ANALY_ID
+) VALUES (
+       {@REF_ID}
+     , {@ANALY_ID}
+)
+]]></query>
+
+<!-- IP Biz. 분석자료 맵핑  삭제 -->
+<query name="/deleteIpbAnaly"><![CDATA[
+DELETE FROM TB_MAPP_IPB_ANALY
+WHERE  REF_ID = {@REF_ID}
+AND    ANALY_ID = {@ANALY_ID}
+]]></query>
+
+<!-- IP Biz. 분석자료 맵핑 목록 전체 삭제 -->
+<query name="/deleteIpbAnalyListAll"><![CDATA[
+DELETE FROM TB_MAPP_IPB_ANALY
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

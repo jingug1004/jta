@@ -1,0 +1,233 @@
+<PUBLIC:COMPONENT tagName="EVAL" lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="mode" get="getMode" put="setMode">
+    <PUBLIC:PROPERTY name="sumTotal" get="getSumTotal">
+    <PUBLIC:PROPERTY name="value" get="getValue">
+    <PUBLIC:METHOD name="reset">
+    <PUBLIC:EVENT name="OnReady" id="OnReadyEvent">
+    <PUBLIC:EVENT name="OnChange" id="OnChangeEvent">
+</PUBLIC:COMPONENT>
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE9">
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var ds_main;
+var ds_main_id;
+
+if (element.id.substr(0, 4) == "any_") {
+    ds_main_id = "ds_" + element.id.substr(4);
+} else {
+    ds_main_id = "ds_" + element.id;
+}
+
+var control_id = element.id + "_" + element.sourceIndex;
+
+var ds_item;
+var ds_item_id = "ds_item_"  + control_id;
+
+var tbd_main;
+var tbd_main_id = "tbd_main_" + control_id;
+
+var tr_main;
+var tr_main_id = "tr_main_" + control_id;
+
+var obj_main;
+var obj_main_id = "obj_main_" + control_id;
+
+var gMode = "R";
+var gMode2 = "R";
+
+var gEvalSheetId;
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    for (var i = 0, elements = element.getElementsByTagName("*"); i < elements.length; i++) {
+        if (elements[i].tagName == "SCRIPT" || elements[i].tagName == "COMMENT") eval(elements[i].text);
+    }
+
+    ds_main = element.document.createElement('<ANY:DS id="' + ds_main_id + '">');
+    element.document.appendChild(ds_main);
+
+    ds_main.OnInit = function()
+    {
+        ds_main.setKeys("ITEM_SEQ");
+        ds_main.addBind("ITEM_SEQ", tr_main_id, "ITEM_SEQ");
+        ds_main.addBind("ELEM_SEQ", obj_main_id);
+    }
+
+    ds_item = element.document.createElement('<ANY:DS id="' + ds_item_id + '">');
+    element.document.appendChild(ds_item);
+
+    element.isReady = true;
+}
+
+function reset(evalSheetId, evalId)
+{
+    gEvalSheetId = evalSheetId;
+
+    var prx = new any.proxy();
+    prx.path = top.getRoot() + "/anyfive.ipims.patent.common.evaluation.act.RetrieveEvalSheetItemList.do";
+    prx.addParam("_DS_ID_", ds_item_id);
+    prx.addParam("EVAL_SHEET_ID", evalSheetId);
+    prx.addParam("EVAL_ID", evalId);
+
+    prx.onSuccess = function()
+    {
+        makeHTML();
+    }
+
+    prx.onFail = function()
+    {
+        this.error.show();
+    }
+
+    prx.execute();
+}
+
+function makeHTML()
+{
+    if (ds_item == null) return;
+
+    var html = new Array();
+
+    html.push('<TABLE border="0" cellspacing="1" cellpadding="0" class="main">');
+    html.push('    <COLGROUP>');
+    html.push('        <COL class="conthead" style="text-align:left;">');
+    html.push('        <COL class="contdata">');
+    html.push('    </COLGROUP>');
+    html.push('    <TBODY id="' + tbd_main_id + '">');
+    html.push('    </TBODY>');
+    html.push('</TABLE>');
+
+    element.innerHTML = html.join("\n");
+
+    tbd_main = element.document.getElementById(tbd_main_id);
+    tr_main = element.document.getElementsByName(tr_main_id);
+    obj_main = element.document.getElementsByName(obj_main_id);
+
+    var tr, td, obj;
+    var codeDatas = new Array();
+    var radioCnt = 0;
+
+    for (var i = 0; i < ds_item.rowCount; i++) {
+        if (ds_item.value(i, "INPUT_TYPE") == "R") radioCnt++;
+    }
+
+    for (var i = 0; i < ds_item.rowCount; i++) {
+        tr = element.document.createElement('<TR id="' + tr_main_id + '">');
+        tr.ITEM_SEQ = ds_item.value(i, "ITEM_SEQ");
+        tbd_main.appendChild(tr);
+
+        td = element.document.createElement('<TD>');
+        td.width = (ds_item.value(i, "INPUT_TYPE") == "T" ? "100%" : "30%");
+        td.innerText = ds_item.value(i, "ITEM_NAME");
+        tr.appendChild(td);
+        tr.labelTd = td;
+
+        td = element.document.createElement('<TD>');
+        td.style.textAlign = (ds_item.value(i, "INPUT_TYPE") == "T" ? "center" : "left");
+        tr.appendChild(td);
+
+        switch (ds_item.value(i, "INPUT_TYPE")) {
+        case "T":
+            obj = element.document.createElement('<INPUT type="text" id="' + obj_main_id + '" class="text" idx="' + i + '" format="number(3)">');
+            obj.style.width = "40px";
+            obj.value = ds_item.value(i, "ELEM_VALUE");
+            obj.OnChangeValue = function()
+            {
+                OnChangeEvent.fire(element.document.createEventObject());
+            }
+            obj.onblur = function()
+            {
+                OnChangeEvent.fire(element.document.createEventObject());
+            }
+            break;
+        case "R":
+            obj = element.document.createElement('<ANY:RADIO id="' + obj_main_id + '" idx="' + i + '">');
+            obj.codeData2 = "/common/evalSheetItemElem," + gEvalSheetId + "," + ds_item.value(i, "ITEM_SEQ");
+            obj.cols = ds_item.value(i, "ROW_ELEM_CNT");
+            obj.value = ds_item.value(i, "ELEM_SEQ");
+            /* obj.OnReady = function()
+            {
+                addCodeData(this);
+            } */
+            any.event.attach(obj, "OnReady", function() {
+                addCodeData(this);
+            });
+            obj.OnChange = function()
+            {
+                OnChangeEvent.fire(element.document.createEventObject());
+            }
+            break;
+        }
+        obj.readOnly = obj.readOnly2 = (gMode2 == "R");
+        td.appendChild(obj);
+
+        tr.labelTd.className = "require";
+        tr.labelTd.req = obj_main[i];
+        tr.labelTd.reqEnable = (gMode2 != "R");
+    }
+
+    function addCodeData(rdo)
+    {
+        codeDatas.push(rdo);
+
+        if (codeDatas.length == radioCnt) {
+            any.setCodeDataObjects(codeDatas);
+            OnReadyEvent.fire(element.document.createEventObject());
+        }
+    }
+}
+
+function getMode()
+{
+    return gMode;
+}
+
+function setMode(val)
+{
+    if (gMode == val) return;
+
+    gMode = val;
+    gMode2 = gMode.substr(0, 1);
+
+    if (tr_main == null) return;
+
+    for (var i = 0; i < tr_main.length; i++) {
+        tr_main[i].labelTd.reqEnable = (gMode2 != "R");
+        obj_main[i].readOnly = obj_main[i].readOnly2 = (gMode2 == "R");
+    }
+}
+
+function getSumTotal()
+{
+    if (obj_main == null) return 0;
+
+    var tot = 0;
+    var val;
+
+    for (var i = 0; i < obj_main.length; i++) {
+        switch (obj_main[i].scopeName + ":" + obj_main[i].tagName) {
+        case "HTML:INPUT":
+            val = obj_main[i].value2;
+            break;
+        case "ANY:RADIO":
+            val = obj_main[i].value(null, "ELEM_VALUE");
+            break;
+        }
+        if (val == null || val == "" || isNaN(val)) continue;
+        tot += parseInt(val, 10);
+    }
+
+    return tot;
+}
+
+function getValue(idx)
+{
+    if (obj_main == null) return null;
+
+    return obj_main[idx].value(null, "ELEM_VALUE");
+}
+</SCRIPT>

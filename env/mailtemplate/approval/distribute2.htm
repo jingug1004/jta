@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+<HEAD>
+<TITLE>[결재완료]지식재산창출온라인시스템(JIPOS)로 부터 {#APPR_NAME}에 대한 결재가 최종승인되었습니다.</TITLE>
+<STYLE type="text/css">
+TD {
+    background-color: #FFFFFF;
+}
+</STYLE>
+</HEAD>
+
+<BODY>
+REF-NO : {#REF_NO}<BR>
+<BR>
+제 목 : {#APPR_NAME}에 대한 결재가 최종승인되었습니다.<BR>
+<BR>
+결재내역 :
+<TABLE border="0" cellspacing="1" cellpadding="2" bgColor="#000000">
+    <TR align="center">
+        <TD>구분</TD>
+        <TD>이름</TD>
+        <TD>상태</TD>
+        <TD>일자</TD>
+        <TD>메모</TD>
+    </TR>
+    <TR>
+        <TD align="center">요청자</TD>
+        <TD>{#REQ_USER_NAME}</TD>
+        <TD>[결재요청]</TD>
+        <TD>{#REQ_DATE}</TD>
+        <TD>{#REQ_MEMO}</TD>
+    </TR>
+{#ansList}
+    <TR>
+        <TD align="center">배포자</TD>
+        <TD colspan="4">{#DIST_USER_NAMES}</TD>
+    </TR>
+</TABLE>
+<BR>
+<BR>
+{#APPR_LINK}
+
+</BODY>
+</HTML>

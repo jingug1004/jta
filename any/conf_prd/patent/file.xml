@@ -1,0 +1,167 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 파일 저장소 -->
+<repository name="repository1">
+     {#home}\..\files
+</repository>
+
+<!-- 기본정책 -->
+<policy name="default">
+    <repository>repository1</repository>
+    <max-memory-size>4096</max-memory-size>
+    <max-request-size>1073741824</max-request-size>
+    <sub-path>/default</sub-path>
+    <month-folder>true</month-folder>
+    <name-formatter>any.util.file.nameformatter.NDefaultFileNameFormatter</name-formatter>
+    <delete-file>true</delete-file>
+    <include-extensions></include-extensions>
+    <exclude-extensions></exclude-extensions>
+</policy>
+
+<!-- 게시판 -->
+<policy name="board">
+    <sub-path>/board</sub-path>
+</policy>
+
+<!-- 진행서류 -->
+<policy name="paper">
+    <sub-path>/paper</sub-path>
+</policy>
+
+<!-- 대표도면 -->
+<policy name="draw_img">
+    <sub-path>/draw_img</sub-path>
+    <include-extensions>BMP, GIF, JPG, JPEG</include-extensions>
+</policy>
+
+<!-- 출원명세서 - 국내 -->
+<policy name="appdoc_int">
+    <sub-path>/appdoc/int</sub-path>
+</policy>
+
+<!-- 출원명세서 - 해외 -->
+<policy name="appdoc_ext">
+    <sub-path>/appdoc/ext</sub-path>
+</policy>
+
+<!-- 등록원부 - 국내 -->
+<policy name="regdoc_int">
+    <sub-path>/regdoc/int</sub-path>
+</policy>
+
+<!-- 등록결정서 - 해외 -->
+<policy name="regdoc_ext">
+    <sub-path>/regdoc/ext</sub-path>
+</policy>
+
+<!-- 사무소요청사항 -->
+<policy name="office_req">
+    <sub-path>/office_req</sub-path>
+</policy>
+
+<!-- 비용 청구서 -->
+<policy name="cost_invoice">
+    <sub-path>/cost_invoice</sub-path>
+</policy>
+
+<!-- 선행기술조사 -->
+<policy name="prior_search">
+    <sub-path>/prior_search</sub-path>
+</policy>
+
+<!-- 직무발명신고서 -->
+<policy name="invdoc">
+    <sub-path>/invdoc</sub-path>
+</policy>
+
+<!-- 선행기술자료 -->
+<policy name="prsch">
+    <sub-path>/prsch</sub-path>
+</policy>
+
+<!-- 해외그룹 -->
+<policy name="extgroup">
+    <sub-path>/extgroup</sub-path>
+</policy>
+
+<!-- 해외오더레터 -->
+<policy name="extol">
+    <sub-path>/extol</sub-path>
+</policy>
+
+<!-- 디자인 - 신고서 -->
+<policy name="design_doc">
+    <sub-path>/design/doc</sub-path>
+</policy>
+
+<!-- 디자인 - 해외그룹 -->
+<policy name="design_extgroup">
+    <sub-path>/design/extgroup</sub-path>
+</policy>
+
+<!-- 디자인 - 해외신규 -->
+<policy name="design_extol">
+    <sub-path>/design/extol</sub-path>
+</policy>
+
+<!-- 디자인 - 이미지 -->
+<policy name="design_image">
+    <sub-path>/design/image</sub-path>
+    <include-extensions>JPG, GIF, BMP</include-extensions>
+</policy>
+
+<!-- 디자인 - 기타(6면도 및 사시도 또는 의장출원품의서) -->
+<policy name="design_etc">
+    <sub-path>/design/etc</sub-path>
+    <include-extensions>JPG, GIF, BMP</include-extensions>
+</policy>
+
+<!-- 상표 - 이미지 -->
+<policy name="tmark_image">
+    <sub-path>/tmark/image</sub-path>
+    <!-- include-extensions>JPG, GIF, BMP</include-extensions -->
+</policy>
+
+<!-- 상표 - 기타 -->
+<policy name="tmark_etc">
+    <sub-path>/tmark/etc</sub-path>
+</policy>
+
+<!-- 프로그램 - 관련파일 -->
+<policy name="program_file">
+    <sub-path>/program/file</sub-path>
+</policy>
+
+<!-- IP Biz. - 분석자료 -->
+<policy name="ipbiz_analy">
+    <sub-path>/ipbiz/analy</sub-path>
+</policy>
+
+<!-- IP Biz. - 감정서 -->
+<policy name="ipbiz_expopin">
+    <sub-path>/ipbiz/expopin</sub-path>
+</policy>
+
+<!-- IP Biz. - History -->
+<policy name="ipbiz_history">
+    <sub-path>/ipbiz/history</sub-path>
+</policy>
+
+<!-- review_req -->
+<policy name="reviewreq">
+    <sub-path>/review</sub-path>
+</policy>
+
+<!-- 계약서 파일 -->
+<policy name="contract">
+    <sub-path>/ipbiz/contract</sub-path>
+</policy>
+
+<!-- 라이센스 파일 -->
+<policy name="ipbiz_license">
+    <sub-path>/ipbiz/license</sub-path>
+</policy>
+
+</root>

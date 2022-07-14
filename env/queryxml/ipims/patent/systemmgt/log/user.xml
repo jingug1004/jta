@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 사용자 로그 목록 조회 -->
+<query name="/retrieveUserLogList"><![CDATA[
+SELECT A.LOG_SEQ
+     , FN_COM_CODE_NAME('SYSTEM_TYPE', A.SYSTEM_TYPE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) SYSTEM_TYPE_NAME
+     , NVL(B.EMP_HNAME, '(Unknown)') EMP_HNAME
+     , {#codeData:A.LOG_TYPE:/systemmgt/userLogType} LOG_TYPE_NAME
+     , A.LOG_DATETIME
+     , A.CLIENT_IP
+     , A.SERVER_IP
+     , A.SERVLET_PATH
+     , {#codeData:A.ERROR_YN:/systemmgt/userLogErrorYn} ERROR_YN_NAME
+FROM   TB_USR_LOG A
+     , TB_USR_MST B
+WHERE  A.USER_ID = B.USER_ID(+)
+]]></query>
+<query name="/retrieveUserLogList/systemType"><![CDATA[
+AND    A.SYSTEM_TYPE = {@SYSTEM_TYPE}
+]]></query>
+<query name="/retrieveUserLogList/logType"><![CDATA[
+AND    A.LOG_TYPE = {@LOG_TYPE}
+]]></query>
+<query name="/retrieveUserLogList/dateStart"><![CDATA[
+AND    A.LOG_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveUserLogList/dateEnd"><![CDATA[
+AND    A.LOG_DATE <= {@DATE_END}
+]]></query>
+<query name="/retrieveUserLogList/empHname"><![CDATA[
+AND    UPPER(B.EMP_HNAME) LIKE '%'||UPPER({@EMP_HNAME})||'%'
+]]></query>
+
+<!-- 사용자 로그 조회 -->
+<query name="/retrieveUserLog"><![CDATA[
+SELECT A.LOG_SEQ
+     , NVL(B.EMP_HNAME, '(Unknown)') EMP_HNAME
+     , FN_COM_CODE_NAME('SYSTEM_TYPE', A.SYSTEM_TYPE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) SYSTEM_TYPE_NAME
+     , {#codeData:A.LOG_TYPE:/systemmgt/userLogType} LOG_TYPE_NAME
+     , A.CLIENT_IP
+     , A.SERVER_IP
+     , A.REFERER_URL
+     , A.SERVLET_PATH
+     , A.LOG_DATETIME
+     , {#codeData:A.ERROR_YN:/systemmgt/userLogErrorYn} ERROR_YN_NAME
+     , A.ERROR_MSG
+FROM   TB_USR_LOG A
+     , TB_USR_MST B
+WHERE  A.USER_ID = B.USER_ID(+)
+AND    A.LOG_SEQ = {@LOG_SEQ}
+]]></query>
+
+</root>

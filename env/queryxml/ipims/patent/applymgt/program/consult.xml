@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 프로그램품의 목록 조회 -->
+<query name="/retrieveProgramConsultList"><![CDATA[
+SELECT A.REF_ID
+     , B.REF_NO
+     , FN_USER_NAME(B.CRE_USER) CRE_USER_NAME
+     , B.PROG_TITLE
+     , A.PATTEAM_RCPT_DATE
+     , B.RIGHT_TYPE
+     , FN_COM_CODE_NAME('RIGHT_TYPE', B.RIGHT_TYPE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_TYPE_NAME
+     , B.REGULAR_DIV
+     , FN_COM_CODE_NAME('REGULAR_DIV', B.REGULAR_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) REGULAR_DIV_NAME
+     , FN_BIZ_CODE_NAME(Z.STATUS, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) BIZ_STATUS_NAME
+     , C.JOB_MAN
+     , FN_USER_NAME(C.JOB_MAN) JOB_MAN_NAME
+     , A.EXAM_RESULT
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+FROM   TB_PROG_CONSULT A
+     , TB_PROG_REQ B
+     , TB_PROG_MST C
+     , TB_BIZ_COM_MST Z
+WHERE  A.REF_ID = B.REF_ID(+)
+AND    A.REF_ID = C.REF_ID(+)
+AND    A.REF_ID = Z.REF_ID(+)
+AND    C.JOB_MAN IS NOT NULL
+]]></query>
+<query name="/retrieveProgramConsultList/refNo"><![CDATA[
+AND    B.REF_NO LIKE '%'||{@SEARCH_TEXT}||'%'
+]]></query>
+<query name="/retrieveProgramConsultList/dateStart"><![CDATA[
+AND    {#DATE_GUBUN} >= {@DATE_START}
+]]></query>
+<query name="/retrieveProgramConsultList/dateEnd"><![CDATA[
+AND    {#DATE_GUBUN} <= {@DATE_END}
+]]></query>
+<query name="/retrieveProgramConsultList/invEmono"><![CDATA[
+AND   A.REF_ID  IN (SELECT REF_ID FROM TB_MAPP_INVENTOR WHERE REF_ID = A.REF_ID AND INV_USER LIKE '%'||{@INV_TEXT}||'%' )
+]]></query>
+<query name="/retrieveProgramConsultList/invName"><![CDATA[
+AND   A.REF_ID  IN (
+                    SELECT REF_ID FROM TB_MAPP_INVENTOR A , TB_USR_MST B
+                    WHERE A.INV_USER = B.USER_ID
+                     AND A.REF_ID = REF_ID
+                     AND B.EMP_HNAME LIKE '%'||{@INV_TEXT}||'%' )
+]]></query>
+
+<!-- 프로그램품의 조회 -->
+<query name="/retrieveProgramConsult"><![CDATA[
+SELECT A.REF_ID
+     , B.REF_NO
+     , B.PROG_TITLE
+     , B.RIGHT_TYPE
+     , B.REGULAR_DIV
+     , B.PROG_CONTENTS
+     , B.PROG_LANG
+     , FN_USER_NAME(B.CRE_USER) CRE_USER_NAME
+     , B.CRE_USER
+     , B.CRE_DATE
+     , B.PROG_FILE_ID
+     , A.PATTEAM_RCPT_DATE
+     , C.JOB_MAN
+     , FN_USER_NAME(C.JOB_MAN) JOB_MAN_NAME
+     , A.EXAM_RESULT
+     , A.EXAM_OPINION
+     , A.APPLY_FIELD
+     , A.MAIN_FUNCTION
+     , A.FEATURE
+     , A.USE_METHOD
+     , A.SALE_DIV
+     , A.USE_MACHINETYPE
+     , A.USE_OS
+     , A.USE_LANG
+     , A.NEED_PROG
+     , A.SCALE
+     , A.ETC_MEMO
+     , B.PROG_FILE_ID REQ_PROG_FILE_ID
+     , A.PROG_FILE_ID CONSUT_PROG_FILE_ID
+     , A.APPR_NO
+     , A.CRE_DATE REQ_DATE
+FROM   TB_PROG_CONSULT A
+     , TB_PROG_REQ B
+     , TB_PROG_MST C
+WHERE  A.REF_ID = B.REF_ID(+)
+AND    A.REF_ID = C.REF_ID(+)
+AND    A.REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 프로그램품의 수정 -->
+<query name="/updateProgramConsult"><![CDATA[
+UPDATE TB_PROG_CONSULT SET
+       EXAM_RESULT         = {@EXAM_RESULT}
+     , EXAM_OPINION        = {@EXAM_OPINION}
+     , APPLY_FIELD         = {@APPLY_FIELD}
+     , MAIN_FUNCTION       = {@MAIN_FUNCTION}
+     , FEATURE             = {@FEATURE}
+     , USE_METHOD          = {@USE_METHOD}
+     , SALE_DIV            = {@SALE_DIV}
+     , USE_MACHINETYPE     = {@USE_MACHINETYPE}
+     , USE_OS              = {@USE_OS}
+     , USE_LANG            = {@USE_LANG}
+     , NEED_PROG           = {@NEED_PROG}
+     , SCALE               = {@SCALE}
+     , ETC_MEMO            = {@ETC_MEMO}
+     , PROG_FILE_ID        = {@CONSUT_PROG_FILE_ID}
+     , UPD_USER            = {@$USER_ID}
+     , UPD_DATE            = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  REF_ID              = {@REF_ID}
+]]></query>
+
+</root>

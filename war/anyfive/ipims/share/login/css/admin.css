@@ -1,0 +1,84 @@
+@charset "utf-8";
+
+/* -------------------------------------------------------------------------------------------
+공통스타일 CSS Document
+* description   : 공통스타일 정의
+---------------------------------------------------------------------------------------------*/
+
+@import url(board.css);
+/*--- 공통 ---*/
+* { margin:0px; padding:0px;}
+body { font-size:75%; line-height:150%; font-family:"돋움", Dotum, "굴림", Gulim, Arial, AppleGothic, Sans-serif; color:#666;padding:0px; margin:0px; width:100%; background-color:#fff;}
+div, p, ul, ol, li, dl, dt, dd, blockquote, a, img, table, th, td, tr, h1, h2, h3, h4, h5, h6, form, span, iframe { font-size:100%; line-height:150%; font-family:"돋움", Dotum, "굴림", Gulim, Arial, AppleGothic, Sans-serif; color:#666; padding:0px; margin:0px;}
+img, fieldset { border:0px none;}
+hr, label { display:none;}
+caption { height:0px; font-size: 0px; line-height:0px; overflow:hidden; visibility:hidden;}
+legend { position:absolute; width:0px; height:0px; left:0px; top:0px; font-size: 0px; line-height:0px; overflow:hidden; visibility:hidden;}
+label.rcbox_label { display:inline;}
+ul, ol { list-style-image:none; list-style-position:outside; list-style-type:none;}
+address { font-style:normal;}
+
+/*--- 머리말(제목) 정의 ---*/
+h1, h2, h3 { position:absolute;width:0px; height:0px; left:0px; top:0px; overflow:hidden; visibility:hidden;}
+h1, h2, h3, h4, h5, h6 { line-height: 140%;}
+h1 { font-size:200%;}
+h2 { font-size:180%;}
+h3 { font-size:160%;}
+h4 { font-size:140%;}
+h5 { font-size:120%;}
+h6 { font-size:100%;}
+
+a, a:link, a:visited, a:active { color:#666; text-decoration:none;}
+a:hover { color:#0088f1; text-decoration:none;}
+input { vertical-align: middle;}
+.input01 { color:#555; border:2px solid #BDBDBD; background-color: #ffffff; font-size:100%; padding:3px 2px 1px 3px; vertical-align:middle;width:130px;}
+.inputmain { color:#555; border:2px solid #5a962a; background-color: #ffffff; width:287px; font-size:100%; padding:3px 2px 1px 3px; vertical-align:middle;}
+select { color:#555; border:1px solid #7f9db9; background-color: #ffffff; font-size:100%; vertical-align:middle;}
+textarea { background-color:#fff; color:#555; border:1px solid #c9c8c8; padding:5px 5px; font-size:100%; line-height: 150%;}
+.hide { visibility: hidden; width: 0px; height: 0px;}
+img .mid { vertical-align:middle;}
+.clr { clear:both;}
+
+/*--- padding, margin, text-align ---*/
+.pt4 { padding-top:4px;}
+.pt5 { padding-top:5px;}
+.pt6 { padding-top:6px;}
+.pt10 { padding-top:10px;}
+.pt25 { padding-top:25px;}
+.pt26 { padding-top:26px;}
+.pt37 { padding-top:37px;}
+.pb8 { padding-bottom:8px;}
+.pb10 { padding-bottom:10px;}
+.pb15 { padding-bottom:15px;}
+.pb25 { padding-bottom:25px;}
+.pb35 { padding-bottom:35px;}
+.pl15 { padding-left:15px;}
+.lh140 { line-height:140%;}
+.mt10 { margin-top:10px;}
+.ac { text-align:center;}
+
+
+
+/* -------------------------------------------------------------------------------------------
+서브페이지스타일 CSS Document
+* description   : 회원정보관리 서브스타일 정의
+---------------------------------------------------------------------------------------------*/
+/*--- index ---*/
+#indexcon { position: absolute; top: 50%; left: 50%; width: 824px; margin-left: -412px; margin-top: -260px;}
+.topwrap { width: 100%; height: 50px; border-bottom:10px solid #FFFFFF;}
+.sitelogo { float:left; padding-left:200px;}
+
+#indexfoot { width:100%; height:35px; padding-top:8px; margin-top:0px; border-top:0px solid #c8c8c8; border-bottom:0px solid #61696e;}
+.memberlogin .login_area { float:left; padding:235px 0px 0px 423px;}
+.memberlogin .login_area .form { float:left;}
+.memberlogin .login_area .form dl { clear:both;}
+.memberlogin .login_area .form dl dt { width:75px; float:left; margin-top:4px; display:inline; color:#4B4B4B;}
+.memberlogin .login_area .form dl dd { float:left; height:26px; display:inline;}
+.memberlogin .login_area .btn { float:left; margin-left:5px;}
+.memberlogin .login_area .btm { float:left; width:230px; margin-top:10px; padding-left:53px; clear:both; color:#6f6f6f;}
+.txtapply a { font-weight:bold; color:#0a2a64;}
+.txtapply a:hover { color:#0047c8;}
+.txtnologin a { text-decoration:underline;}
+.txtnologin a:hover { text-decoration:underline; color:#0047c8;}
+.memberlogin .login_area input { width:100px; border:1px solid #BDBDBD;}
+#indexfoot ul li { width:100%; display:inline;}

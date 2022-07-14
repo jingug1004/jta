@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 출원실적 목록 조회 -->
+<query name="/retrieveApplyPlanActualList"><![CDATA[
+SELECT A.DEPT_CODE DEPT_CODE
+     , A.DEPT_NAME DEPT_NAME
+     , B.INT_PLAN_CNT
+     , NVL(INT_REQ.CNT, 0) INT_REQ_CNT
+     , NVL(INT_ACT.CNT, 0) INT_ACT_CNT
+     , NVL(INT_RET.CNT, 0) INT_RET_CNT
+     , NVL(INT_APP.CNT, 0) INT_APP_CNT
+     , NVL(INT_APP_COM.CNT, 0) INT_APP_COM_CNT
+     , NVL(INT_GIV.CNT, 0) INT_GIV_CNT
+     , NVL(INT_REG.CNT, 0) INT_REG_CNT
+     , NVL(INT_APP.CNT, 0) / DECODE(B.INT_PLAN_CNT, 0,NULL, B.INT_PLAN_CNT) * 100 INT_RATIO
+     , B.EXT_PLAN_CNT
+     , NVL(EXT_ACT.CNT, 0) EXT_ACT_CNT
+     , NVL(EXT_APP.CNT, 0) EXT_APP_CNT
+     , NVL(EXT_APP_COM.CNT, 0) EXT_APP_COM_CNT
+     , NVL(EXT_REG.CNT, 0) EXT_REG_CNT
+     , NVL(EXT_APP.CNT, 0) / DECODE(B.EXT_PLAN_CNT, 0,NULL, B.EXT_PLAN_CNT) * 100 EXT_RATIO
+FROM   TB_ORG_DEPT A
+     , TB_APP_PLAN_MGT B
+-- 국내 제안
+     , (SELECT T3.DEPT_CODE DEPT_CODE
+             , SUM(FN_INV_APPLY_ACTUAL(T2.REF_ID, T2.INV_USER)) CNT
+        FROM   TB_APP_MST_INT T1
+             , TB_MAPP_INVENTOR T2
+             , TB_USR_PATENT T3
+        WHERE  T1.PATTEAM_RCPT_DATE BETWEEN {@DATE_START} AND {@DATE_END}
+        AND    T1.REF_ID = T2.REF_ID
+        AND    T2.INV_USER = T3.USER_ID
+        AND    T3.DEPT_CODE = NVL({@DEPT_CODE}, T3.DEPT_CODE)
+        AND    T1.ACTR_SUM_TARGET_YN = '1'
+        GROUP BY T3.DEPT_CODE
+       ) INT_REQ
+-- 국내 실적
+     , (SELECT T3.DEPT_CODE DEPT_CODE
+             , SUM(FN_INV_APPLY_ACTUAL(T2.REF_ID, T2.INV_USER)) CNT
+        FROM   TB_APP_MST_INT T1
+             , TB_MAPP_INVENTOR T2
+             , TB_USR_PATENT T3
+             , TB_APP_INT_CONSULT T4
+             , TB_APP_MST T5
+        WHERE  T1.PATTEAM_RCPT_DATE BETWEEN '' AND ''
+        AND    T1.REF_ID = T2.REF_ID
+        AND    T2.INV_USER = T3.USER_ID
+        AND    T4.REF_ID = T1.REF_ID
+        AND    T5.REF_ID = T1.REF_ID
+        AND    T4.EXAM_RESULT = '1'
+        AND    T3.DEPT_CODE = NVL(NULL, T3.DEPT_CODE)
+        AND    T1.ACTR_SUM_TARGET_YN = '1'
+        AND    T5.JOB_MAN IS NOT NULL
+        GROUP BY T3.DEPT_CODE
+       ) INT_ACT
+-- 국내 보안
+     , (SELECT T3.DEPT_CODE DEPT_CODE
+             , SUM(FN_INV_APPLY_ACTUAL(T2.REF_ID, T2.INV_USER)) CNT
+        FROM   TB_APP_MST_INT T1
+             , TB_MAPP_INVENTOR T2
+             , TB_USR_PATENT T3
+             , TB_APP_INT_CONSULT T4
+        WHERE  T1.PATTEAM_RCPT_DATE BETWEEN {@DATE_START}  AND {@DATE_END}
+        AND    T1.REF_ID = T2.REF_ID
+        AND    T2.INV_USER = T3.USER_ID
+        AND    T4.REF_ID = T1.REF_ID
+        AND    T4.EXAM_RESULT = '0'
+        AND    T3.DEPT_CODE = NVL({@DEPT_CODE}, T3.DEPT_CODE)
+        AND    T1.ACTR_SUM_TARGET_YN = '1'
+        GROUP BY T3.DEPT_CODE
+       ) INT_RET
+
+-- 국내 포기
+     ,  (SELECT T3.DEPT_CODE DEPT_CODE
+             , SUM(FN_INV_APPLY_ACTUAL(T2.REF_ID, T2.INV_USER)) CNT
+        FROM   TB_APP_MST_INT T1
+             , TB_MAPP_INVENTOR T2
+             , TB_USR_PATENT T3
+             , TB_APP_INT_CONSULT T4
+        WHERE  T1.PATTEAM_RCPT_DATE BETWEEN '20090901'  AND '20101111'
+        AND    T1.REF_ID = T2.REF_ID
+        AND    T2.INV_USER = T3.USER_ID
+        AND    T4.REF_ID = T1.REF_ID
+        AND    T4.EXAM_RESULT = '2'
+        AND    T3.DEPT_CODE = NVL(NULL, T3.DEPT_CODE)
+        AND    T1.ACTR_SUM_TARGET_YN = '1'
+        GROUP BY T3.DEPT_CODE
+        ) INT_GIV
+-- 국내 출원의뢰
+     , (SELECT T3.DEPT_CODE DEPT_CODE
+             , SUM(FN_INV_APPLY_ACTUAL(T2.REF_ID, T2.INV_USER)) CNT
+        FROM   TB_APP_MST T1
+             , TB_MAPP_INVENTOR T2
+             , TB_USR_PATENT T3
+             , TB_APP_MST_INT T4
+        WHERE  T1.INOUT_DIV = 'INT'
+        AND    T1.APP_DATE BETWEEN {@DATE_START} AND {@DATE_END}
+        AND    T1.OFFICE_SEND_DATE IS NOT NULL
+        AND    T1.REF_ID = T2.REF_ID
+        AND    T2.INV_USER = T3.USER_ID
+        AND    T4.REF_ID = T1.REF_ID
+        AND    T3.DEPT_CODE = NVL({@DEPT_CODE}, T3.DEPT_CODE)
+        AND    T4.ACTR_SUM_TARGET_YN = '1'
+        GROUP BY T3.DEPT_CODE
+       ) INT_APP
+-- 국내 출원완료
+     , (SELECT T3.DEPT_CODE DEPT_CODE
+             , SUM(FN_INV_APPLY_ACTUAL(T2.REF_ID, T2.INV_USER)) CNT
+        FROM   TB_APP_MST T1
+             , TB_MAPP_INVENTOR T2
+             , TB_USR_PATENT T3
+             , TB_APP_MST_INT T4
+        WHERE  T1.INOUT_DIV = 'INT'
+        AND    T1.APP_DATE BETWEEN {@DATE_START} AND {@DATE_END}
+        AND    T1.OFFICE_SEND_DATE IS NOT NULL
+        AND    T1.REF_ID = T2.REF_ID
+        AND    T2.INV_USER = T3.USER_ID
+        AND    T4.REF_ID = T1.REF_ID
+        AND    T3.DEPT_CODE = NVL({@DEPT_CODE}, T3.DEPT_CODE)
+        AND    T4.ACTR_SUM_TARGET_YN = '1'
+        AND    T1.STATUS = '10INT-0016'
+        GROUP BY T3.DEPT_CODE
+       ) INT_APP_COM
+-- 국내 등록
+     , (SELECT T3.DEPT_CODE DEPT_CODE
+             , SUM(FN_INV_APPLY_ACTUAL(T2.REF_ID, T2.INV_USER)) CNT
+        FROM   TB_APP_MST T1
+             , TB_MAPP_INVENTOR T2
+             , TB_USR_PATENT T3
+             , TB_APP_MST_INT T4
+        WHERE  T1.INOUT_DIV = 'INT'
+        AND    T1.REG_DATE BETWEEN {@DATE_START} AND {@DATE_END}
+        AND    T1.REG_NO IS NOT NULL
+        AND    T1.ABD_YN = '0'
+        AND    T1.REF_ID = T2.REF_ID
+        AND    T2.INV_USER = T3.USER_ID
+        AND    T4.REF_ID = T1.REF_ID
+        AND    T3.DEPT_CODE = NVL({@DEPT_CODE}, T3.DEPT_CODE)
+        AND    T4.ACTR_SUM_TARGET_YN = '1'
+        GROUP BY T3.DEPT_CODE
+       ) INT_REG
+-- 해외 실적
+     , (SELECT T4.DEPT_CODE DEPT_CODE
+             , SUM(FN_INV_APPLY_ACTUAL(T3.REF_ID, T3.INV_USER)) CNT
+        FROM   TB_APP_MST T1
+             , TB_APP_MST_EXT T2
+             , TB_MAPP_INVENTOR T3
+             , TB_USR_PATENT T4
+        WHERE  T1.INOUT_DIV = 'EXT'
+        AND    T1.REF_ID = T2.REF_ID
+        AND    T1.CRE_DATE BETWEEN {@DATE_START} AND {@DATE_END}
+        AND    T2.GRP_ID = T3.REF_ID
+        AND    T3.INV_USER = T4.USER_ID
+        AND    T4.DEPT_CODE = NVL({@DEPT_CODE}, T4.DEPT_CODE)
+        AND    T1.JOB_MAN IS NOT NULL
+        GROUP BY T4.DEPT_CODE
+       ) EXT_ACT
+-- 해외 출원의뢰
+     , (SELECT T3.DEPT_CODE DEPT_CODE
+             , SUM(FN_INV_APPLY_ACTUAL(T2.REF_ID, T2.INV_USER)) CNT
+        FROM   TB_APP_MST T1
+             , TB_MAPP_INVENTOR T2
+             , TB_USR_PATENT T3
+        WHERE  T1.INOUT_DIV = 'EXT'
+        AND    T1.APP_DATE BETWEEN {@DATE_START} AND {@DATE_END}
+        AND    T1.OFFICE_SEND_DATE IS NOT NULL
+        AND    T1.REF_ID = T2.REF_ID
+        AND    T2.INV_USER = T3.USER_ID
+        AND    T3.DEPT_CODE = NVL({@DEPT_CODE}, T3.DEPT_CODE)
+        GROUP BY T3.DEPT_CODE
+       ) EXT_APP
+-- 해외 출원완료
+     , (SELECT T3.DEPT_CODE DEPT_CODE
+             , SUM(FN_INV_APPLY_ACTUAL(T2.REF_ID, T2.INV_USER)) CNT
+        FROM   TB_APP_MST T1
+             , TB_MAPP_INVENTOR T2
+             , TB_USR_PATENT T3
+        WHERE  T1.INOUT_DIV = 'EXT'
+        AND    T1.APP_DATE BETWEEN {@DATE_START} AND {@DATE_END}
+        AND    T1.OFFICE_SEND_DATE IS NOT NULL
+        AND    T1.REF_ID = T2.REF_ID
+        AND    T2.INV_USER = T3.USER_ID
+        AND    T3.DEPT_CODE = NVL({@DEPT_CODE}, T3.DEPT_CODE)
+        AND    T1.STATUS = '10EXT-0013'
+        GROUP BY T3.DEPT_CODE
+       ) EXT_APP_COM
+-- 해외 등록
+     , (SELECT T3.DEPT_CODE DEPT_CODE
+             , SUM(FN_INV_APPLY_ACTUAL(T2.REF_ID, T2.INV_USER)) CNT
+        FROM   TB_APP_MST T1
+             , TB_MAPP_INVENTOR T2
+             , TB_USR_PATENT T3
+        WHERE  T1.INOUT_DIV = 'EXT'
+        AND    T1.REG_DATE BETWEEN {@DATE_START} AND {@DATE_END}
+        AND    T1.REG_NO IS NOT NULL
+        AND    T1.ABD_YN = '0'
+        AND    T1.REF_ID = T2.REF_ID
+        AND    T2.INV_USER = T3.USER_ID
+        AND    T3.DEPT_CODE = NVL({@DEPT_CODE}, T3.DEPT_CODE)
+        GROUP BY T3.DEPT_CODE
+       ) EXT_REG
+WHERE  B.DEPT_CODE(+) = A.DEPT_CODE
+AND    B.PLAN_YEAR(+) = {@PLAN_YEAR}
+AND    A.DEPT_CODE = INT_REQ.DEPT_CODE(+)
+AND    A.DEPT_CODE = INT_ACT.DEPT_CODE(+)
+AND    A.DEPT_CODE = INT_RET.DEPT_CODE(+)
+AND    A.DEPT_CODE = INT_GIV.DEPT_CODE(+)
+AND    A.DEPT_CODE = INT_APP.DEPT_CODE(+)
+AND    A.DEPT_CODE = INT_APP_COM.DEPT_CODE(+)
+AND    A.DEPT_CODE = INT_REG.DEPT_CODE(+)
+AND    A.DEPT_CODE = EXT_ACT.DEPT_CODE(+)
+AND    A.DEPT_CODE = EXT_APP.DEPT_CODE(+)
+AND    A.DEPT_CODE = EXT_APP_COM.DEPT_CODE(+)
+AND    A.DEPT_CODE = EXT_REG.DEPT_CODE(+)
+AND    A.DEPT_CODE = NVL({@DEPT_CODE}, A.DEPT_CODE)
+AND    (A.USE_YN = '1' OR
+        NVL(INT_REQ.CNT, 0) +
+        NVL(INT_ACT.CNT, 0) +
+        NVL(INT_RET.CNT, 0) +
+        NVL(INT_APP.CNT, 0) +
+        NVL(INT_APP_COM.CNT, 0) +
+        NVL(INT_GIV.CNT, 0) +
+        NVL(INT_REG.CNT, 0) +
+        NVL(EXT_ACT.CNT, 0) +
+        NVL(EXT_APP.CNT, 0) +
+        NVL(EXT_APP_COM.CNT, 0) +
+        NVL(EXT_REG.CNT, 0) > 0
+       )
+]]></query>
+
+</root>

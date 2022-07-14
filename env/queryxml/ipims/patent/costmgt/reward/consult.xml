@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 보상금품의 목록 조회 -->
+<query name="/retrieveRewardConsultList"><![CDATA[
+SELECT A.CONSULT_ID
+     , A.CONSULT_SUBJECT
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , A.CRE_DATE
+     , {#codeData:NVL(B.APPR_STATUS,'0'):/common/apprStatus} APPR_STATUS_NAME
+FROM   TB_COST_CONSULT A
+     , TB_APPR_MST B
+WHERE  A.APPR_NO = B.APPR_NO(+)
+AND    CONSULT_KIND = 'B'
+]]></query>
+<query name="/retrieveRewardConsultList/consultSubject"><![CDATA[
+AND    CONSULT_SUBJECT LIKE '%'||{@CONSULT_SUBJECT}||'%'
+]]></query>
+<query name="/retrieveRewardConsultList/consultStatus"><![CDATA[
+AND    B.APPR_STATUS = {@CONSULT_STATUS}
+]]></query>
+<query name="/retrieveRewardConsultList/consultStatusDefault"><![CDATA[
+AND    B.APPR_STATUS IS NULL
+]]></query>
+<query name="/retrieveRewardConsultList/creUser"><![CDATA[
+AND    FN_USER_NAME(A.CRE_USER) LIKE '%'||{@CRE_USER}||'%'
+]]></query>
+<query name="/retrieveRewardConsultList/dateStart"><![CDATA[
+AND    A.CRE_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveRewardConsultList/dateEnd"><![CDATA[
+AND    A.CRE_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 보상금품의 품의서 생성 -->
+<query name="/createRewardConsult"><![CDATA[
+INSERT INTO TB_COST_CONSULT(
+       CONSULT_ID
+     , CONSULT_KIND
+     , CONSULT_SUBJECT
+     , CRE_USER
+     , CRE_DATE
+)VALUES(
+       {@CONSULT_ID}
+     , 'B'
+     , '보상금 지급품의 ('  || TO_CHAR(SYSDATE, 'YYYY/MM/DD') || ')'
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 보상금지급 수정(품의중) -->
+<query name="/updateRewardSupply"><![CDATA[
+UPDATE TB_COST_MST SET
+       CONSULT_ID = {@CONSULT_ID}
+WHERE  COST_SEQ = {@COST_SEQ}
+]]></query>
+
+<!-- 보상금지급 수정 -->
+<query name="/updateRewardSupplyConsultIdToNull"><![CDATA[
+UPDATE TB_COST_MST SET
+       CONSULT_ID = NULL
+WHERE  CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 보상금품의 조회 -->
+<query name="/retrieveRewardConsult"><![CDATA[
+SELECT A.CONSULT_SUBJECT
+     , FN_USER_NAME(A.CRE_USER) CRE_USER_NAME
+     , A.CRE_USER
+     , A.CRE_DATE
+     , B.TOTAL_COUNT
+     , B.TOTAL_PRICE
+FROM   TB_COST_CONSULT A
+     , (SELECT COUNT(COST_SEQ) TOTAL_COUNT
+             , SUM(PRICE)  TOTAL_PRICE
+        FROM   TB_COST_MST
+        WHERE  CONSULT_ID = {@CONSULT_ID}) B
+WHERE  A.CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 보상금품의대상(상세-발명자별) 목록조회 -->
+<query name="/retrieveRewardConsultByInv"><![CDATA[
+SELECT A.REF_ID
+     , C.COST_SEQ
+     , A.REF_NO
+     , A.INOUT_DIV
+     , D.REWARD_DIV
+     , FN_COM_CODE_NAME('INOUT_DIV', A.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , FN_COM_CODE_NAME('RIGHT_DIV', A.RIGHT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) RIGHT_DIV_NAME
+     , FN_COM_CODE_NAME('REWARD_DIV', D.REWARD_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) REWARD_DIV_NAME
+     , D.REWARD_GRADE
+     , FN_USER_NAME(D.INV_USER) AS EMP_HNAME
+     , A.APP_NO
+     , A.APP_DATE
+     , A.REG_NO
+     , A.REG_DATE
+     , C.PRICE AS REWARD_PRICE
+     , G.EMP_NO
+     , FN_DEPT_NAME(G.DEPT_CODE) DEPT_NAME
+     , FN_APP_MAN_LIST(DECODE(A.COUNTRY_CODE, 'KR', A.REF_ID,  E.GRP_ID)) APP_EXT_MAN_CODE
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+     , TB_COST_MST C
+     , TB_COST_MST_REWARD D
+     , TB_APP_MST_EXT E
+     , TB_APP_EXT_GRP F
+     , TB_USR_PATENT G
+WHERE A.REF_ID   = B.REF_ID(+)
+AND   A.REF_ID   = C.REF_ID(+)
+AND   C.COST_SEQ = D.COST_SEQ
+AND   A.REF_ID   = E.REF_ID(+)
+AND   E.GRP_ID   = F.GRP_ID(+)
+AND   D.INV_USER = G.USER_ID
+]]></query>
+<query name="/retrieveRewardConsultByInv/consultId"><![CDATA[
+AND   C.CONSULT_ID = {@CONSULT_ID}
+]]></query>
+<query name="/retrieveRewardConsultByInv/slipId"><![CDATA[
+AND   C.SLIP_ID = {@SLIP_ID}
+]]></query>
+
+<!-- 보상금품의대상(상세-부서별) 목록조회 -->
+<query name="/retrieveRewardConsultByDept"><![CDATA[
+SELECT NVL(FN_DEPT_NAME(A.DEPT_CODE),'부서 없음') DEPT_NAME
+     , SUM(A.INT_PAT_PRICE) INT_PAT_PRICE
+     , SUM(A.INT_REG_PRICE) INT_REG_PRICE
+     , SUM(A.INT_PAT_PRICE)+SUM(A.INT_REG_PRICE) INT_TOTAL_PRICE
+     , SUM(A.EXT_PAT_PRICE) EXT_PAT_PRICE
+     , SUM(A.EXT_REG_PRICE) EXT_REG_PRICE
+     , SUM(A.EXT_PAT_PRICE)+SUM(A.EXT_REG_PRICE) EXT_TOTAL_PRICE
+FROM  (SELECT D.DEPT_CODE
+            , NVL(SUM(B.PRICE),0) INT_PAT_PRICE
+            , 0 INT_REG_PRICE
+            , 0 EXT_PAT_PRICE
+            , 0 EXT_REG_PRICE
+       FROM   TB_APP_MST A
+            , TB_COST_MST B
+            , TB_COST_MST_REWARD C
+            , TB_USR_PATENT D
+       WHERE  A.REF_ID = B.REF_ID
+       AND    B.COST_SEQ = C.COST_SEQ
+       AND    {#SEARCH_TYPE} = {@SEARCH_ID}
+       AND    C.INV_USER = D.USER_ID
+       AND    A.INOUT_DIV  = 'INT'
+       AND    C.REWARD_DIV = 'APP'
+       GROUP BY D.DEPT_CODE
+       UNION ALL
+       SELECT D.DEPT_CODE
+            , 0 INT_PAT_PRICE
+            , NVL(SUM(B.PRICE),0) INT_REG_PRICE
+            , 0 EXT_PAT_PRICE
+            , 0 EXT_REG_PRICE
+       FROM   TB_APP_MST A
+            , TB_COST_MST B
+            , TB_COST_MST_REWARD C
+            , TB_USR_PATENT D
+       WHERE  A.REF_ID = B.REF_ID
+       AND    B.COST_SEQ = C.COST_SEQ
+       AND    {#SEARCH_TYPE} = {@SEARCH_ID}
+       AND    C.INV_USER = D.USER_ID
+       AND    A.INOUT_DIV  = 'INT'
+       AND    C.REWARD_DIV = 'REG'
+       GROUP BY D.DEPT_CODE
+       UNION ALL
+       SELECT D.DEPT_CODE
+            , 0 INT_PAT_PRICE
+            , 0 INT_REG_PRICE
+            , NVL(SUM(B.PRICE),0) EXT_PAT_PRICE
+            , 0 EXT_REG_PRICE
+       FROM   TB_APP_MST A
+            , TB_COST_MST B
+            , TB_COST_MST_REWARD C
+            , TB_USR_PATENT D
+       WHERE  A.REF_ID = B.REF_ID
+       AND    B.COST_SEQ = C.COST_SEQ
+       AND    {#SEARCH_TYPE} = {@SEARCH_ID}
+       AND    C.INV_USER = D.USER_ID
+       AND    A.INOUT_DIV  = 'EXT'
+       AND    C.REWARD_DIV = 'APP'
+       GROUP BY D.DEPT_CODE
+       UNION ALL
+       SELECT D.DEPT_CODE
+            , 0 INT_PAT_PRICE
+            , 0 INT_REG_PRICE
+            , 0 EXT_PAT_PRICE
+            , NVL(SUM(B.PRICE),0) EXT_REG_PRICE
+       FROM   TB_APP_MST A
+            , TB_COST_MST B
+            , TB_COST_MST_REWARD C
+            , TB_USR_PATENT D
+       WHERE  A.REF_ID = B.REF_ID
+       AND    B.COST_SEQ = C.COST_SEQ
+       AND    {#SEARCH_TYPE} = {@SEARCH_ID}
+       AND    C.INV_USER = D.USER_ID
+       AND    A.INOUT_DIV  = 'EXT'
+       AND    C.REWARD_DIV = 'REG'
+       GROUP BY D.DEPT_CODE) A
+GROUP BY A.DEPT_CODE
+]]></query>
+
+<!-- 보상금품의 품의서 수정-->
+<query name="/updateRewardConsult"><![CDATA[
+UPDATE TB_COST_CONSULT SET
+       CONSULT_SUBJECT = {@CONSULT_SUBJECT}
+WHERE  CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+<!-- 보상금품의 품의서 삭제-->
+<query name="/deleteRewardConsult"><![CDATA[
+DELETE FROM TB_COST_CONSULT
+WHERE  CONSULT_ID = {@CONSULT_ID}
+]]></query>
+
+</root>

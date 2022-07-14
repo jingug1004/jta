@@ -1,0 +1,347 @@
+﻿<PUBLIC:COMPONENT lightWeight="true">
+    <PUBLIC:ATTACH event="ondocumentready" onevent="document_onready();">
+    <PUBLIC:ATTACH event="onpropertychange" onevent="property_onchange();">
+    <PUBLIC:PROPERTY name="isReady" value="false">
+    <PUBLIC:PROPERTY name="value" get="getValue" put="setValue">
+    <PUBLIC:PROPERTY name="text" get="getText">
+    <PUBLIC:METHOD name="focus">
+    <PUBLIC:EVENT name="OnChange" id="OnChangeEvent">
+</PUBLIC:COMPONENT>
+
+<META http-equiv="Content-Type" content="text/x-component; charset=utf-8">
+<SCRIPT language="JScript">
+var myText;
+var myIcon;
+
+var makeYear;
+var makeMonth;
+
+var picker;
+
+eval(function()
+{
+    if (element.document.media == "print") return;
+
+    element.style.whiteSpace = "nowrap";
+
+    myText = element.document.createElement('<INPUT type="text" class="text">');
+    myText.maxLength = 8;
+    myText.style.textAlign = "center";
+    myText.style.width = "74px";
+    element.appendChild(myText);
+
+    myText.attachEvent("onfocus", function()
+    {
+        myText.value = cfGetUnformatDate(myText.value);
+        myText.select();
+    });
+
+    myText.attachEvent("onblur", function()
+    {
+        if (vbIsDate(myText.value) == true) {
+            myText.value = cfGetFormatDate(myText.value);
+        } else {
+            myText.value = "";
+        }
+
+        OnChangeEvent.fire(element.document.createEventObject());
+    });
+
+    myIcon = element.document.createElement('<IMG src="' + top.getRoot() + '/anyfive/framework/htc/anyworks/image/date_picker.gif" align="absmiddle">');
+    myIcon.style.marginLeft = "3px";
+    element.appendChild(myIcon);
+
+    myIcon.attachEvent("onmousedown", function()
+    {
+        showPicker();
+        event.cancelBubble = true;
+    });
+
+    element.document.attachEvent("onmousedown", function()
+    {
+        picker.hide();
+    });
+
+    setDisabled();
+})();
+
+function document_onready()
+{
+    if (element.document.media == "print") return;
+
+    initPicker();
+
+    element.isReady = true;
+}
+
+function property_onchange()
+{
+    switch (event.propertyName) {
+    case "disabled":
+        setDisabled();
+        break;
+    }
+}
+
+function setDisabled()
+{
+    myText.disabled = element.disabled;
+    myIcon.disabled = element.disabled;
+
+    if (element.disabled == true) {
+        myIcon.style.cursor = "default";
+        myIcon.style.filter = "gray() alpha(opacity=50)";
+    } else {
+        myIcon.style.cursor = "hand";
+        myIcon.style.filter = "";
+    }
+}
+
+function getValue()
+{
+    if (myText == null) return null;
+
+    return cfGetUnformatDate(myText.value);
+}
+
+function setValue(val)
+{
+    if (myText == null) return;
+
+    myText.value = cfGetFormatDate(val == null ? vbDateString(vbDate()) : val);
+
+    if (element.readyState == "complete" && element.document.readyState == "complete") {
+        OnChangeEvent.fire(element.document.createEventObject());
+    }
+
+    if (picker != null) picker.hide();
+}
+
+function getText()
+{
+    return myText.value;
+}
+
+function initPicker()
+{
+    picker = window.createPopup();
+
+    picker.document.writeln('<STYLE type="text/css">');
+    picker.document.writeln('TD { font-family: Tahoma; font-size: 11px; }');
+    picker.document.writeln('.calendar_bg_line { background-color: #BAD4D4; }');
+    picker.document.writeln('.calendar_sun { color:#A53439; }');
+    picker.document.writeln('.calendar_sat { color:#0B4AAA; }');
+    picker.document.writeln('.calendar_com { color:#135054; }');
+    picker.document.writeln('</STYLE>');
+
+    picker.document.writeln('<DIV style="border:#D2CAB9 1px solid; width:100%; height:100%; cursor:default;">');
+    picker.document.writeln('<DIV style="background-color:#E6EBEF; width:100%; height:100%; padding:5px;">');
+    picker.document.writeln('<DIV style="border:#BAD4D4 1px solid; background-color:#FFFFFF; width:100%; height:100%; padding:3px;">');
+
+    picker.document.writeln('<TABLE border="0" cellspacing="0" cellpadding="0" width="100%" height="100%">');
+    picker.document.writeln('    <TR>');
+    picker.document.writeln('        <TD height="1">');
+    picker.document.writeln('            <TABLE border="0" cellspacing="1" cellpadding="0" class="calendar_bg_line" width="100%" height="24px">');
+    picker.document.writeln('                <TR style="background-color:#EDF2F5;">');
+    picker.document.writeln('                    <TD align="center" noWrap width="20" style="cursor:hand;" onClick="javascript:document.setCalendar(-12);">&lt;&lt;</TD>');
+    picker.document.writeln('                    <TD align="center" noWrap width="20" style="cursor:hand;" onClick="javascript:document.setCalendar(-1);">&lt;</TD>');
+    picker.document.writeln('                    <TD align="center" noWrap style="font-weight:bold;" id="td_thisYearMonth">&nbsp;</TD>');
+    picker.document.writeln('                    <TD align="center" noWrap width="20" style="cursor:hand;" onClick="javascript:document.setCalendar(1);">&gt;</TD>');
+    picker.document.writeln('                    <TD align="center" noWrap width="20" style="cursor:hand;" onClick="javascript:document.setCalendar(12);">&gt;&gt;</TD>');
+    picker.document.writeln('                </TR>');
+    picker.document.writeln('            </TABLE>');
+    picker.document.writeln('        </TD>');
+    picker.document.writeln('    </TR>');
+    picker.document.writeln('    <TR>');
+    picker.document.writeln('        <TD>');
+    picker.document.writeln('            <TABLE border="0" cellspacing="0" cellpadding="0" width="100%" height="100%">');
+    picker.document.writeln('                <TR align="center" height="20px" style="font-weight:bold;">');
+    picker.document.writeln('                    <TD class="calendar_sun">S</TD>');
+    picker.document.writeln('                    <TD class="calendar_com">M</TD>');
+    picker.document.writeln('                    <TD class="calendar_com">T</TD>');
+    picker.document.writeln('                    <TD class="calendar_com">W</TD>');
+    picker.document.writeln('                    <TD class="calendar_com">T</TD>');
+    picker.document.writeln('                    <TD class="calendar_com">F</TD>');
+    picker.document.writeln('                    <TD class="calendar_sat">S</TD>');
+    picker.document.writeln('                </TR>');
+    picker.document.writeln('                <TR>');
+    picker.document.writeln('                    <TD height="1" colspan="7" class="calendar_bg_line"></TD>');
+    picker.document.writeln('                </TR>');
+    picker.document.writeln('                <TR>');
+    picker.document.writeln('                    <TD height="2" colspan="7"></TD>');
+    picker.document.writeln('                </TR>');
+    picker.document.writeln('                <TBODY id="tbd_calendar" align="center">');
+    picker.document.writeln('                </TBODY>');
+    picker.document.writeln('                <TR>');
+    picker.document.writeln('                    <TD height="2" colspan="7"></TD>');
+    picker.document.writeln('                </TR>');
+    picker.document.writeln('                <TR align="center">');
+    picker.document.writeln('                    <TD height="20" colspan="7">');
+    picker.document.writeln('                        <TABLE border="0" cellspacing="1" cellpadding="0" class="calendar_bg_line" width="100%" height="20px">');
+    picker.document.writeln('                            <TR >');
+    picker.document.writeln('                                <TD bgcolor="#FFFFFF" align="center">');
+    picker.document.writeln('                                    <SPAN style="cursor:hand;" onClick="javascript:document.setValue(); this.style.textDecoration=\'none\';" onMouseOver="javascript:this.style.textDecoration=\'underline\';" onMouseOut="javascript:this.style.textDecoration=\'none\';">' + cfGetFormatDate(vbDateString(vbDate())) + '</SPAN>');
+    picker.document.writeln('                                </TD>');
+    picker.document.writeln('                                <TD bgcolor="#FFFFFF" align="center">');
+    picker.document.writeln('                                    <SPAN style="cursor:hand;" onClick="javascript:document.setValue(\'\'); this.style.textDecoration=\'none\';" onMouseOver="javascript:this.style.textDecoration=\'underline\';" onMouseOut="javascript:this.style.textDecoration=\'none\';">Delete</SPAN>');
+    picker.document.writeln('                                </TD>');
+    picker.document.writeln('                            </TR>');
+    picker.document.writeln('                        </TABLE>');
+    picker.document.writeln('                    </TD>');
+    picker.document.writeln('                </TR>');
+    picker.document.writeln('            </TABLE>');
+    picker.document.writeln('        </TD>');
+    picker.document.writeln('    </TR>');
+    picker.document.writeln('</TABLE>');
+
+    picker.document.writeln('</DIV>');
+    picker.document.writeln('</DIV>');
+    picker.document.writeln('</DIV>');
+
+    picker.document.body.onselectstart = function() { return false; }
+    picker.document.body.ondragstart   = function() { return false; }
+    picker.document.body.oncontextmenu = function() { return false; }
+
+    picker.document.body.scroll = "no";
+    picker.document.body.style.border = "0px";
+    picker.document.body.style.margin = "0px";
+
+    picker.document.setCalendar = setCalendar;
+    picker.document.setValue = setValue;
+}
+
+function showPicker()
+{
+    var pWidth  = 170;
+    var pHeight = 200;
+    var pLeft   = 0;
+    var pTop    = myText.offsetHeight + 1;
+
+    setCalendar();
+
+    if (element.document.body.clientHeight < cfGetRealOffsetTop(myText) + myText.offsetHeight + pHeight + 1) {
+        pTop = 0 - pHeight - 1;
+    }
+
+    picker.show(0, pTop, pWidth, pHeight, myText);
+}
+
+function setCalendar(val)
+{
+    var currValue = getValue();
+
+    if (val == null) {
+        if (vbIsDate(currValue) == true) {
+            makeYear  = parseInt(currValue.substr(0, 4), 10);
+            makeMonth = parseInt(currValue.substr(4, 2), 10);
+        } else {
+            makeYear  = new Date().getFullYear();
+            makeMonth = new Date().getMonth() + 1;
+        }
+    } else {
+        var temp = makeYear * 12 + makeMonth + val;
+        makeYear = parseInt((temp - 1) / 12, 10);
+        makeMonth = temp - (makeYear * 12);
+    }
+
+    var currDate = vbDateSerial(makeYear, makeMonth, 1);
+    var currMonthString = vbDateString(currDate).substr(0, 6);
+    var todayString = vbDateString(vbDate());
+
+    var tbd = picker.document.getElementById("tbd_calendar");
+
+    for (var r = tbd.rows.length - 1; r >= 0; r--) {
+        tbd.deleteRow(r);
+    }
+
+    var firstDate = new Date(makeYear, makeMonth - 1, 1);
+    var lastDate = new Date(makeYear, makeMonth, 0);
+    var weekCnt = parseInt((firstDate.getDay() + lastDate.getDate() - 1) / 7, 10) + 1;
+    var dateNum;
+    var tr, td;
+
+    picker.document.getElementById("td_thisYearMonth").innerText = makeYear + ". " + vbRight("00" + makeMonth, 2);
+
+    for (var r = 0; r < weekCnt; r++) {
+        tr = picker.document.createElement('<TR>');
+        tbd.appendChild(tr);
+
+        for (var c = 0; c < 7; c++) {
+            dateNum = r * 7 + c - firstDate.getDay() + 1;
+            td = picker.document.createElement('<TD>');
+            switch (c) {
+                case 0 : td.className = "calendar_sun"; break;
+                case 6 : td.className = "calendar_sat"; break;
+                default: td.className = "calendar_com"; break;
+            }
+            if (dateNum > 0 && dateNum <= lastDate.getDate()) {
+                td.date = currMonthString + vbRight("00" + String(dateNum), 2);
+                td.style.cursor = "hand";
+                td.innerHTML = dateNum;
+            } else {
+                td.innerHTML = "&nbsp;";
+            }
+            if (td.date == todayString) {
+                td.style.border = "#BAD4D4 1px solid";
+            }
+            if (td.date == currValue) {
+                td.style.fontWeight = "bold";
+                td.style.backgroundColor = "#E6EBEF";
+            }
+            tr.appendChild(td);
+
+            if (td.date == null) continue;
+
+            td.onmouseover = function()
+            {
+                this.style.textDecoration = "underline";
+            }
+
+            td.onmouseout = function()
+            {
+                this.style.textDecoration = "none";
+            }
+
+            td.onclick = function()
+            {
+                setValue(this.date);
+            }
+        }
+    }
+}
+
+function focus()
+{
+    myText.focus();
+}
+</SCRIPT>
+
+<SCRIPT language="VBScript">
+Public Function vbIsDate(ByVal aString)
+    aString = Trim(aString)
+    Select Case Len(aString)
+    Case 8
+        vbIsDate = IsDate(Left(aString, 4) & "-" & Mid(aString, 5, 2) & "-" & Right(aString, 2))
+    Case 10
+        vbIsDate = IsDate(aString)
+    Case Else
+        vbIsDate = False
+    End Select
+End Function
+
+Public Function vbDate()
+    vbDate = Date()
+End Function
+
+Public Function vbDateSerial(ByVal aYear, ByVal aMonth, ByVal aDay)
+    vbDateSerial = DateSerial(aYear, aMonth, aDay)
+End Function
+
+Public Function vbDateString(ByVal aDate)
+    vbDateString = DatePart("yyyy", aDate) & Right("00" & DatePart("m", aDate), 2) & Right("00" & DatePart("d", aDate), 2)
+End Function
+
+Public Function vbRight(ByVal aString, ByVal aLength)
+    vbRight = Right(aString, aLength)
+End Function
+</SCRIPT>

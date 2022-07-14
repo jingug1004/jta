@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 해외출원 포기내역 조회 -->
+<query name="/retrieveExtApplyAbd"><![CDATA[
+SELECT EXT_APP_STATUS
+     , EXT_APP_ABD_DATE
+     , FN_USER_NAME(EXT_APP_ABD_USER) EXT_APP_ABD_USER_NAME
+     , EXT_APP_ABD_REASON
+FROM   TB_APP_MST_INT
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 해외출원 포기내역 저장 -->
+<query name="/updateExtApplyAbd"><![CDATA[
+UPDATE TB_APP_MST_INT SET
+       EXT_APP_STATUS = '9'
+     , EXT_APP_ABD_DATE = {@EXT_APP_ABD_DATE}
+     , EXT_APP_ABD_USER = {@$USER_ID}
+     , EXT_APP_ABD_REASON = {@EXT_APP_ABD_REASON}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

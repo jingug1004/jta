@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 게시판 목록 조회 -->
+<query name="/retrieveBoardList"><![CDATA[
+SELECT *
+FROM   (SELECT BRD_ID
+             , BRD_NO
+             , SUBJECT
+             , RE_LEVEL
+             , CRE_DATE
+        FROM   TB_BRD_LIST
+        WHERE  BRD_ID = {@BRD_ID}
+          AND ((SYSDATE BETWEEN NOTICE_START AND NOTICE_END) OR NOTICE_END IS NULL)
+        ORDER BY RE_PARENT DESC, RE_ORDER ASC
+       ) A
+WHERE  ROWNUM <= 5
+]]></query>
+
+</root>

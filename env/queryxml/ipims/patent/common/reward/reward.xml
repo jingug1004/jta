@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 보상금 지급내역 생성 -->
+<query name="/createRewardInfo"><![CDATA[
+INSERT INTO TB_APP_REWARD (
+       REF_ID
+     , REWARD_DIV
+     , REWARD_GRADE
+     , REWARD_GIVETARGET_YN
+     , REWARD_GIVEEND_YN
+     , REWARD_GIVE_DATE
+     , REWARD_GIVE_AMOUNT
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@REF_ID}
+     , {@REWARD_DIV}
+     , {@REWARD_GRADE}
+     , {@REWARD_GIVETARGET_YN}
+     , {@REWARD_GIVEEND_YN}
+     , {@REWARD_GIVE_DATE}
+     , {@REWARD_GIVE_AMOUNT}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 보상금 지급내역 수정 -->
+<query name="/updateRewardInfo"><![CDATA[
+UPDATE TB_APP_REWARD SET
+       UPD_USER = {@$USER_ID}
+     , UPD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+{#1}
+WHERE  REF_ID = {@REF_ID}
+AND    REWARD_DIV = {@REWARD_DIV}
+]]></query>
+<query name="/updateRewardInfo/column" target="1"><![CDATA[
+     , {#COLUMN_NAME} = {#COLUMN_VALUE}
+]]></query>
+
+</root>

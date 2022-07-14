@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 결재처리함 목록 조회 -->
+<query name="/retrieveApprovalAnsList"><![CDATA[
+SELECT MGT.APPR_CODE
+     , ANS.APPR_NO
+     , ANS.REQ_SEQ
+     , ANS.ANS_ORD
+     , REQ.APPR_NO || '-' || REQ.REQ_SEQ APPR_NUM
+     , MGT.APPR_NAME
+     , FN_APPR_TITLE(REQ.APPR_NO) APPR_TITLE
+     , FN_USER_NAME(REQ.REQ_USER) REQ_USER_NAME
+     , REQ.REQ_DATE
+     , {#codeData:ANS.ANS_STATUS:/approval/apprAnsStatus} STATUS_NAME
+     , MGT.BUNDLE_APPR_AVAIL_YN
+FROM   TB_APPR_MGT MGT
+     , TB_APPR_MST MST
+     , TB_APPR_REQ REQ
+     , TB_APPR_ANS ANS
+WHERE  MGT.APPR_CODE = MST.APPR_CODE
+AND    MST.APPR_NO = REQ.APPR_NO
+AND    REQ.APPR_NO = ANS.APPR_NO
+AND    REQ.REQ_SEQ = ANS.REQ_SEQ
+AND    REQ.REQ_STATUS != '7'
+AND    ANS.ANS_USER = {@$USER_ID}
+]]></query>
+<query name="/retrieveApprovalAnsList/apprCode"><![CDATA[
+AND    MST.APPR_CODE = {@APPR_CODE}
+]]></query>
+<query name="/retrieveApprovalAnsList/ansStatus"><![CDATA[
+AND    ANS.ANS_STATUS = {@ANS_STATUS}
+]]></query>
+<query name="/retrieveApprovalAnsList/dateStart"><![CDATA[
+AND    REQ.REQ_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveApprovalAnsList/dateEnd"><![CDATA[
+AND    REQ.REQ_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 결재요청함 목록 조회 -->
+<query name="/retrieveApprovalReqList"><![CDATA[
+SELECT REQ.APPR_NO || '-' || REQ.REQ_SEQ APPR_NUM
+     , REQ.APPR_NO
+     , REQ.REQ_SEQ
+     , MGT.APPR_NAME
+     , FN_APPR_TITLE(REQ.APPR_NO) APPR_TITLE
+     , FN_USER_NAME(REQ.REQ_USER) REQ_USER_NAME
+     , REQ.REQ_DATE
+     , {#codeData:REQ.REQ_STATUS:/approval/apprReqStatus} STATUS_NAME
+FROM   TB_APPR_MST MST
+     , TB_APPR_MGT MGT
+     , TB_APPR_REQ REQ
+WHERE  MST.APPR_NO = REQ.APPR_NO
+AND    MST.APPR_CODE = MGT.APPR_CODE
+AND    REQ.REQ_USER = {@$USER_ID}
+AND    REQ.REQ_STATUS != '7'
+]]></query>
+<query name="/retrieveApprovalReqList/apprCode"><![CDATA[
+AND    MST.APPR_CODE = {@APPR_CODE}
+]]></query>
+<query name="/retrieveApprovalReqList/reqStatus"><![CDATA[
+AND    REQ.REQ_STATUS = {@REQ_STATUS}
+]]></query>
+<query name="/retrieveApprovalReqList/dateStart"><![CDATA[
+AND    REQ.REQ_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveApprovalReqList/dateEnd"><![CDATA[
+AND    REQ.REQ_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 메일 KEY 로부터 로그인 ID 조회 -->
+<query name="/retrieveLoginIdByApprovalMailKey"><![CDATA[
+SELECT B.LOGIN_ID
+FROM   TB_APPR_MAIL_LINK A
+     , TB_USR_MST B
+WHERE  A.MAIL_KEY = {@MAIL_KEY}
+AND    A.USER_ID = B.USER_ID
+]]></query>
+
+<!-- 메일 KEY 로부터 결재번호 조회 -->
+<query name="/retrieveApprNoByApprovalMailKey"><![CDATA[
+SELECT APPR_NO
+FROM   TB_APPR_MAIL_LINK
+WHERE  MAIL_KEY = {@MAIL_KEY}
+]]></query>
+
+<!-- 결재함 업무화면 정보 조회 -->
+<query name="/retrieveApprovalApprInfo"><![CDATA[
+SELECT MGT.APPR_TABLE
+     , MGT.APPR_PK_COLS
+     , MGT.APPR_NO_COL
+     , MGT.APPR_VIEW_PATH
+FROM   TB_APPR_MGT MGT
+     , TB_APPR_MST MST
+WHERE  MGT.APPR_CODE = MST.APPR_CODE
+AND    MST.APPR_NO = {@APPR_NO}
+]]></query>
+
+<!-- 결재함 APPR_KEYS 조회 -->
+<query name="/retrieveApprovalApprKeys"><![CDATA[
+SELECT {#apprPkCols}
+FROM   {#apprTable}
+WHERE  {#apprNoCol} = {@APPR_NO}
+]]></query>
+
+</root>

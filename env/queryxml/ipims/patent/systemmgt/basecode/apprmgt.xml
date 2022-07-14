@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 결재관리 목록 조회 -->
+<query name="/retrieveApprCodeMgtList"><![CDATA[
+SELECT APPR_CODE
+     , APPR_NAME
+     , APPR_TABLE
+     , APPR_PK_COLS
+     , APPR_NO_COL
+FROM   TB_APPR_MGT A
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveApprCodeMgtList/searchText"><![CDATA[
+AND    UPPER(APPR_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+]]></query>
+
+<!-- 결재관리 조회 -->
+<query name="/retrieveApprCodeMgt"><![CDATA[
+SELECT APPR_CODE
+     , APPR_NAME
+     , APPR_TABLE
+     , APPR_PK_COLS
+     , APPR_NO_COL
+     , APPR_TITLE_COL
+     , APPR_VIEW_PATH
+     , APPR_NONE_AVAIL_YN
+     , APPR_CANCEL_AVAIL_YN
+     , UPPER_REQ_AVAIL_YN
+     , BUNDLE_APPR_AVAIL_YN
+FROM   TB_APPR_MGT A
+WHERE  APPR_CODE = {@APPR_CODE}
+]]></query>
+
+<!-- 결재관리 생성 -->
+<query name="/createApprCodeMgt"><![CDATA[
+INSERT INTO TB_APPR_MGT (
+       APPR_CODE
+     , APPR_NAME
+     , APPR_TABLE
+     , APPR_PK_COLS
+     , APPR_NO_COL
+     , APPR_TITLE_COL
+     , APPR_VIEW_PATH
+     , APPR_NONE_AVAIL_YN
+     , APPR_CANCEL_AVAIL_YN
+     , UPPER_REQ_AVAIL_YN
+     , BUNDLE_APPR_AVAIL_YN
+)
+SELECT {@APPR_CODE}
+     , {@APPR_NAME}
+     , {@APPR_TABLE}
+     , {@APPR_PK_COLS}
+     , {@APPR_NO_COL}
+     , {@APPR_TITLE_COL}
+     , {@APPR_VIEW_PATH}
+     , {@APPR_NONE_AVAIL_YN}
+     , {@APPR_CANCEL_AVAIL_YN}
+     , {@UPPER_REQ_AVAIL_YN}
+     , {@BUNDLE_APPR_AVAIL_YN}
+FROM   DUAL
+WHERE  NOT EXISTS (SELECT 1
+                   FROM   TB_APPR_MGT
+                   WHERE  APPR_CODE = {@APPR_CODE}
+                  )
+]]></query>
+
+<!-- 결재관리 수정 -->
+<query name="/updateApprCodeMgt"><![CDATA[
+UPDATE TB_APPR_MGT SET
+       APPR_NAME = {@APPR_NAME}
+     , APPR_TABLE = {@APPR_TABLE}
+     , APPR_PK_COLS = {@APPR_PK_COLS}
+     , APPR_NO_COL = {@APPR_NO_COL}
+     , APPR_TITLE_COL = {@APPR_TITLE_COL}
+     , APPR_VIEW_PATH = {@APPR_VIEW_PATH}
+     , APPR_NONE_AVAIL_YN = {@APPR_NONE_AVAIL_YN}
+     , APPR_CANCEL_AVAIL_YN = {@APPR_CANCEL_AVAIL_YN}
+     , UPPER_REQ_AVAIL_YN = {@UPPER_REQ_AVAIL_YN}
+     , BUNDLE_APPR_AVAIL_YN = {@BUNDLE_APPR_AVAIL_YN}
+WHERE  APPR_CODE = {@APPR_CODE}
+]]></query>
+
+<!-- 결재관리 삭제 -->
+<query name="/deleteApprCodeMgt"><![CDATA[
+DELETE FROM TB_APPR_MGT A
+WHERE  APPR_CODE = {@APPR_CODE}
+AND    NOT EXISTS (SELECT 1
+                   FROM   TB_APPR_MST
+                   WHERE  APPR_CODE = A.APPR_CODE
+                  )
+]]></query>
+
+</root>

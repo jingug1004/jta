@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 기술분류  맵핑목록 조회 -->
+<query name="/retrieveTechCodeList"><![CDATA[
+SELECT A.TECH_CODE
+     , B.TECH_HNAME
+     , FN_TECH_PATHNAME(A.TECH_CODE, ' > ') TECH_PATHNAME
+FROM   TB_MAPP_TECH_CLS A
+     , TB_COM_TECH_CLS B
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.MAPP_DIV = {@MAPP_DIV}
+AND    A.TECH_CODE = B.TECH_CODE
+ORDER BY TECH_CODE
+]]></query>
+
+</root>

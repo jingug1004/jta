@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 진행서류 이벤트 목록 조회 -->
+<query name="/retrievePaperEventList"><![CDATA[
+SELECT EVENT_SEQ
+     , EVENT_ID
+     , EVENT_NAME
+     , EVENT_DESC
+     , NEXT_URGENT_DATE_QRY
+FROM   TB_PAPER_MGT_EVENT
+WHERE  1 = 1
+]]></query>
+<query name="/retrievePaperEventList/searchText"><![CDATA[
+AND    (UPPER(EVENT_ID) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(EVENT_NAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+       )
+]]></query>
+
+<!-- 진행서류 이벤트 조회 -->
+<query name="/retrievePaperEvent"><![CDATA[
+SELECT EVENT_ID
+     , EVENT_NAME
+     , EVENT_DESC
+     , NEXT_URGENT_DATE_QRY
+FROM   TB_PAPER_MGT_EVENT
+WHERE  EVENT_SEQ = {@EVENT_SEQ}
+]]></query>
+
+<!-- 진행서류 이벤트 SEQ 조회 -->
+<query name="/retrievePaperEventSeq"><![CDATA[
+SELECT LPAD(NVL(MAX(TO_NUMBER(EVENT_SEQ)), 0) + 1, 5, '0') EVENT_SEQ
+FROM   TB_PAPER_MGT_EVENT
+]]></query>
+
+<!-- 진행서류 이벤트 생성 -->
+<query name="/createPaperEvent"><![CDATA[
+INSERT INTO TB_PAPER_MGT_EVENT (
+       EVENT_SEQ
+     , EVENT_ID
+     , EVENT_NAME
+     , EVENT_DESC
+     , NEXT_URGENT_DATE_QRY
+) VALUES (
+       {@EVENT_SEQ}
+     , {@EVENT_ID}
+     , {@EVENT_NAME}
+     , {@EVENT_DESC}
+     , {@NEXT_URGENT_DATE_QRY}
+)
+]]></query>
+
+<!-- 진행서류 이벤트 수정 -->
+<query name="/updatePaperEvent"><![CDATA[
+UPDATE TB_PAPER_MGT_EVENT SET
+       EVENT_ID = {@EVENT_ID}
+     , EVENT_NAME = {@EVENT_NAME}
+     , EVENT_DESC = {@EVENT_DESC}
+     , NEXT_URGENT_DATE_QRY = {@NEXT_URGENT_DATE_QRY}
+WHERE  EVENT_SEQ = {@EVENT_SEQ}
+]]></query>
+
+<!-- 진행서류 이벤트 삭제 -->
+<query name="/deletePaperEvent"><![CDATA[
+DELETE FROM TB_PAPER_MGT_EVENT A
+WHERE  EVENT_SEQ = {@EVENT_SEQ}
+AND    NOT EXISTS (SELECT 1
+                   FROM   TB_PAPER_MGT_EVENT_LIST B
+                   WHERE  B.EVENT_SEQ = A.EVENT_SEQ
+                  )
+]]></query>
+
+<!-- 진행서류 이벤트별 진행서류 목록 조회 -->
+<query name="/retrievePaperEventPaperList"><![CDATA[
+SELECT B.PAPER_DIV
+     , FN_COM_CODE_NAME('PAPER_DIV', B.PAPER_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) PAPER_DIV_NAME
+     , B.INOUT_DIV
+     , FN_COM_CODE_NAME('PAPER_INOUT_DIV', B.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , A.PAPER_CODE
+     , DECODE(A.PAPER_CODE, NULL,'(없음)', '[' || A.PAPER_CODE || '] ' || FN_PAPER_NAME(A.PAPER_CODE)) PAPER_NAME
+     , A.PAPER_SUBCODE
+     , DECODE(A.PAPER_SUBCODE, NULL,NULL, '[' || A.PAPER_SUBCODE || '] ' || FN_PAPER_SUBNAME(A.PAPER_CODE, A.PAPER_SUBCODE)) PAPER_SUBNAME
+FROM   TB_PAPER_MGT_EVENT_LIST A
+     , (SELECT A.PAPER_DIV
+             , A.PAPER_ORD
+             , B.INOUT_DIV
+             , B.INOUT_ORD
+        FROM   (SELECT CODE_VALUE_ID PAPER_DIV
+                     , DISP_ORD PAPER_ORD
+                FROM   TB_COM_CODE_VALUE
+                WHERE  CODE_GRP = (SELECT CODE_GRP FROM TB_COM_CODE_GRP WHERE CODE_GRP_ID = 'PAPER_DIV')
+                AND    USE_YN = '1'
+               ) A
+             , (SELECT CODE_VALUE_ID INOUT_DIV
+                     , DISP_ORD INOUT_ORD
+                FROM   TB_COM_CODE_VALUE
+                WHERE  CODE_GRP = (SELECT CODE_GRP FROM TB_COM_CODE_GRP WHERE CODE_GRP_ID = 'PAPER_INOUT_DIV')
+                AND    USE_YN = '1'
+               ) B
+       ) B
+WHERE  A.EVENT_SEQ(+) = {@EVENT_SEQ}
+AND    A.PAPER_DIV(+) = B.PAPER_DIV
+AND    A.INOUT_DIV(+) = B.INOUT_DIV
+ORDER BY B.PAPER_ORD, B.INOUT_ORD
+]]></query>
+
+<!-- 진행서류 이벤트별 진행서류 조회 -->
+<query name="/retrievePaperEventPaper"><![CDATA[
+SELECT FN_COM_CODE_NAME('PAPER_DIV', A.PAPER_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) PAPER_DIV_NAME
+     , FN_COM_CODE_NAME('INOUT_DIV', A.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , B.PAPER_CODE
+     , FN_PAPER_NAME(B.PAPER_CODE) PAPER_NAME
+     , B.PAPER_SUBCODE
+FROM   (SELECT {@EVENT_SEQ} EVENT_SEQ
+             , {@PAPER_DIV} PAPER_DIV
+             , {@INOUT_DIV} INOUT_DIV
+        FROM   DUAL
+       ) A
+     , TB_PAPER_MGT_EVENT_LIST B
+WHERE  B.EVENT_SEQ(+) = A.EVENT_SEQ
+AND    B.PAPER_DIV(+) = A.PAPER_DIV
+AND    B.INOUT_DIV(+) = A.INOUT_DIV
+]]></query>
+
+<!-- 진행서류 이벤트별 진행서류 생성 -->
+<query name="/createPaperEventPaper"><![CDATA[
+INSERT INTO TB_PAPER_MGT_EVENT_LIST (
+       EVENT_SEQ
+     , PAPER_DIV
+     , INOUT_DIV
+     , PAPER_CODE
+     , PAPER_SUBCODE
+) VALUES (
+       {@EVENT_SEQ}
+     , {@PAPER_DIV}
+     , {@INOUT_DIV}
+     , {@PAPER_CODE}
+     , {@PAPER_SUBCODE}
+)
+]]></query>
+
+<!-- 진행서류 이벤트별 진행서류 수정 -->
+<query name="/updatePaperEventPaper"><![CDATA[
+UPDATE TB_PAPER_MGT_EVENT_LIST SET
+       PAPER_CODE = {@PAPER_CODE}
+     , PAPER_SUBCODE = {@PAPER_SUBCODE}
+WHERE  EVENT_SEQ = {@EVENT_SEQ}
+AND    PAPER_DIV = {@PAPER_DIV}
+AND    INOUT_DIV = {@INOUT_DIV}
+]]></query>
+
+<!-- 진행서류 이벤트별 진행서류 삭제 -->
+<query name="/deletePaperEventPaper"><![CDATA[
+DELETE FROM TB_PAPER_MGT_EVENT_LIST
+WHERE  EVENT_SEQ = {@EVENT_SEQ}
+AND    PAPER_DIV = {@PAPER_DIV}
+AND    INOUT_DIV = {@INOUT_DIV}
+]]></query>
+
+</root>

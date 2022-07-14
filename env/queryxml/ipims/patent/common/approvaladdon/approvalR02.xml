@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 연차료 리마인더 유지여부 조회 -->
+<query name="/RetrieveCostReminderKeepYn"><![CDATA[
+SELECT REF_ID, KEEP_YN
+FROM   TB_COST_REMINDER
+WHERE  EVAL_ID = {@EVAL_ID}
+]]></query>
+
+<!-- 특허부서 평가완료여부 업데이트 -->
+<query name="/updateEvalComMstPatdeptEndYn"><![CDATA[
+UPDATE TB_EVAL_COM_MST SET
+       PATDEPT_EVAL_END_YN = '1'
+WHERE  EVAL_ID = {@EVAL_ID}
+]]></query>
+
+<!-- 연차료 리마인더 평가완료여부 업데이트 -->
+<query name="/updateAnnualReminderEvalEndYn"><![CDATA[
+UPDATE TB_COST_REMINDER SET
+       EVAL_END_YN = '1'
+WHERE  EVAL_ID = {@EVAL_ID}
+]]></query>
+
+</root>

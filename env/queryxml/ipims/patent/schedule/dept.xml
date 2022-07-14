@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+<!-- 임시 테이블 정보 삭제 -->
+<query name="/deleteDeptInfo"><![CDATA[
+DELETE FROM TB_ORG_DEPT_IF
+]]></query>
+<!-- Veiw 부서정보 조회 -->
+<query name="/retrieveDeptInfo"><![CDATA[
+SELECT DEPT_CODE
+       ,DEPT_NAME
+       ,CC_CD
+FROM IF_DEPT_INFO
+WHERE FLAG = 'I'
+]]></query>
+
+<!-- Veiw 부서정보 조회 -->
+<query name="/retrieveDeptTempInfo"><![CDATA[
+SELECT DEPT_CODE
+       ,DEPT_NAME
+       ,CC_CD
+       ,USE_YN
+FROM TB_ORG_DEPT_IF
+]]></query>
+
+<!-- 부서정보(Temp) 생성 -->
+<query name="/createDeptTempInfo"><![CDATA[
+INSERT INTO TB_ORG_DEPT_IF (
+        DEPT_CODE
+      , DEPT_NAME
+      , CC_CD
+      , CRE_USER
+      , CRE_DATETIME
+) VALUES
+(      RTRIM(LTRIM({@DEPT_CODE}))
+      , {@DEPT_NAME}
+      , {@CC_CD}
+      , '0000000000'
+      , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+<!-- 부서정보 생성 -->
+<query name="/createDeptInfo"><![CDATA[
+INSERT INTO TB_ORG_DEPT (
+       DEPT_CODE
+     , DEPT_NAME
+     , CC_CD
+     , USE_YN
+     , CRE_USER
+     , CRE_DATETIME
+) SELECT   RTRIM(LTRIM(DEPT_CODE))
+        , DEPT_NAME
+        , CC_CD
+        , '1'
+        , '0000000000'
+        , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM    TB_ORG_DEPT_IF
+WHERE   RTRIM(LTRIM(DEPT_CODE)) NOT IN (SELECT DEPT.DEPT_CODE FROM TB_ORG_DEPT DEPT)
+]]></query>
+
+<!-- 부서정보 수정 -->
+<query name="/updateDeptInfo"><![CDATA[
+MERGE INTO TB_ORG_DEPT DEPT
+USING (
+    SELECT DEPT_CODE
+         , DEPT_NAME
+         , USE_YN
+         , CC_CD
+    FROM  TB_ORG_DEPT_IF
+) V
+ON (DEPT.DEPT_CODE = TRIM(V.DEPT_CODE))
+WHEN MATCHED THEN
+UPDATE SET
+        DEPT.DEPT_NAME         = V.DEPT_NAME
+      , DEPT.CC_CD             = V.CC_CD
+      , DEPT.USE_YN            = V.USE_YN
+WHEN NOT MATCHED THEN
+INSERT  (DEPT_CODE, DEPT_NAME, CC_CD, USE_YN, CRE_USER, CRE_DATETIME)
+VALUES  (V.DEPT_CODE, V.DEPT_NAME, V.CC_CD, '1', '0000000000', TO_CHAR(SYSDATE, 'YYYYMMDD'))
+]]></query>
+
+<!-- 부서정보 수정 -->
+<query name="/updateIFDeptInfo"><![CDATA[
+UPDATE IF_DEPT_INFO
+SET    FLAG = 'S'
+WHERE  FLAG = 'I'
+]]></query>
+
+</root>

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 수정요청 목록 조회 -->
+<query name="/retrieveAdjustReqList"><![CDATA[
+SELECT A.REQ_ID
+     , A.REQ_DATE
+     , A.REQ_USER
+     , FN_USER_NAME(A.REQ_USER) || ' ( ' || (SELECT C.EMP_NO FROM V_USER_ALL C WHERE A.REQ_USER = C.USER_ID) || ' ) ' AS REQUSER_EMPNO
+     , A.REQ_SUBJECT
+     , B.REF_NO
+     , B.JOB_MAN
+     , FN_USER_NAME(B.JOB_MAN) || ' ( ' || (SELECT C.EMP_NO FROM V_USER_ALL C WHERE B.JOB_MAN = C.USER_ID) || ' ) ' AS JOBMAN_EMPNO
+     , B.INOUT_DIV
+     , FN_COM_CODE_NAME('INOUT_DIV', B.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) REQ_GUBUN_NAME
+     , A.STATUS
+     , {#codeData:A.STATUS:/applymgt/statusGubun} AS STATUS_NAME
+FROM   TB_APP_OFFICE_REQ A
+     , TB_APP_MST B
+WHERE  A.REF_ID = B.REF_ID(+)
+AND    A.REQ_OFFICE = {@$OFFICE_CODE}
+]]></query>
+<query name="/retrieveAdjustReqList/reqGubun"><![CDATA[
+AND    B.INOUT_DIV = {@REQ_GUBUN}
+]]></query>
+<query name="/retrieveAdjustReqList/refNo"><![CDATA[
+AND    B.REF_NO LIKE '%'||{@REF_NO}||'%'
+]]></query>
+<query name="/retrieveAdjustReqList/status"><![CDATA[
+AND    A.STATUS = {@STATUS}
+]]></query>
+<query name="/retrieveAdjustReqList/jobMan"><![CDATA[
+AND    FN_USER_NAME(B.JOB_MAN) LIKE '%'||{@JOB_MAN}||'%'
+]]></query>
+<query name="/retrieveAdjustReqList/dateStart"><![CDATA[
+AND    A.REQ_DATE >= {@DATE_START}
+]]></query>
+<query name="/retrieveAdjustReqList/dateEnd"><![CDATA[
+AND    A.REQ_DATE <= {@DATE_END}
+]]></query>
+
+<!-- 수정요청 조회 -->
+<query name="/retrieveAdjustReq"><![CDATA[
+SELECT A.REQ_ID
+     , A.REQ_USER
+     , FN_USER_NAME(A.REQ_USER) AS REQ_USER_NAME
+     , (SELECT C.EMP_NO FROM V_USER_ALL C WHERE C.USER_ID = A.REQ_USER) AS REQ_USER_NO
+     , A.REQ_DATE
+     , A.REQ_MAIL_YN
+     , B.REF_NO
+     , A.REF_ID
+     , A.REQ_SUBJECT
+     , A.REQ_CONTENTS
+     , A.REQ_FILE
+FROM   TB_APP_OFFICE_REQ A
+     , TB_APP_MST B
+WHERE  A.REF_ID = B.REF_ID(+)
+AND    A.REQ_ID = {@REQ_ID}
+]]></query>
+
+<!-- 수정요청 생성 -->
+<query name="/createAdjustReq"><![CDATA[
+INSERT INTO TB_APP_OFFICE_REQ (
+       REQ_ID
+     , REQ_USER
+     , REQ_DATE
+     , REQ_MAIL_YN
+     , REQ_OFFICE
+     , REF_ID
+     , REQ_SUBJECT
+     , REQ_CONTENTS
+     , REQ_FILE
+) VALUES (
+       {@REQ_ID}
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , {@REQ_MAIL_YN}
+     , {@$OFFICE_CODE}
+     , {@REF_ID}
+     , {@REQ_SUBJECT}
+     , {@REQ_CONTENTS}
+     , {@REQ_FILE}
+)
+]]></query>
+
+<!-- 수정요청 수정 -->
+<query name="/updateAdjustReq"><![CDATA[
+UPDATE TB_APP_OFFICE_REQ SET
+       REQ_MAIL_YN  = {@REQ_MAIL_YN}
+     , REF_ID       = {@REF_ID}
+     , REQ_SUBJECT  = {@REQ_SUBJECT}
+     , REQ_CONTENTS = {@REQ_CONTENTS}
+     , REQ_FILE     = {@REQ_FILE}
+WHERE  REQ_ID       = {@REQ_ID}
+]]></query>
+
+<!-- 수정요청 처리결과 조회 -->
+<query name="/retrieveAdjustReqResult"><![CDATA[
+SELECT A.REQ_ID
+     , A.REQ_USER
+     , FN_USER_NAME(A.REQ_USER) AS REQ_USER_NAME
+     , A.REQ_DATE
+     , A.REQ_MAIL_YN
+     , {#codeData:A.REQ_MAIL_YN:/applymgt/reqMailSendYn} AS REQ_MAIL_YN_NAME
+     , B.INOUT_DIV
+     , FN_COM_CODE_NAME('INOUT_DIV', B.INOUT_DIV, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) INOUT_DIV_NAME
+     , B.REF_NO
+     , B.JOB_MAN
+     , FN_USER_NAME(B.JOB_MAN) AS JOB_MAN_NAME
+     , (SELECT C.EMP_NO FROM V_USER_ALL C WHERE B.JOB_MAN = C.USER_ID) AS JOB_MAN_NO
+     , A.REQ_SUBJECT
+     , A.REQ_CONTENTS
+     , A.REQ_FILE
+     , A.ANS_USER
+     , FN_USER_NAME(A.ANS_USER) AS ANS_USER_NAME
+     , (SELECT C.EMP_NO FROM V_USER_ALL C WHERE A.ANS_USER = C.USER_ID) AS ANS_USER_NO
+     , A.ANS_DATE
+     , A.STATUS
+     , {#codeData:A.STATUS:/applymgt/statusGubun} AS STATUS_NAME
+     , A.ANS_SUBJECT
+     , A.ANS_CONTENTS
+     , A.ANS_FILE
+FROM   TB_APP_OFFICE_REQ A
+     , TB_APP_MST B
+WHERE  A.REF_ID = B.REF_ID(+)
+AND    A.REQ_ID = {@REQ_ID}
+]]></query>
+
+</root>

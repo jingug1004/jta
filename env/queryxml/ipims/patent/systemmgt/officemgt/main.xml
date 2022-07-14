@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 사무소 목록 조회 -->
+<query name="/retrieveOfficeMgtMainList"><![CDATA[
+SELECT OFFICE_CODE
+     , FIRM_HNAME
+     , FIRM_ENAME
+     , COUNTRY_CODE
+     , PRESIDENT_NAME
+     , TELNO
+     , BUSINESS_NO
+     , DISP_ORD
+FROM   TB_ORG_OFFICE
+WHERE  1 = 1
+]]></query>
+<query name="/retrieveOfficeMgtMainList/countryCode"><![CDATA[
+AND    COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveOfficeMgtMainList/searchText"><![CDATA[
+AND    (UPPER(FIRM_HNAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%' OR
+        UPPER(FIRM_ENAME) LIKE '%'||UPPER({@SEARCH_TEXT})||'%'
+       )
+]]></query>
+
+<!-- 사무소 조회 -->
+<query name="/retrieveOfficeMgtMain"><![CDATA[
+SELECT OFFICE_CODE
+     , FIRM_HNAME
+     , FIRM_ENAME
+     , COUNTRY_CODE
+     , PRESIDENT_NAME
+     , BUSINESS_NO
+     , ADDRESS
+     , TELNO
+     , FAXNO
+     , MAILID
+     , DISP_ORD
+     , USE_YN
+     , SAP_CODE
+FROM   TB_ORG_OFFICE
+WHERE  OFFICE_CODE = {@OFFICE_CODE}
+]]></query>
+
+<!-- 사무소 생성 -->
+<query name="/createOfficeMgtMain"><![CDATA[
+INSERT INTO TB_ORG_OFFICE (
+       OFFICE_CODE
+     , FIRM_HNAME
+     , FIRM_ENAME
+     , COUNTRY_CODE
+     , PRESIDENT_NAME
+     , BUSINESS_NO
+     , ADDRESS
+     , TELNO
+     , FAXNO
+     , MAILID
+     , DISP_ORD
+     , USE_YN
+     , CRE_USER
+     , CRE_DATETIME
+     , SAP_CODE
+) VALUES (
+       {@OFFICE_CODE}
+     , {@FIRM_HNAME}
+     , {@FIRM_ENAME}
+     , {@COUNTRY_CODE}
+     , {@PRESIDENT_NAME}
+     , {@BUSINESS_NO}
+     , {@ADDRESS}
+     , {@TELNO}
+     , {@FAXNO}
+     , {@MAILID}
+     , {@DISP_ORD}
+     , {@USE_YN}
+     , {@$USER_ID}
+     , SYSDATE
+     , {@SAP_CODE}
+)
+]]></query>
+
+<!-- 사무소 수정 -->
+<query name="/updateOfficeMgtMain"><![CDATA[
+UPDATE TB_ORG_OFFICE SET
+       FIRM_HNAME     = {@FIRM_HNAME}
+     , FIRM_ENAME     = {@FIRM_ENAME}
+     , COUNTRY_CODE   = {@COUNTRY_CODE}
+     , PRESIDENT_NAME = {@PRESIDENT_NAME}
+     , BUSINESS_NO    = {@BUSINESS_NO}
+     , ADDRESS        = {@ADDRESS}
+     , TELNO          = {@TELNO}
+     , FAXNO          = {@FAXNO}
+     , MAILID         = {@MAILID}
+     , DISP_ORD       = {@DISP_ORD}
+     , USE_YN         = {@USE_YN}
+     , UPD_USER       = {@$USER_ID}
+     , UPD_DATETIME   = SYSDATE
+     , SAP_CODE       = {@SAP_CODE}
+WHERE  OFFICE_CODE = {@OFFICE_CODE}
+]]></query>
+
+<!-- 사무소 삭제 -->
+<query name="/deleteOfficeMgtMain"><![CDATA[
+DELETE FROM TB_ORG_OFFICE A
+WHERE  OFFICE_CODE = {@OFFICE_CODE}
+AND    NOT EXISTS (SELECT 1
+                   FROM   TB_USR_OFFICE T
+                   WHERE  T.OFFICE_CODE = A.OFFICE_CODE
+                  )
+]]></query>
+
+</root>

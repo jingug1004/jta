@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 진행서류 조회 -->
+<query name="/retrieveDocPaper"><![CDATA[
+SELECT A.PAPER_NAME
+     , B.PAPER_SUBNAME
+     , A.PAPER_STEP
+     , A.OA_MGT_STEP
+     , A.INOUT_DIV
+     , A.PATTEAM_MAIL_YN
+     , A.OFFICE_MAIL_YN
+     , A.OFFICE_DISP_YN
+     , A.INVENTOR_MAIL_YN
+     , A.INVENTOR_DISP_YN
+     , A.MST_STATUS_YN
+     , DECODE(A.MST_ABD_YN, '0',B.MST_ABD_YN, '1') MST_ABD_YN
+     , A.WITH_PAPER_CODE
+     , A.WITH_PAPER_SUBCODE
+     , C.JOB_MAN CRE_USER
+     , C.MST_DIV
+     , C.COUNTRY_CODE
+FROM   TB_PAPER_MGT_MST A
+     , TB_PAPER_MGT_SUB B
+     , V_MASTER_ALL C
+WHERE  A.PAPER_CODE = {@PAPER_CODE}
+AND    B.PAPER_CODE = A.PAPER_CODE
+AND    B.PAPER_SUBCODE = {@PAPER_SUBCODE}
+AND    C.REF_ID = {@REF_ID}
+AND    A.PAPER_DIV = DECODE(C.RIGHT_DIV, '20','10', C.RIGHT_DIV)
+AND    A.INOUT_DIV IN (C.INOUT_DIV, 'COM')
+]]></query>
+
+<!-- 이벤트 진행서류 조회 -->
+<query name="/retrieveEventDocPaper"><![CDATA[
+SELECT B.PAPER_CODE
+     , B.PAPER_SUBCODE
+     , (SELECT T.NEXT_URGENT_DATE_QRY FROM TB_PAPER_MGT_EVENT T WHERE T.EVENT_SEQ = B.EVENT_SEQ) NEXT_URGENT_DATE_QRY
+FROM   V_MASTER_ALL A
+     , TB_PAPER_MGT_EVENT_LIST B
+WHERE  A.REF_ID = {@REF_ID}
+AND    B.PAPER_DIV = DECODE(A.RIGHT_DIV, '20','10', A.RIGHT_DIV)
+AND    B.INOUT_DIV = A.INOUT_DIV
+AND    B.EVENT_SEQ = (SELECT EVENT_SEQ FROM TB_PAPER_MGT_EVENT WHERE EVENT_ID = {@EVENT_ID})
+]]></query>
+
+<!-- 이벤트 다음 업무처리기한일 조회 -->
+<query name="/retrieveEventNextUrgentDate"><![CDATA[
+SELECT * FROM (
+{#NEXT_URGENT_DATE_QRY}
+) A
+]]></query>
+
+<!-- 현재 진행중인 OA들을 모두 종료처리 -->
+<query name="/updateOACloseAll"><![CDATA[
+UPDATE TB_OA_HIST SET
+       END_PAPER_SEQ = {@LIST_SEQ}
+     , END_YN = '1'
+WHERE  REF_ID = {@REF_ID}
+AND    END_YN = '0'
+]]></query>
+
+<!-- OA 생성 -->
+<query name="/createOA"><![CDATA[
+INSERT INTO TB_OA_HIST (
+       REF_ID
+     , OA_SEQ
+     , START_PAPER_SEQ
+     , DUE_DATE
+     , END_YN
+) VALUES (
+       {@REF_ID}
+     , {@OA_SEQ}
+     , {@START_PAPER_SEQ}
+     , {@DUE_DATE}
+     , '0'
+)
+]]></query>
+
+<!-- OA 생성 -->
+<query name="/createIDS"><![CDATA[
+INSERT INTO TB_PAPER_LIST (
+       REF_ID
+     , LIST_SEQ
+     , PAPER_CODE
+     , PAPER_SUBCODE
+     , OA_SEQ
+     , PAPER_REF_NO
+     , COMMENTS
+     , PAPER_DATE
+     , URGENT_DATE
+     , DUE_DATE
+     , REMARK
+     , FILE_ID
+     , OFFICE_DISP_YN
+     , INVENTOR_DISP_YN
+     , INPUT_OWNER
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@REF_ID}
+     , {@LIST_SEQ}
+     , {@PAPER_CODE}
+     , {@PAPER_SUBCODE}
+     , {@OA_SEQ}
+     , {@PAPER_REF_NO}
+     , {@COMMENTS}
+     , {@PAPER_DATE}
+     , {@URGENT_DATE}
+     , {@DUE_DATE}
+     , {@REMARK}
+     , {@FILE_ID}
+     , {@OFFICE_DISP_YN}
+     , {@INVENTOR_DISP_YN}
+     , {@INPUT_OWNER}
+     , NVL({@CRE_USER}, {@$USER_ID})
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 진행중인 OA 시퀀스 조회 -->
+<query name="/retrieveOASeq"><![CDATA[
+SELECT MAX(OA_SEQ) OA_SEQ
+FROM   TB_OA_HIST
+WHERE  REF_ID = {@REF_ID}
+AND    END_YN = '0'
+]]></query>
+
+<!-- OA 종료 -->
+<query name="/updateOAClose"><![CDATA[
+UPDATE TB_OA_HIST SET
+       END_PAPER_SEQ = {@END_PAPER_SEQ}
+     , END_YN = '1'
+WHERE  REF_ID = {@REF_ID}
+AND    OA_SEQ = {@OA_SEQ}
+]]></query>
+
+<!-- 진행서류 생성 -->
+<query name="/createDocPaper"><![CDATA[
+INSERT INTO TB_PAPER_LIST (
+       REF_ID
+     , LIST_SEQ
+     , PAPER_CODE
+     , PAPER_SUBCODE
+     , OA_SEQ
+     , PAPER_REF_NO
+     , COMMENTS
+     , PAPER_DATE
+     , URGENT_DATE
+     , DUE_DATE
+     , REMARK
+     , FILE_ID
+     , OFFICE_DISP_YN
+     , INVENTOR_DISP_YN
+     , INPUT_OWNER
+     , CRE_USER
+     , CRE_DATE
+) VALUES (
+       {@REF_ID}
+     , {@LIST_SEQ}
+     , {@PAPER_CODE}
+     , {@PAPER_SUBCODE}
+     , {@OA_SEQ}
+     , {@PAPER_REF_NO}
+     , {@COMMENTS}
+     , {@PAPER_DATE}
+     , {@URGENT_DATE}
+     , {@DUE_DATE}
+     , {@REMARK}
+     , {@FILE_ID}
+     , {@OFFICE_DISP_YN}
+     , {@INVENTOR_DISP_YN}
+     , {@INPUT_OWNER}
+     , NVL({@CRE_USER}, {@$USER_ID})
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+)
+]]></query>
+
+<!-- 출원 마스터상태 업데이트 -->
+<query name="/updateApplyMasterStatus"><![CDATA[
+UPDATE TB_APP_MST SET
+       STATUS = {@PAPER_CODE}
+     , STATUS_DATE = {@PAPER_DATE}
+WHERE  REF_ID = {@REF_ID}
+AND    NVL(STATUS_DATE, '00000000') <= {@PAPER_DATE}
+]]></query>
+
+<!-- 분쟁/소송 마스터상태 업데이트 -->
+<query name="/updateDisputeMasterStatus"><![CDATA[
+UPDATE TB_IPB_DISPUTE SET
+       STATUS = {@PAPER_CODE}
+     , STATUS_DATE = {@PAPER_DATE}
+WHERE  DISPUTE_ID = {@REF_ID}
+AND    NVL(STATUS_DATE, '00000000') <= {@PAPER_DATE}
+]]></query>
+
+<!-- 마스터 포기여부 조회 -->
+<query name="/retrieveAppMasterAbdYn"><![CDATA[
+SELECT ABD_YN
+FROM   TB_APP_MST
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 마스터 포기처리 -->
+<query name="/updateMasterAbd"><![CDATA[
+UPDATE TB_APP_MST SET (
+       ABD_YN
+     , ABD_USER
+     , ABD_DATE
+     , ABD_MEMO
+) = (
+SELECT '1'
+     , CRE_USER
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+     , NVL(COMMENTS, '포기서류 : ' || FN_PAPER_NAME(PAPER_CODE) || ' - ' || FN_PAPER_SUBNAME(PAPER_CODE, PAPER_SUBCODE))
+FROM   TB_PAPER_LIST
+WHERE  REF_ID = {@REF_ID}
+AND    LIST_SEQ = {@LIST_SEQ}
+)
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 진행서류 알림메일 발송정보 조회 -->
+<query name="/retrieveInformMailSendInfo"><![CDATA[
+SELECT D.REF_NO
+     , B.PAPER_NAME
+     , C.PAPER_SUBNAME
+     , TO_CHAR(TO_DATE(A.DUE_DATE, 'YYYYMMDD'), 'YYYY/MM/DD') DUE_DATE
+     , D.KO_APP_TITLE
+     , TO_CHAR(SYSDATE, 'YYYY/MM/DD') SEND_DATE
+     , FN_USER_NAME(D.JOB_MAN) JOB_MAN_NAME
+     , D.OFFICE_CODE
+     , FN_OFFICE_NAME(D.OFFICE_CODE) OFFICE_NAME
+     , FN_USER_NAME(D.OFFICE_JOB_MAN) OFFICE_JOB_MAN_NAME
+     , D.OFFICE_REF_NO
+     , E.EXT_OFFICE_REF_NO
+     , D.INOUT_DIV
+     , FN_INVENTOR_NAMES(D.REF_ID) INVENTOR_NAMES
+     , FN_INVENTOR_NAMES2(D.REF_ID, '1') MAIN_INVENTOR_NAME
+     , FN_INVENTOR_NAMES2(D.REF_ID, '0') SUB_INVENTOR_NAMES
+     , A.REMARK
+     , D.APP_NO
+FROM   TB_PAPER_LIST A
+     , TB_PAPER_MGT_MST B
+     , TB_PAPER_MGT_SUB C
+     , TB_APP_MST D
+     , TB_APP_MST_EXT E
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.LIST_SEQ = {@LIST_SEQ}
+AND    B.PAPER_CODE = A.PAPER_CODE
+AND    C.PAPER_CODE = A.PAPER_CODE
+AND    C.PAPER_SUBCODE = A.PAPER_SUBCODE
+AND    D.REF_ID(+) = A.REF_ID
+AND    E.REF_ID(+) = A.REF_ID
+]]></query>
+
+<!-- 진행서류 알림메일 특허팀 수신정보 조회 -->
+<query name="/retrieveInformMailPatteamRecvInfo"><![CDATA[
+SELECT B.MAIL_ADDR TO_ADDR
+     , B.EMP_HNAME TO_NAME
+FROM   TB_APP_MST A
+     , TB_USR_MST B
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.JOB_MAN = B.USER_ID
+]]></query>
+
+<!-- 진행서류 알림메일 사무소 수신정보 조회 -->
+<query name="/retrieveInformMailOfficeRecvInfo"><![CDATA[
+SELECT A.MAILID TO_ADDR
+     , A.FIRM_HNAME TO_NAME
+FROM   TB_ORG_OFFICE A
+WHERE  A.OFFICE_CODE = {@OFFICE_CODE}
+]]></query>
+
+<!-- 진행서류 알림메일 발명자 수신목록 조회 -->
+<query name="/retrieveInformMailInventorRecvList"><![CDATA[
+SELECT B.MAIL_ADDR TO_ADDR
+     , B.EMP_HNAME TO_NAME
+FROM   TB_MAPP_INVENTOR A
+     , TB_USR_MST B
+WHERE  A.REF_ID = {#1}
+AND    A.INV_USER = B.USER_ID
+]]></query>
+<query name="/retrieveInformMailInventorRecvList/intInoutDiv"><![CDATA[
+{@REF_ID}
+]]></query>
+<query name="/retrieveInformMailInventorRecvList/extInoutDiv"><![CDATA[
+(SELECT GRP_ID FROM TB_APP_MST_EXT WHERE REF_ID = {@REF_ID} )
+]]></query>
+
+<!-- 진행서류 알림메일 모든발명자 수신 조회 -->
+<query name="/retrieveInformMailAllpatent"><![CDATA[
+SELECT MAIL_ADDR TO_ADDR
+    ,  EMP_HNAME TO_NAME
+FROM  TB_USR_MST
+WHERE SYSTEM_TYPE ='PATENT'
+]]></query>
+
+
+<!-- 진행서류 입력정보 조회 -->
+<query name="/retrieveInputDocPaper"><![CDATA[
+SELECT A.FILE_ID
+     , A.OA_SEQ
+     , B.OA_MGT_STEP
+FROM   TB_PAPER_LIST A
+     , TB_PAPER_MGT_MST B
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.LIST_SEQ = {@LIST_SEQ}
+AND    A.PAPER_CODE = B.PAPER_CODE
+]]></query>
+
+<!-- 삭제할 진행서류에 의해 종료되었던 OA를 다시 진행중으로 복원 -->
+<query name="/updateOAStart"><![CDATA[
+UPDATE TB_OA_HIST SET
+       END_PAPER_SEQ = NULL
+     , END_YN = '0'
+WHERE  REF_ID = {@REF_ID}
+AND    END_PAPER_SEQ = {@LIST_SEQ}
+]]></query>
+
+<!-- 진행서류 삭제 -->
+<query name="/deleteInputDocPaper"><![CDATA[
+DELETE FROM TB_PAPER_LIST
+WHERE  REF_ID = {@REF_ID}
+AND    LIST_SEQ = {@LIST_SEQ}
+]]></query>
+
+<!-- OA 삭제 -->
+<query name="/deleteOA"><![CDATA[
+DELETE FROM TB_OA_HIST A
+WHERE  REF_ID = {@REF_ID}
+AND    OA_SEQ = {@OA_SEQ}
+AND    END_YN = '0'
+AND    NOT EXISTS (SELECT 1
+                   FROM   TB_PAPER_LIST
+                   WHERE  REF_ID = {@REF_ID}
+                   AND    OA_SEQ = {@OA_SEQ}
+                  )
+]]></query>
+
+<!-- 진행서류 이벤트 조회 -->
+<query name="/retrieveDocPaperEvent"><![CDATA[
+SELECT A.EVENT_ID
+FROM   TB_PAPER_MGT_EVENT A
+     , TB_PAPER_MGT_EVENT_LIST B
+WHERE  A.EVENT_SEQ = B.EVENT_SEQ
+AND    B.PAPER_CODE = {@PAPER_CODE}
+AND    B.PAPER_SUBCODE = {@PAPER_SUBCODE}
+]]></query>
+
+<!-- OA DUE_DATE 수정 -->
+<query name="/updateOADueDate"><![CDATA[
+UPDATE TB_OA_HIST SET
+       DUE_DATE = (SELECT DUE_DATE
+                   FROM   TB_PAPER_LIST
+                   WHERE  REF_ID = {@REF_ID}
+                   AND    LIST_SEQ = (SELECT MAX(LIST_SEQ)
+                                      FROM   TB_PAPER_LIST A
+                                      WHERE  A.REF_ID = {@REF_ID}
+                                      AND    A.OA_SEQ = {@OA_SEQ}
+                                      AND    (A.PAPER_CODE, A.PAPER_SUBCODE) IN
+                                             (SELECT PAPER_CODE, PAPER_SUBCODE
+                                              FROM   TB_PAPER_MGT_MST
+                                              WHERE  OA_MGT_STEP ='S'
+                                              UNION
+                                              SELECT PAPER_CODE, PAPER_SUBCODE
+                                              FROM   TB_PAPER_MGT_EVENT_LIST
+                                              WHERE  EVENT_SEQ = (SELECT EVENT_SEQ FROM TB_PAPER_MGT_EVENT WHERE EVENT_ID = 'OA_PERIOD_EXTEND')
+                                             )
+                                      AND    A.DUE_DATE IS NOT NULL
+                                     ))
+WHERE  REF_ID = {@REF_ID}
+AND    OA_SEQ = {@OA_SEQ}
+]]></query>
+
+<!-- 마스터 공개정보 수정 -->
+<query name="/updateMasterPublicInfo"><![CDATA[
+UPDATE TB_APP_MST SET
+       PUB_NO = {@PAPER_REF_NO}
+     , PUB_DATE = {@PAPER_DATE}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 마스터 공고정보 수정 -->
+<query name="/updateMasterNoticeInfo"><![CDATA[
+UPDATE TB_APP_MST SET
+       NOTICE_NO = {@PAPER_REF_NO}
+     , NOTICE_DATE = {@PAPER_DATE}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 진행서류 알림메일(미국 및 EPO 담당 국내사무소에 IDS제출요청메일발송)  -->
+<query name="/retrieveInformMailRecvList"><![CDATA[
+SELECT F.MAILID TO_ADDR
+     , F.PRESIDENT_NAME TO_NAME
+FROM TB_APP_MST A
+   , TB_APP_EXT_GRP B
+   , TB_APP_MST_EXT C
+   , TB_APP_EXT_OL D
+   , TB_APP_EXT_OL_COUNTRY E
+   , TB_ORG_OFFICE F
+WHERE A.REF_ID = C.REF_ID
+AND   B.GRP_ID = C.GRP_ID
+AND   B.GRP_ID = D.GRP_ID
+AND   D.OL_ID = E.OL_ID
+AND A.OFFICE_CODE = F.OFFICE_CODE
+WHERE  A.REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 마스터 심사청구정보 수정 -->
+<query name="/updateMasterExamReqYn"><![CDATA[
+UPDATE TB_APP_MST SET
+       EXAMREQ_YN = '1'
+     , EXAMREQ_DATE = {@PAPER_DATE}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 기한리스트 정리 -->
+<query name="/proDocPaper"><![CDATA[
+UPDATE TB_PAPER_LIST SET
+    DATE_ADMIN ='1'
+WHERE  REF_ID = {@REF_ID}
+   AND PAPER_CODE NOT IN ('10INT-0088', '10INT-0067' ,'10EXT-0069' , '30INT-0077', '40INT-0071')
+]]></query>
+</root>

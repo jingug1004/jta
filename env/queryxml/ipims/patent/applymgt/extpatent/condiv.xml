@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 계속/분할OL 모출원 서지사항 조회 -->
+<query name="/retrieveExtPatentConDivPrior"><![CDATA[
+SELECT A.REF_ID
+     , B.GRP_ID
+     , A.REF_NO
+     , A.CRE_DATE
+     , A.COUNTRY_CODE
+     , FN_COUNTRY_NAME(A.COUNTRY_CODE) AS COUNTRY_CODE_NAME
+     , A.JOB_MAN
+     , FN_USER_NAME(A.JOB_MAN) AS JOB_MAN_NAME
+     , A.OFFICE_CODE
+     , FN_OFFICE_NAME(A.OFFICE_CODE) AS INT_OFFICE_NAME
+     , A.EXAMREQ_YN
+     , FN_COM_CODE_NAME('EXAMREQ_YN', A.EXAMREQ_YN, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) EXAMREQ_YN_NAME
+     , A.KO_APP_TITLE
+     , C.FIRSTAPP_DATE
+     , A.APP_NO
+     , A.APP_DATE
+FROM   TB_APP_MST A
+     , TB_APP_MST_EXT B
+     , TB_APP_EXT_GRP C
+WHERE  A.REF_ID = {@DIVISION_PRIOR_REF_ID}
+AND    A.REF_ID = B.REF_ID(+)
+AND    B.GRP_ID = C.GRP_ID(+)
+]]></query>
+
+<!-- 계속/분할OL 조회 -->
+<query name="/retrieveExtPatentConDiv"><![CDATA[
+SELECT A.DIVISION_PRIOR_REF_ID
+     , A.DIVISION_TYPE
+     , FN_COM_CODE_NAME('OL_DIVISION_TYPE', A.DIVISION_TYPE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) DIVISION_TYPE_NAME
+     , A.CRE_DATE AS OL_CRE_DATE
+     , A.ATTACH_FILE
+     , A.EXAM_OPINION
+     , A.CRE_USER
+FROM   TB_APP_EXT_OL A
+WHERE  A.OL_ID = {@OL_ID}
+]]></query>
+
+<!-- 계속/분할OL 분할코드 조회 -->
+<query name="/retrieveExtPatentConDivDivisionCode"><![CDATA[
+SELECT MAX(DIVISION_CODE) DIVISION_CODE
+FROM   TB_APP_MST A
+WHERE  A.DIVISION_PRIOR_REF_ID = {@DIVISION_PRIOR_REF_ID}
+AND    A.DIVISION_TYPE = {@DIVISION_TYPE}
+]]></query>
+
+<!-- 계속/분할OL 생성 -->
+<query name="/createExtPatentConDiv"><![CDATA[
+INSERT INTO TB_APP_EXT_OL (
+       OL_ID
+     , OL_DIV
+     , GRP_ID
+     , DIVISION_PRIOR_REF_ID
+     , DIVISION_TYPE
+     , DIVISION_CODE
+     , ATTACH_FILE
+     , EXAM_OPINION
+     , PRIORITY_CLAIM_YN
+     , PRIORITY_CLAIM_COUNTRY
+     , CRE_USER
+     , CRE_DATE
+)
+SELECT {@OL_ID}
+     , 'C'
+     , A.GRP_ID
+     , A.REF_ID
+     , {@DIVISION_TYPE}
+     , {@DIVISION_CODE}
+     , {@ATTACH_FILE}
+     , {@EXAM_OPINION}
+     , '1'
+     , 'KR'
+     , {@$USER_ID}
+     , TO_CHAR(SYSDATE, 'YYYYMMDD')
+FROM   TB_APP_MST_EXT A
+WHERE  A.REF_ID = {@DIVISION_PRIOR_REF_ID}
+]]></query>
+
+<!-- 계속/분할OL 수정 -->
+<query name="/updateExtPatentConDiv"><![CDATA[
+UPDATE TB_APP_EXT_OL SET
+       DIVISION_TYPE = {@DIVISION_TYPE}
+     , DIVISION_CODE = {@DIVISION_CODE}
+     , ATTACH_FILE   = {@ATTACH_FILE}
+     , EXAM_OPINION  = {@EXAM_OPINION}
+     , UPD_USER      = {@$USER_ID}
+     , UPD_DATE      = TO_CHAR(SYSDATE, 'YYYYMMDD')
+WHERE  OL_ID = {@OL_ID}
+]]></query>
+
+<!-- 계속/분할OL 출원국가 생성 -->
+<query name="/createExtPatentConDivCountry"><![CDATA[
+INSERT INTO TB_APP_EXT_OL_COUNTRY (
+       OL_ID
+     , COUNTRY_CODE
+     , EXAMREQ_YN
+     , EXT_OFFICE_CODE
+)
+SELECT {@OL_ID}
+     , A.COUNTRY_CODE
+     , A.EXAMREQ_YN
+     , B.EXT_OFFICE_CODE
+FROM   TB_APP_MST A
+     , TB_APP_MST_EXT B
+WHERE  A.REF_ID = {@DIVISION_PRIOR_REF_ID}
+AND    A.REF_ID = B.REF_ID(+)
+]]></query>
+
+</root>

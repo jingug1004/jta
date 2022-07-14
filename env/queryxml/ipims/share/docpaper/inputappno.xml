@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 출원정보 입력사항 조회 -->
+<query name="/retrieveInputAppNo"><![CDATA[
+SELECT A.REF_NO
+     , A.RIGHT_DIV
+     , A.APP_NO
+     , A.APP_DATE
+     , B.INDEP_CLAIM
+     , B.SUBORD_CLAIM
+     , B.DRAWING_CNT
+     , B.PAPER_CNT
+     , A.KO_APP_TITLE
+     , A.EN_APP_TITLE
+     , A.EXAMREQ_DATE
+     {#remark}
+     , A.APPDOC_FILE
+     , FN_INVENTOR_NAMES(A.REF_ID) INVENTOR_NAMES
+     , A.STATUS
+FROM   TB_APP_MST A
+     , TB_APP_MST_INT B
+WHERE  A.REF_ID = {@REF_ID}
+AND    A.REF_ID = B.REF_ID(+)
+]]></query>
+<query name="/retrieveInputAppNo/remark"><![CDATA[
+     , (SELECT REMARK FROM TB_PAPER_LIST WHERE REF_ID = {@REF_ID} AND LIST_SEQ = {@LIST_SEQ}) REMARK
+]]></query>
+
+<!-- 출원정보 입력사항 저장 -->
+<query name="/updateInputAppNo"><![CDATA[
+UPDATE TB_APP_MST SET
+       APP_NO       = {@APP_NO}
+     , APP_DATE     = {@APP_DATE}
+     , KO_APP_TITLE = NVL({@KO_APP_TITLE}, KO_APP_TITLE)
+     , EN_APP_TITLE = NVL({@EN_APP_TITLE}, EN_APP_TITLE)
+     , EXAMREQ_DATE = {@EXAMREQ_DATE}
+     , APPDOC_FILE  = {@APPDOC_FILE}
+     , IPC_CLS_CODE = {@IPC_CLS_CODE}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- 출원정보 입력사항 저장 - 국내 -->
+<query name="/updateInputAppNoInt"><![CDATA[
+UPDATE TB_APP_MST_INT SET
+       INDEP_CLAIM  = {@INDEP_CLAIM}
+     , SUBORD_CLAIM = {@SUBORD_CLAIM}
+     , DRAWING_CNT  = {@DRAWING_CNT}
+     , PAPER_CNT    = {@PAPER_CNT}
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- IPC분류코드 전체 삭제 -->
+<query name="/deleteRivalPatIpcCodeAll"><![CDATA[
+DELETE FROM TB_MAPP_IPC_CLS
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+<!-- IPC분류코드 생성 -->
+<query name="/createRivalPatIpcCode"><![CDATA[
+INSERT INTO TB_MAPP_IPC_CLS (
+       REF_ID
+     , IPC_CODE
+     , MAPP_DIV
+) VALUES (
+       {@REF_ID}
+     , {@IPC_CODE}
+     , 'N'
+)
+]]></query>
+
+<!-- IPC분류코드 주분류 설정 -->
+<query name="/updateRivalPatIpcCode"><![CDATA[
+UPDATE TB_MAPP_IPC_CLS SET
+       MAPP_DIV = 'N'
+WHERE  REF_ID = {@REF_ID}
+AND    ROWNUM = 1
+]]></query>
+
+
+<!--  -->
+<query name="selectRivalPatIpcCode"><![CDATA[
+SELECT COUNT(*) CNT TB_MAPP_IPC_CLS
+WHERE  REF_ID = {@REF_ID}
+]]></query>
+
+</root>

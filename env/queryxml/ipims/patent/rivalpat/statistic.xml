@@ -1,0 +1,829 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+
+<!-- 등급별검토현황 목록 조회 -->
+<query name="/retrieveRivalPatGradeStatisticList"><![CDATA[
+SELECT FN_COM_CODE_NAME('RIVALPAT_EVAL_GRADE', C.EVAL_GRADE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) EVAL_GRADE_NAME
+     , NVL(A.CNT,0) CNT
+     , NVL(ROUND(A.CNT/NVL(B.TOT_CNT, 1)*100,2),0) CNT_PERCENT
+FROM   (SELECT EVAL_GRADE
+             , COUNT(EVAL_GRADE) CNT
+        FROM   TB_RIVALPAT_EVAL
+        WHERE  EVAL_GRADE IS NOT NULL
+        GROUP BY EVAL_GRADE
+       ) A
+     , (SELECT COUNT(*) TOT_CNT
+        FROM   TB_RIVALPAT_EVAL
+        WHERE  EVAL_GRADE IS NOT NULL
+       ) B
+     , (SELECT CODE_VALUE_ID EVAL_GRADE
+             , DISP_ORD
+        FROM   TB_COM_CODE_VALUE
+        WHERE  CODE_GRP = '00061'
+     ) C
+WHERE  C.EVAL_GRADE = A.EVAL_GRADE(+)
+ORDER BY C.DISP_ORD
+]]></query>
+
+<!-- 기술분류별검토현황 목록 조회 -->
+<query name="/retrieveRivalPatTechStatisticList"><![CDATA[
+SELECT A.TECH_HNAME
+     , A.TECH_LEVEL
+     , A.TECH_CODE
+     --출원
+     , NVL(B.KRAPP_CNT, 0) KRAPP_CNT
+     , NVL(B.USAPP_CNT, 0) USAPP_CNT
+     , NVL(B.CNAPP_CNT, 0) CNAPP_CNT
+     , NVL(B.TWAPP_CNT, 0) TWAPP_CNT
+     , NVL(B.JPAPP_CNT, 0) JPAPP_CNT
+     , NVL(B.EPAPP_CNT, 0) EPAPP_CNT
+     , NVL(B.DEAPP_CNT, 0) DEAPP_CNT
+     , NVL(B.ECTAPP_CNT, 0) ECTAPP_CNT
+     --등록
+     , NVL(B.KRREG_CNT, 0) KRREG_CNT
+     , NVL(B.USREG_CNT, 0) USREG_CNT
+     , NVL(B.CNREG_CNT, 0) CNREG_CNT
+     , NVL(B.TWREG_CNT, 0) TWREG_CNT
+     , NVL(B.JPREG_CNT, 0) JPREG_CNT
+     , NVL(B.EPREG_CNT, 0) EPREG_CNT
+     , NVL(B.DEREG_CNT, 0) DEREG_CNT
+     , NVL(B.ECTREG_CNT, 0) ECTREG_CNT
+     , NVL(B.TOTAL_CNT, 0) TOTAL_CNT
+     , NVL(C.EVAL_CNT, 0) EVAL_CNT
+     , NVL(ROUND(C.EVAL_CNT / NVL(B.TOTAL_CNT, 0)*100, 2), 0) EVAL_PERCENT
+     , PRIOR_TECH_CODE
+     , FN_TECH_PATHNAME(A.TECH_CODE, ' > ') TECH_PATHNAME
+FROM   TB_COM_TECH_CLS A
+     , (SELECT TECH_CODE, SUM(TOTAL_CNT) TOTAL_CNT
+                  , SUM(KRAPP_CNT) KRAPP_CNT, SUM(USAPP_CNT) USAPP_CNT, SUM(CNAPP_CNT) CNAPP_CNT
+                  , SUM(TWAPP_CNT) TWAPP_CNT, SUM(JPAPP_CNT) JPAPP_CNT, SUM(EPAPP_CNT) EPAPP_CNT
+                  , SUM(DEAPP_CNT) DEAPP_CNT, SUM(ECTAPP_CNT) ECTAPP_CNT
+                  , SUM(KRREG_CNT) KRREG_CNT, SUM(USREG_CNT) USREG_CNT, SUM(CNREG_CNT) CNREG_CNT
+                  , SUM(TWREG_CNT) TWREG_CNT, SUM(JPREG_CNT) JPREG_CNT, SUM(EPREG_CNT) EPREG_CNT
+                  , SUM(DEREG_CNT) DEREG_CNT, SUM(ECTREG_CNT) ECTREG_CNT
+ FROM (SELECT TB2.TECH_CODE
+             , COUNT(TB2.TECH_CODE) TOTAL_CNT
+             , TR1.COUNTRY_CODE
+             --출원
+             , DECODE(TR1.COUNTRY_CODE , 'KR' , DECODE(TR1.APP_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS KRAPP_CNT
+             , DECODE(TR1.COUNTRY_CODE , 'US' , DECODE(TR1.APP_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS USAPP_CNT
+             , DECODE(TR1.COUNTRY_CODE , 'CN' , DECODE(TR1.APP_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS CNAPP_CNT
+             , DECODE(TR1.COUNTRY_CODE , 'TW' , DECODE(TR1.APP_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS TWAPP_CNT
+             , DECODE(TR1.COUNTRY_CODE , 'JP' , DECODE(TR1.APP_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS JPAPP_CNT
+             , DECODE(TR1.COUNTRY_CODE , 'EP' , DECODE(TR1.APP_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS EPAPP_CNT
+             , DECODE(TR1.COUNTRY_CODE , 'DE' , DECODE(TR1.APP_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS DEAPP_CNT
+             , DECODE(DECODE(TR1.COUNTRY_CODE , 'KR','1','US','1','CN','1','TW','1','JP','1','EP','1','DE','1','2'),'2',DECODE(TR1.APP_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS ECTAPP_CNT
+             --등록
+             , DECODE(TR1.COUNTRY_CODE , 'KR' , DECODE(TR1.REG_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS KRREG_CNT
+             , DECODE(TR1.COUNTRY_CODE , 'US' , DECODE(TR1.REG_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS USREG_CNT
+             , DECODE(TR1.COUNTRY_CODE , 'CN' , DECODE(TR1.REG_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS CNREG_CNT
+             , DECODE(TR1.COUNTRY_CODE , 'TW' , DECODE(TR1.REG_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS TWREG_CNT
+             , DECODE(TR1.COUNTRY_CODE , 'JP' , DECODE(TR1.REG_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS JPREG_CNT
+             , DECODE(TR1.COUNTRY_CODE , 'EP' , DECODE(TR1.REG_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS EPREG_CNT
+             , DECODE(TR1.COUNTRY_CODE , 'DE' , DECODE(TR1.REG_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS DEREG_CNT
+             , DECODE(DECODE(TR1.COUNTRY_CODE , 'KR','1','US','1','CN','1','TW','1','JP','1','EP','1','DE','1','2'),'2',DECODE(TR1.REG_NO,'',0,COUNT(TR1.COUNTRY_CODE))) AS ECTREG_CNT
+        FROM   TB_RIVALPAT_MAPP_TECH_CLS TB2
+             , TB_RIVALPAT_MST TR1
+        WHERE  TB2.MGT_ID = TR1.MGT_ID
+        AND    TB2.MAIN_CLS_YN = '1'
+        GROUP BY TB2.TECH_CODE,TR1.COUNTRY_CODE,TR1.APP_NO,TR1.REG_NO) D   GROUP BY D.TECH_CODE) B
+     , (SELECT TECH_CODE
+             , COUNT(TECH_CODE) EVAL_CNT
+        FROM   TB_RIVALPAT_MAPP_TECH_CLS TB1
+        WHERE  MAIN_CLS_YN = '1'
+        AND    EXISTS(SELECT 1
+                      FROM   TB_RIVALPAT_EVAL
+                      WHERE  MGT_ID = TB1.MGT_ID
+                      AND    EVAL_GRADE IS NOT NULL)
+        GROUP BY TECH_CODE) C
+WHERE   A.TECH_CODE = B.TECH_CODE(+)
+AND     A.TECH_CODE = C.TECH_CODE(+)
+AND A.USE_YN = '1'
+ORDER  BY A.TECH_CODE ,A.TECH_HNAME
+]]></query>
+
+
+<!-- 기술분류별 총건수 목록 조회 -->
+<query name="/retrieveRivalPatTechStatisticListPop"><![CDATA[
+SELECT A.TECH_HNAME
+     , A.TECH_LEVEL
+     , A.TECH_CODE
+     , PRIOR_TECH_CODE
+     , FN_TECH_PATHNAME(A.TECH_CODE, ' > ') TECH_PATHNAME
+     , B.WIPS_KEY
+     , B.PAT_DIV
+     , FN_RIVALPAT_TECH_NAMES(B.MGT_ID) TECH_NAMES
+     , FN_RIVALPAT_IPC_NAMES(B.MGT_ID) IPC_NAMES
+     , B.OWN_APP_MAN
+     , B.COUNTRY_CODE
+     , B.STATUS_CODE
+     , B.APP_NO
+     , B.APP_DATE
+     , B.TITLE
+     , B.APP_MAN
+     , B.INVENTOR
+     , B.SUMMARY
+     , B.AGENT
+     , B.MGT_ID
+FROM   TB_COM_TECH_CLS A
+     , (SELECT TB2.TECH_CODE
+             , COUNT(TB2.TECH_CODE) TOTAL_CNT
+             , TR1.MGT_ID
+             , TR1.COUNTRY_CODE
+             , TR1.WIPS_KEY
+             , TR1.PAT_DIV
+             , FN_RIVALPAT_TECH_NAMES(TR1.MGT_ID) TECH_NAMES
+             , FN_RIVALPAT_IPC_NAMES(TR1.MGT_ID) IPC_NAMES
+             , TR1.OWN_APP_MAN
+             , TR1.STATUS_CODE
+             , TR1.APP_NO
+             , TR1.APP_DATE
+             , TR1.TITLE
+             , TR1.APP_MAN
+             , TR1.INVENTOR
+             , TR1.SUMMARY
+             , TR1.AGENT
+        FROM   TB_RIVALPAT_MAPP_TECH_CLS TB2
+             , TB_RIVALPAT_MST TR1
+        WHERE  TB2.MGT_ID = TR1.MGT_ID
+        AND    TB2.MAIN_CLS_YN = '1'
+        GROUP BY TB2.TECH_CODE,TR1.COUNTRY_CODE,TR1.APP_NO,TR1.REG_NO, TR1.MGT_ID, TR1.WIPS_KEY, TR1.PAT_DIV, TR1.OWN_APP_MAN, TR1.STATUS_CODE,
+                 TR1.APP_NO, TR1.APP_DATE, TR1.TITLE, TR1.APP_MAN, TR1.INVENTOR, TR1.SUMMARY, TR1.AGENT  ) B
+     , (SELECT TECH_CODE
+             , COUNT(TECH_CODE) EVAL_CNT
+        FROM   TB_RIVALPAT_MAPP_TECH_CLS TB1
+        WHERE  MAIN_CLS_YN = '1'
+        AND    EXISTS(SELECT 1
+                      FROM   TB_RIVALPAT_EVAL
+                      WHERE  MGT_ID = TB1.MGT_ID
+                      AND    EVAL_GRADE IS NOT NULL)
+        GROUP BY TECH_CODE) C
+WHERE   A.TECH_CODE = B.TECH_CODE(+)
+AND     A.TECH_CODE = C.TECH_CODE(+)
+AND     A.TECH_CODE = {@TECH_CODE}
+]]></query>
+
+
+<!-- IPC분류별검토현황 목록 조회 -->
+<query name="/retrieveRivalPatIpcStatisticList"><![CDATA[
+SELECT A.IPC_HNAME
+     , A.IPC_LEVEL
+     , A.IPC_CODE
+     , C.EVAL_CNT
+     , NVL(B.TOTAL_CNT, 0) TOTAL_CNT
+     , NVL(C.EVAL_CNT, 0) EVAL_CNT
+     , NVL(ROUND(C.EVAL_CNT / NVL(B.TOTAL_CNT, 0)*100, 2), 0) EVAL_PERCENT
+FROM   TB_COM_IPC_CLS A
+     , (SELECT IPC_CODE
+             , COUNT(IPC_CODE) TOTAL_CNT
+        FROM   TB_RIVALPAT_MAPP_IPC_CLS
+        WHERE  MAIN_CLS_YN = '1'
+        GROUP BY IPC_CODE) B
+     , (SELECT IPC_CODE
+             , COUNT(IPC_CODE) EVAL_CNT
+        FROM   TB_RIVALPAT_MAPP_IPC_CLS TB1
+        WHERE  MAIN_CLS_YN = '1'
+        AND    EXISTS(SELECT 1
+                      FROM   TB_RIVALPAT_EVAL
+                      WHERE  MGT_ID = TB1.MGT_ID
+                      AND    EVAL_GRADE IS NOT NULL)
+        GROUP BY IPC_CODE) C
+WHERE   A.IPC_CODE = B.IPC_CODE(+)
+AND     A.IPC_CODE = C.IPC_CODE(+)
+ORDER BY A.IPC_CODE, A.IPC_LEVEL ASC
+]]></query>
+
+<!-- 정량맵 조회 01-제품별건수 -->
+<query name="/retrieveRivalPatQuantityMap_01"><![CDATA[
+SELECT A.TECH_HNAME COL2
+     , NVL(B.CNT,0) CNT
+FROM  (SELECT TECH_HNAME
+       FROM   TB_COM_TECH_CLS
+       WHERE  TECH_LEVEL = '1'
+       ) A
+     ,(SELECT TB2.TECH_HNAME
+            , COUNT(1) CNT
+       FROM   TB_RIVALPAT_MST TB1
+            , (SELECT MGT_ID
+                    , FN_TECH_ROOTNAME(TECH_CODE) TECH_HNAME
+               FROM   TB_RIVALPAT_MAPP_TECH_CLS
+               ) TB2
+       WHERE  TB1.MGT_ID = TB2.MGT_ID
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_01/countryCode"><![CDATA[
+       AND    TB1.COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_01/ownAppMan"><![CDATA[
+       AND    TB1.OWN_APP_MAN = {@OWN_APP_MAN}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_01/bottomQuery"><![CDATA[
+       GROUP BY TB2.TECH_HNAME
+       ) B
+WHERE  A.TECH_HNAME = B.TECH_HNAME(+)
+]]></query>
+
+<!-- 정량맵 조회 02-출원인별 제품별건수 -->
+<query name="/retrieveRivalPatQuantityMap_02"><![CDATA[
+SELECT A.OWN_APP_MAN COL1
+     , A.TECH_HNAME COL2
+     , NVL(B.CNT,0) CNT
+FROM  (SELECT TB1.TECH_HNAME
+            , TB2.OWN_APP_MAN
+       FROM   TB_COM_TECH_CLS TB1
+            , (SELECT DISTINCT OWN_APP_MAN
+               FROM   TB_RIVALPAT_MST
+               WHERE  OWN_APP_MAN IS NOT NULL
+               ) TB2
+       WHERE TB1.TECH_LEVEL = '1'
+       ) A
+     ,(SELECT DISTINCT TB3.OWN_APP_MAN
+            , TB4.TECH_HNAME
+            , COUNT(1) CNT
+       FROM   TB_RIVALPAT_MST TB3
+            , (SELECT MGT_ID
+                    , FN_TECH_ROOTNAME(TECH_CODE) TECH_HNAME
+               FROM   TB_RIVALPAT_MAPP_TECH_CLS
+               ) TB4
+       WHERE  TB3.MGT_ID = TB4.MGT_ID
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_02/countryCode"><![CDATA[
+       AND    TB3.COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_02/bottomQuery"><![CDATA[
+       GROUP BY TB3.OWN_APP_MAN, TB4.TECH_HNAME
+       ) B
+WHERE  A.TECH_HNAME = B.TECH_HNAME(+)
+AND    A.OWN_APP_MAN = B.OWN_APP_MAN(+)
+ORDER BY COL2, COL1, CNT DESC
+]]></query>
+
+<!-- 정량맵 조회 03-출원인별건수 -->
+<query name="/retrieveRivalPatQuantityMap_03"><![CDATA[
+SELECT OWN_APP_MAN COL2
+     , CNT
+FROM  (SELECT A.OWN_APP_MAN
+            , NVL(B.CNT,0) CNT
+            , ROWNUM RWNUM
+       FROM  (SELECT DISTINCT OWN_APP_MAN
+              FROM   TB_RIVALPAT_MST
+              WHERE  OWN_APP_MAN IS NOT NULL
+             )A
+            ,(SELECT TB1.OWN_APP_MAN
+                   , COUNT(*) CNT
+              FROM   TB_RIVALPAT_MST TB1
+                   , TB_RIVALPAT_MAPP_TECH_CLS TB2
+              WHERE  TB1.MGT_ID = TB2.MGT_ID
+              AND    TB1.OWN_APP_MAN IS NOT NULL
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_03/countryCode"><![CDATA[
+              AND    TB1.COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_03/techCode"><![CDATA[
+              AND    TB2.TECH_CODE IN (SELECT TECH_CODE
+                                       FROM   TB_COM_TECH_CLS
+                                       CONNECT BY PRIOR_TECH_CODE = PRIOR TECH_CODE
+                                       START WITH TECH_CODE = {@TECH_CODE}
+                                       )
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_03/middleQuery"><![CDATA[
+              GROUP BY OWN_APP_MAN
+              ) B
+       WHERE A.OWN_APP_MAN = B.OWN_APP_MAN(+)
+       ORDER BY CNT DESC
+       )
+WHERE  1=1
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_03/searchRank"><![CDATA[
+AND    ROWNUM <= {@SEARCH_RANK}
+]]></query>
+
+<!-- 정량맵 조회 04-출원인별 연도별 건수 -->
+<query name="/retrieveRivalPatQuantityMap_04"><![CDATA[
+SELECT A.OWN_APP_MAN COL1
+     , SUBSTR(A.APP_DATE,0,4) COL2
+     , SUM(NVL(B.CNT,0)) CNT
+FROM  (SELECT TB1.APP_DATE
+            , TB2.OWN_APP_MAN
+       FROM  (SELECT DISTINCT APP_DATE
+              FROM  TB_RIVALPAT_MST
+              WHERE APP_DATE IS NOT NULL
+              ) TB1
+            ,(SELECT OWN_APP_MAN
+              FROM  (SELECT OWN_APP_MAN
+                          , CNT
+                          , ROWNUM RWNUM
+                     FROM  (SELECT DISTINCT OWN_APP_MAN
+                                 , COUNT(*) CNT
+                            FROM   TB_RIVALPAT_MST
+                            WHERE  OWN_APP_MAN IS NOT NULL
+                            GROUP BY OWN_APP_MAN
+                            )
+                     ORDER BY CNT DESC
+                     )
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_04/searchRank"><![CDATA[
+              WHERE ROWNUM <= {@SEARCH_RANK}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_04/middleQuery"><![CDATA[
+              ) TB2
+       ) A
+     ,(SELECT TB3.APP_DATE
+            , TB3.OWN_APP_MAN
+            , COUNT(1) CNT
+       FROM   TB_RIVALPAT_MST TB3
+            , TB_RIVALPAT_MAPP_TECH_CLS TB4
+       WHERE  TB3.MGT_ID = TB4.MGT_ID
+       AND    TB3.OWN_APP_MAN IS NOT NULL
+       AND    TB3.APP_DATE IS NOT NULL
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_04/techCode"><![CDATA[
+       AND    TB4.TECH_CODE = {@TECH_CODE}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_04/searchYear"><![CDATA[
+       AND    SUBSTR(TB3.APP_DATE,0,4) >= TO_CHAR(SYSDATE, 'YYYY') - {@SEARCH_YEAR}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_04/countryCode"><![CDATA[
+       AND    TB3.COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_04/bottomQuery"><![CDATA[
+       GROUP BY TB3.APP_DATE, TB3.OWN_APP_MAN
+      ) B
+WHERE A.OWN_APP_MAN = B.OWN_APP_MAN(+)
+AND   A.APP_DATE = B.APP_DATE(+)
+GROUP BY SUBSTR(A.APP_DATE,0,4), A.OWN_APP_MAN
+ORDER BY SUBSTR(A.APP_DATE,0,4)
+]]></query>
+
+<!-- 정량맵 조회 05-연도별 건수 -->
+<query name="/retrieveRivalPatQuantityMap_05"><![CDATA[
+SELECT A.APP_DATE COL2
+     , NVL(B.CNT,0) CNT
+FROM  (SELECT SUBSTR(APP_DATE,0,4) APP_DATE
+       FROM   TB_RIVALPAT_MST
+       WHERE  APP_DATE IS NOT NULL
+       GROUP BY SUBSTR(APP_DATE,0,4)
+       ) A
+     ,(SELECT SUBSTR(APP_DATE,0,4) APP_DATE
+            , COUNT(1) CNT
+       FROM   TB_RIVALPAT_MST
+       WHERE  1=1
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_05/countryCode"><![CDATA[
+       AND    COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_05/ownAppMan"><![CDATA[
+       AND    OWN_APP_MAN = {@OWN_APP_MAN}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_05/bottomQuery"><![CDATA[
+       GROUP BY SUBSTR(APP_DATE,0,4)
+       ) B
+WHERE  A.APP_DATE = B.APP_DATE(+)
+]]></query>
+
+<!-- 정량맵 조회 06-제품별 연도별 건수 -->
+<query name="/retrieveRivalPatQuantityMap_06"><![CDATA[
+SELECT A.TECH_HNAME COL1
+     , A.APP_DATE COL2
+     , NVL(B.CNT,0) CNT
+FROM  (SELECT TB1.APP_DATE
+            , TB2.TECH_HNAME
+       FROM  (SELECT SUBSTR(APP_DATE,0,4) APP_DATE
+              FROM   TB_RIVALPAT_MST
+              WHERE  APP_DATE IS NOT NULL
+              GROUP BY SUBSTR(APP_DATE,0,4)
+              ) TB1
+            , TB_COM_TECH_CLS TB2
+       WHERE  TB2.TECH_LEVEL = '1'
+       ) A
+     ,(SELECT SUBSTR(TB3.APP_DATE,0,4) APP_DATE
+            , FN_TECH_ROOTNAME(TB4.TECH_CODE) TECH_HNAME
+            , COUNT(1) CNT
+       FROM   TB_RIVALPAT_MST TB3
+            , TB_RIVALPAT_MAPP_TECH_CLS TB4
+       WHERE  TB3.MGT_ID = TB4.MGT_ID
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_06/countryCode"><![CDATA[
+       AND    TB3.COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_06/ownAppMan"><![CDATA[
+       AND    TB3.OWN_APP_MAN = {@OWN_APP_MAN}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_06/bottomQuery"><![CDATA[
+       GROUP BY SUBSTR(TB3.APP_DATE,0,4), FN_TECH_ROOTNAME(TB4.TECH_CODE)
+       )B
+WHERE  A.TECH_HNAME = B.TECH_HNAME(+)
+AND    A.APP_DATE = B.APP_DATE(+)
+ORDER BY A.APP_DATE
+]]></query>
+
+<!-- 정량맵 조회 07-제품별 등급별 건수 -->
+<query name="/retrieveRivalPatQuantityMap_07"><![CDATA[
+SELECT A.TECH_HNAME COL1
+     , FN_COM_CODE_NAME('RIVALPAT_EVAL_GRADE', A.EVAL_GRADE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) COL2
+     , NVL(B.CNT,0) CNT
+FROM  (SELECT TB1.EVAL_GRADE
+            , TB2.TECH_HNAME
+       FROM  (SELECT CODE_VALUE_ID EVAL_GRADE
+              FROM   TB_COM_CODE_VALUE
+              WHERE  CODE_GRP = '00061'
+              ) TB1
+            ,(SELECT TECH_HNAME
+              FROM   TB_COM_TECH_CLS
+              WHERE  TECH_LEVEL = '1'
+              ) TB2
+       ) A
+     ,(SELECT TB4.EVAL_GRADE
+            , FN_TECH_ROOTNAME(TB5.TECH_CODE) TECH_HNAME
+            , COUNT(1) CNT
+       FROM   TB_RIVALPAT_MST TB3
+            , TB_RIVALPAT_EVAL TB4
+            , TB_RIVALPAT_MAPP_TECH_CLS TB5
+       WHERE  TB3.MGT_ID = TB4.MGT_ID
+       AND    TB3.MGT_ID = TB5.MGT_ID
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_07/countryCode"><![CDATA[
+       AND    TB3.COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_07/ownAppMan"><![CDATA[
+       AND    TB3.OWN_APP_MAN = {@OWN_APP_MAN}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_07/middleQuery"><![CDATA[
+       GROUP BY TB4.EVAL_GRADE, FN_TECH_ROOTNAME(TB5.TECH_CODE)
+       ) B
+WHERE  A.TECH_HNAME = B.TECH_HNAME(+)
+AND    A.EVAL_GRADE = B.EVAL_GRADE(+)
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_07/techCode"><![CDATA[
+AND    A.TECH_HNAME = FN_TECH_ROOTNAME({@TECH_CODE})
+]]></query>
+
+<!-- 정량맵 조회 08-등급별 건수 -->
+<query name="/retrieveRivalPatQuantityMap_08"><![CDATA[
+SELECT FN_COM_CODE_NAME('RIVALPAT_EVAL_GRADE', A.EVAL_GRADE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) COL2
+     , NVL(B.CNT,0) CNT
+FROM  (SELECT CODE_VALUE_ID EVAL_GRADE
+       FROM   TB_COM_CODE_VALUE
+       WHERE  CODE_GRP = '00061'
+       ) A
+     ,(SELECT TB2.EVAL_GRADE
+            , COUNT(1) CNT
+       FROM   TB_RIVALPAT_MST TB1
+            , TB_RIVALPAT_EVAL TB2
+            , TB_RIVALPAT_MAPP_TECH_CLS TB3
+       WHERE  TB1.MGT_ID = TB2.MGT_ID
+       AND    TB1.MGT_ID = TB3.MGT_ID
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_08/countryCode"><![CDATA[
+]]></query>
+       AND    TB1.COUNTRY_CODE = {@COUNTRY_CODE}
+<query name="/retrieveRivalPatQuantityMap_08/techCode"><![CDATA[
+       AND    TB3.TECH_CODE IN (SELECT TECH_CODE
+                                FROM   TB_COM_TECH_CLS
+                                CONNECT BY PRIOR_TECH_CODE = PRIOR TECH_CODE
+                                START WITH TECH_CODE = {@TECH_CODE}
+                                )
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_08/bottomQuery"><![CDATA[
+       GROUP BY TB2.EVAL_GRADE
+       ) B
+WHERE  A.EVAL_GRADE = B.EVAL_GRADE(+)
+ORDER BY A.EVAL_GRADE
+]]></query>
+
+<!-- 정량맵 조회 09-하위레벨별 건수 -->
+<query name="/retrieveRivalPatQuantityMap_09"><![CDATA[
+SELECT A.TECH_HNAME COL2
+     , NVL(B.CNT, 0) CNT
+FROM   (SELECT TECH_CODE
+             , TECH_HNAME
+        FROM   TB_COM_TECH_CLS
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_09/techCode01"><![CDATA[
+        WHERE  NVL(PRIOR_TECH_CODE, '') = {@TECH_CODE}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_09/middleQuery01"><![CDATA[
+       )A
+     , (SELECT TB2.TECH_CODE
+             , COUNT(1) CNT
+        FROM   TB_RIVALPAT_MST TB1
+             , TB_RIVALPAT_MAPP_TECH_CLS TB2
+             , TB_COM_TECH_CLS TB3
+        WHERE  TB1.MGT_ID = TB2.MGT_ID
+        AND    TB2.TECH_CODE = TB3.TECH_CODE
+        AND    TB2.TECH_CODE IN (SELECT TECH_CODE
+                                 FROM   TB_COM_TECH_CLS
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_09/techCode02"><![CDATA[
+                                 WHERE NVL(PRIOR_TECH_CODE, '') = {@TECH_CODE}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_09/middleQuery02"><![CDATA[
+                                 )
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_09/countryCode"><![CDATA[
+        AND    TB1.COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_09/ownAppMan"><![CDATA[
+        AND    TB1.OWN_APP_MAN = {@OWN_APP_MAN}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_09/bottomQuery"><![CDATA[
+        GROUP BY TB2.TECH_CODE
+       ) B
+WHERE  A.TECH_CODE = B.TECH_CODE(+)
+]]></query>
+
+<!-- 정량맵 조회 10-국가별 제품별 건수 -->
+<query name="/retrieveRivalPatQuantityMap_10"><![CDATA[
+SELECT A.COUNTRY_CODE COL1
+     , A.TECH_HNAME COL2
+     , NVL(SUM(B.CNT),0) CNT
+FROM   (SELECT TB1.TECH_HNAME
+             , TB2.COUNTRY_CODE
+             , TB2.SORT
+        FROM   TB_COM_TECH_CLS TB1
+             , (SELECT DISTINCT COUNTRY_CODE
+                     , DECODE(COUNTRY_CODE, 'KR', 1, 'JP', 2, 'US', 3, 'EP', 4) AS SORT
+                FROM   TB_RIVALPAT_MST
+                WHERE  COUNTRY_CODE IS NOT NULL
+                GROUP BY COUNTRY_CODE
+                ) TB2
+        WHERE  TB1.TECH_LEVEL = '1'
+       ) A
+     , (SELECT TB3.COUNTRY_CODE
+             , FN_TECH_ROOTNAME(TB4.TECH_CODE) TECH_HNAME
+             , COUNT(1) CNT
+        FROM   TB_RIVALPAT_MST TB3
+             , TB_RIVALPAT_MAPP_TECH_CLS TB4
+        WHERE  TB3.MGT_ID = TB4.MGT_ID
+        GROUP BY TB3.COUNTRY_CODE, TB4.TECH_CODE
+       ) B
+WHERE  A.TECH_HNAME = B.TECH_HNAME(+)
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_10/countryCode"><![CDATA[
+AND    A.COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_10/bottomQuery"><![CDATA[
+AND    A.COUNTRY_CODE = B.COUNTRY_CODE(+)
+GROUP BY A.TECH_HNAME, A.COUNTRY_CODE
+ORDER BY A.COUNTRY_CODE, A.TECH_HNAME
+]]></query>
+
+<!-- 정량맵 조회 11-제품별 국가별 건수 -->
+<query name="/retrieveRivalPatQuantityMap_11"><![CDATA[
+SELECT A.TECH_HNAME COL1
+     , A.COUNTRY_CODE COL2
+     , NVL(SUM(B.CNT),0) CNT
+FROM  (SELECT TB1.COUNTRY_CODE
+            , TB2.TECH_HNAME
+       FROM  (SELECT DISTINCT COUNTRY_CODE
+              FROM   TB_RIVALPAT_MST
+              WHERE  COUNTRY_CODE IS NOT NULL
+              GROUP BY COUNTRY_CODE
+              ) TB1
+            , TB_COM_TECH_CLS TB2
+       WHERE  TB2.TECH_LEVEL = '1'
+       ) A
+     , (SELECT TB3.COUNTRY_CODE
+             , FN_TECH_ROOTNAME(TB4.TECH_CODE) TECH_HNAME
+             , COUNT(1) CNT
+        FROM   TB_RIVALPAT_MST TB3
+             , TB_RIVALPAT_MAPP_TECH_CLS TB4
+        WHERE  TB3.MGT_ID = TB4.MGT_ID
+        GROUP BY TB3.COUNTRY_CODE, TB4.TECH_CODE
+        ) B
+WHERE  A.TECH_HNAME = B.TECH_HNAME(+)
+AND    A.COUNTRY_CODE = B.COUNTRY_CODE(+)
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_11/techCode"><![CDATA[
+AND    A.TECH_HNAME = FN_TECH_ROOTNAME({@TECH_CODE})
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_11/bottomQuery"><![CDATA[
+GROUP BY A.COUNTRY_CODE, A.TECH_HNAME
+]]></query>
+
+<!-- 정량맵 조회 12-출원인별 국가별 건수 -->
+<query name="/retrieveRivalPatQuantityMap_12"><![CDATA[
+SELECT A.OWN_APP_MAN COL1
+     , A.COUNTRY_CODE COL2
+     , NVL(B.CNT,0) CNT
+FROM  (SELECT TB1.COUNTRY_CODE
+            , TB2.OWN_APP_MAN
+       FROM  (SELECT DISTINCT COUNTRY_CODE
+              FROM   TB_RIVALPAT_MST
+              WHERE  COUNTRY_CODE IS NOT NULL
+              GROUP BY COUNTRY_CODE
+              ) TB1
+            ,(SELECT OWN_APP_MAN
+              FROM  (SELECT OWN_APP_MAN
+                          , CNT
+                          , ROWNUM RWNUM
+                     FROM  (SELECT DISTINCT OWN_APP_MAN
+                                 , COUNT(*) CNT
+                            FROM   TB_RIVALPAT_MST
+                            WHERE  OWN_APP_MAN IS NOT NULL
+                            GROUP BY OWN_APP_MAN
+                            )
+                     ORDER BY CNT DESC
+                     )
+              WHERE 1=1
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_12/searchRank01"><![CDATA[
+              AND   ROWNUM <= {@SEARCH_RANK}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_12/middleQuery"><![CDATA[
+              ) TB2
+       ) A
+     ,(SELECT COUNTRY_CODE
+            , OWN_APP_MAN
+            , CNT
+       FROM  (SELECT COUNTRY_CODE
+                   , OWN_APP_MAN
+                   , NVL(CNT,0) CNT
+                   , ROWNUM RWNUM
+              FROM  (SELECT COUNTRY_CODE
+                          , OWN_APP_MAN
+                          , COUNT(1) CNT
+                     FROM   TB_RIVALPAT_MST
+                     GROUP BY COUNTRY_CODE, OWN_APP_MAN
+                     )
+              ORDER BY CNT DESC
+              )
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_12/searchRank02"><![CDATA[
+       WHERE  ROWNUM <= {@SEARCH_RANK}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_12/bottomQuery"><![CDATA[
+       ) B
+WHERE  A.OWN_APP_MAN = B.OWN_APP_MAN(+)
+AND    A.COUNTRY_CODE = B.COUNTRY_CODE(+)
+]]></query>
+
+<!-- 정량맵 조회 13-국가별 등급별 건수 -->
+<query name="/retrieveRivalPatQuantityMap_13"><![CDATA[
+SELECT A.COUNTRY_CODE COL1
+     , FN_COM_CODE_NAME('RIVALPAT_EVAL_GRADE', A.EVAL_GRADE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) COL2
+     , NVL(B.CNT, 0) CNT
+FROM  (SELECT TB1.CODE_VALUE_ID EVAL_GRADE
+            , TB2.COUNTRY_CODE
+       FROM  (SELECT CODE_VALUE_ID
+              FROM   TB_COM_CODE_VALUE
+              WHERE  CODE_GRP = '00061'
+              ) TB1
+            ,(SELECT DISTINCT COUNTRY_CODE
+              FROM   TB_RIVALPAT_MST
+              WHERE  COUNTRY_CODE IS NOT NULL
+              GROUP BY COUNTRY_CODE
+              ) TB2
+       ) A
+     ,(SELECT TB4.EVAL_GRADE
+            , COUNT(1) CNT
+            , TB3.COUNTRY_CODE
+       FROM   TB_RIVALPAT_MST TB3
+            , TB_RIVALPAT_EVAL TB4
+       WHERE  TB3.MGT_ID = TB4.MGT_ID
+       GROUP BY TB4.EVAL_GRADE, TB3.COUNTRY_CODE
+       ) B
+WHERE  A.EVAL_GRADE = B.EVAL_GRADE(+)
+AND    A.COUNTRY_CODE = B.COUNTRY_CODE(+)
+ORDER BY DECODE(A.COUNTRY_CODE, 'KR','1','JP','2','US','3','EP','4'), A.EVAL_GRADE
+]]></query>
+
+<!-- 정량맵 조회 14-제품별 출원인별 건수 -->
+<query name="/retrieveRivalPatQuantityMap_14"><![CDATA[
+SELECT B.TECH_HNAME COL1
+     , A.OWN_APP_MAN COL2
+     , SUM(NVL(A.CNT,0)) CNT
+FROM  (SELECT *
+       FROM  (SELECT COUNT(*) CNT
+                   , OWN_APP_MAN
+              FROM   TB_RIVALPAT_MST
+              WHERE  OWN_APP_MAN IS NOT NULL
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_14/countryCode"><![CDATA[
+              AND    COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_14/middleQuery"><![CDATA[
+              GROUP BY OWN_APP_MAN
+              ORDER BY CNT DESC
+              )
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_14/searchRank"><![CDATA[
+       WHERE  ROWNUM <= {@SEARCH_RANK}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_14/bottomQuery"><![CDATA[
+       ) A
+     ,(SELECT TB1.OWN_APP_MAN
+            , TB2.TECH_HNAME
+       FROM  (SELECT DISTINCT OWN_APP_MAN
+              FROM   TB_RIVALPAT_MST
+              WHERE  OWN_APP_MAN IS NOT NULL
+              GROUP BY OWN_APP_MAN
+              ) TB1
+            , TB_COM_TECH_CLS TB2
+       WHERE  TB2.TECH_LEVEL = '1'
+       ) B
+WHERE B.OWN_APP_MAN = A.OWN_APP_MAN(+)
+GROUP BY B.TECH_HNAME , A.OWN_APP_MAN, A.CNT
+ORDER BY B.TECH_HNAME
+]]></query>
+
+<!-- 정량맵 조회 15-출원인별 등급별 건수 -->
+<query name="/retrieveRivalPatQuantityMap_15"><![CDATA[
+SELECT A.OWN_APP_MAN COL1
+     , FN_COM_CODE_NAME('RIVALPAT_EVAL_GRADE', A.EVAL_GRADE, {@$LANG_CODE}, {@$DEFAULT_LANG_CODE}) COL2
+     , NVL(B.CNT,0) CNT
+FROM  (SELECT TB1.CODE_VALUE_ID EVAL_GRADE
+            , TB2.OWN_APP_MAN
+       FROM  (SELECT CODE_VALUE_ID
+              FROM   TB_COM_CODE_VALUE
+              WHERE  CODE_GRP = '00061'
+              ) TB1
+            ,(SELECT OWN_APP_MAN
+              FROM  (SELECT OWN_APP_MAN
+                          , CNT
+                          , ROWNUM RWNUM
+                     FROM  (SELECT DISTINCT OWN_APP_MAN
+                                 , COUNT(*) CNT
+                            FROM   TB_RIVALPAT_MST
+                            WHERE  OWN_APP_MAN IS NOT NULL
+                            GROUP BY OWN_APP_MAN
+                            )
+                     ORDER BY CNT DESC
+                     )
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_15/searchRank01"><![CDATA[
+              WHERE ROWNUM <= {@SEARCH_RANK}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_15/middleQuery01"><![CDATA[
+              ) TB2
+       ) A
+     ,(SELECT EVAL_GRADE
+            , CNT
+            , OWN_APP_MAN
+       FROM  (SELECT EVAL_GRADE
+                   , CNT
+                   , OWN_APP_MAN
+                   , ROWNUM RWNUM
+              FROM  (SELECT TB4.EVAL_GRADE
+                          , COUNT(1) CNT
+                          , TB3.OWN_APP_MAN
+                     FROM   TB_RIVALPAT_MST TB3
+                          , TB_RIVALPAT_EVAL TB4
+                          , TB_RIVALPAT_MAPP_TECH_CLS TB5
+                     WHERE  TB3.MGT_ID = TB4.MGT_ID
+                     AND    TB3.MGT_ID = TB5.MGT_ID
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_15/countryCode"><![CDATA[
+                     AND    TB3.COUNTRY_CODE = {@COUNTRY_CODE}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_15/techCode"><![CDATA[
+                     AND     TB5.TECH_CODE IN (SELECT TECH_CODE
+                                               FROM   TB_COM_TECH_CLS
+                                               CONNECT BY PRIOR_TECH_CODE = PRIOR TECH_CODE
+                                               START WITH TECH_CODE = {@TECH_CODE}
+                                               )
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_15/middleQuery02"><![CDATA[
+                     GROUP BY TB4.EVAL_GRADE, TB3.OWN_APP_MAN
+                     )
+              ORDER BY CNT DESC
+              )
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_15/searchRank02"><![CDATA[
+       WHERE ROWNUM <= {@SEARCH_RANK}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_15/middleQuery03"><![CDATA[
+       ) B
+WHERE  A.EVAL_GRADE = B.EVAL_GRADE(+)
+AND    A.OWN_APP_MAN = B.OWN_APP_MAN(+)
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_15/ownAppMan"><![CDATA[
+AND    A.OWN_APP_MAN = {@OWN_APP_MAN}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_15/bottomQuery"><![CDATA[
+ORDER BY A.OWN_APP_MAN, A.EVAL_GRADE
+]]></query>
+
+<!-- 정량맵 조회 16-국가별 건수 -->
+<query name="/retrieveRivalPatQuantityMap_16"><![CDATA[
+SELECT A.COUNTRY_CODE COL2
+     , NVL(B.CNT,0) CNT
+FROM  (SELECT DISTINCT COUNTRY_CODE
+       FROM   TB_RIVALPAT_MST
+       WHERE  COUNTRY_CODE IS NOT NULL
+       GROUP BY COUNTRY_CODE
+       ) A
+     ,(SELECT COUNTRY_CODE
+            , COUNT(1) CNT
+       FROM   TB_RIVALPAT_MST
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_16/ownAppMan"><![CDATA[
+       WHERE  OWN_APP_MAN = {@OWN_APP_MAN}
+]]></query>
+<query name="/retrieveRivalPatQuantityMap_16/bottomQuery"><![CDATA[
+       GROUP BY COUNTRY_CODE
+       )B
+WHERE  A.COUNTRY_CODE = B.COUNTRY_CODE(+)
+ORDER BY DECODE(A.COUNTRY_CODE, 'KR','1','JP','2','US','3','EP','4')
+]]></query>
+</root>
